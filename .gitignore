@@ -1,0 +1,14 @@
+# Dependencies
+/node_modules/
+
+# Build
+/.nitro/
+/.output/
+/.tanstack/
+
+# Environment
+/.env
+.vercel
+
+# Misc
+.DS_Store

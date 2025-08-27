@@ -1,0 +1,9 @@
+{
+  "name": "TanStack Start app template",
+  "description": "A TanStack Start template for apps",
+  "browserIcon": "/icon.svg",
+  "shareCardImage": "/open-graph.png",
+  "dev": {
+    "port": 3001
+  }
+}

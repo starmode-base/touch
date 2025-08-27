@@ -1,0 +1,25 @@
+---
+alwaysApply: false
+---
+
+# Background
+
+This project is based on this template:
+https://github.com/starmode-base/template-tanstack-start
+
+# Goal
+
+Safely apply changes from the template to this project derived from it.
+
+# Instructions
+
+The template has been updated and improved several times since this project was started. I would like to update this project with those changes without losing project specific changes.
+
+- Go through each file in the template and compare it to the equivalent file in this project.
+- Files may have moved in the template, and if so the corresponding project files should also be moved.
+- Do your best to not remove project specfic customization.
+
+# Special files instructions
+
+- /.cursor/rules/update-from-template.mdc - Always copy this file as-is from the template
+- /package.json - It is okay if dependency versions are later than those in the template. Make sure dependecies are correctly placed in "dependencies" and "devDependencies"

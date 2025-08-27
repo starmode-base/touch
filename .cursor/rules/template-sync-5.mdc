@@ -1,0 +1,56 @@
+---
+alwaysApply: true
+---
+
+# Goal
+
+Update this project to match the template’s latest state while preserving local intent. Make edits directly in the working tree; I will review and commit.
+
+# Variables
+
+- templateRepo: https://github.com/starmode-base/template-tanstack-start
+- lastSyncedCommitURL: "https://github.com/starmode-base/template-tanstack-start/commit/0228e23c768c19152f3149d33f0159b54df2e0ee"
+
+# Non-negotiable constraints
+
+- Do NOT perform any git mutations in THIS repo (no commit/push/branch/reset/rebase/cherry-pick).
+- You MAY temp-clone the template repo read-only to compute diffs; do NOT mutate the template repo.
+- Be rename-aware: if files moved in the template, mirror the move locally and update imports/paths.
+- Preserve local project intent. Prefer keeping local configuration/comments and integrating template updates around them.
+- Be exhaustive: every template path at NEW (and deletions since BASE) must be processed and reported.
+- Do not emit patch files; edit the working tree in place.
+
+# Output contract
+
+- Before starting:
+  - Extract the SHA from {{lastSyncedCommitURL}}.
+  - Print a line: `BASE commit SHA: <40-char-sha>`
+  - Then print exactly one of:
+    - Selected CASE: Case A - Already up to date
+    - Selected CASE: Case B - Initial sync
+    - Selected CASE: Case C - Incremental sync
+  - (Optional) Second line: `Reason: ...`
+- End with a summary table covering every template path:
+  | pathNEW | action (added/modified/renamed/deleted/skipped) | oldPath(if renamed) | localWasModified | conflictResolved | notes |
+- Include a short diagnostics block: typecheck/lint/build summaries and any mechanical fixes made.
+
+# Operating model (leave the exact method to you)
+
+- Build a **Template Manifest** at:
+  - BASE = commit extracted from {{lastSyncedCommitURL}} (if URL missing or commit unknown → Case B)
+  - NEW = default-branch HEAD of {{templateRepo}}
+- Build a **Local Manifest** of this project.
+- Compute a **Change Map** BASE→NEW with rename detection; produce a **Rename Map** (oldPath→newPath).
+- For each changed item:
+  - If file is untouched locally since BASE → apply template change directly.
+  - If file changed locally → perform a 3-way reasoning merge (BASE vs NEW vs LOCAL), biasing toward local intent and integrating required template changes.
+- Apply template deletions **only** when safe (no unique local functionality depends on them). Otherwise mark **skipped** with reason.
+- After moves, update imports/paths and any config references affected.
+
+# Validation & minimal repairs
+
+- Run typecheck/lint/build if available; fix only mechanical issues created by the sync (imports/paths/config keys). Do not “refactor” the project.
+
+# Autonomy
+
+- Do not ask questions. If uncertain, state a brief assumption in `notes` and continue.
