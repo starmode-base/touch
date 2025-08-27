@@ -1,9 +1,9 @@
 {
-  "name": "TanStack Start app template",
-  "description": "A TanStack Start template for apps",
+  "name": "Touch",
+  "description": "A nano CRM for independent consultants and founders who value fewer, stronger relationships",
   "browserIcon": "/icon.svg",
   "shareCardImage": "/open-graph.png",
   "dev": {
-    "port": 3001
+    "port": 3012
   }
 }
