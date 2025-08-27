@@ -11,9 +11,10 @@ https://touch.starmode.dev/
 1. Clone the [git repo](https://github.com/starmode-base/touch)
 1. Install dependencies: `bun install`
 1. Link the Vercel project, to be able to pull development environment variables from Vercel: `bunx vercel link`
-   - Set up “~/starmode-base/new-dawn-app? yes
+   - Set up “~/starmode-base/touch”? yes
    - Which scope should contain your project? STAR MODE
-   - Found project “starmode/new-dawn-app”. Link to it? yes
+   - Found project “starmode/touch”. Link to it? yes
+   - ✅ Linked to starmode/touch (created .vercel)
 
 ### Local development
 
@@ -29,7 +30,7 @@ bun install
 ## Devops
 
 - [Clerk](https://dashboard.clerk.com/apps/)
-- [GitHub](https://github.com/starmode-base/template-tanstack-start)
+- [GitHub](https://github.com/starmode-base/touch)
 - [Neon](https://console.neon.tech/app/projects/calm-forest-40252170)
 - [Vercel](https://vercel.com/starmode/touch)
 - [Vercel Analytics](https://vercel.com/starmode/touch/analytics)
