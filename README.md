@@ -50,13 +50,8 @@ IMPORTANT: Use the [Neon-Managed Integration](https://neon.com/docs/guides/neon-
 ### Local development
 
 1. Pull development environment variables from Vercel: `bun env:pull`
+1. Install dependencies: `bun install`
 1. Start the app in development mode: `bun dev`
-
-To install dependencies:
-
-```sh
-bun install
-```
 
 ## Devops
 
