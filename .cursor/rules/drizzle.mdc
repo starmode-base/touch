@@ -1,0 +1,7 @@
+---
+description: When working with Drizzle ORM and database schemas
+alwaysApply: false
+---
+
+- Never create migrations
+- Never modify src/postgres/relations.ts
