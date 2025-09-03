@@ -35,9 +35,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
-/**
- * Primary key
- */
+/** Primary key */
 const primaryKeyField = () =>
   text()
     .primaryKey()
@@ -67,16 +65,9 @@ export const workspaceMemberRole = pgEnum("workspace_member_role", [
   /** Workspace member */
   "member",
 ]);
+
 export type WorkspaceMemberRole =
   (typeof workspaceMemberRole.enumValues)[number];
-
-/** Opportunity status enum */
-export const opportunityStatus = pgEnum("opportunity_status", [
-  "open",
-  "won",
-  "lost",
-]);
-export type OpportunityStatus = (typeof opportunityStatus.enumValues)[number];
 
 /**
  * Users table
@@ -216,6 +207,14 @@ export const contactActivities = pgTable(
     ),
   ],
 );
+
+/** Opportunity status enum */
+export const opportunityStatus = pgEnum("opportunity_status", [
+  "open",
+  "won",
+  "lost",
+]);
+export type OpportunityStatus = (typeof opportunityStatus.enumValues)[number];
 
 /**
  * Opportunities table
