@@ -36,6 +36,13 @@
       "when": 1756894895769,
       "tag": "0004_busy_cammi",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1756896241800,
+      "tag": "0005_chubby_mariko_yashida",
+      "breakpoints": true
     }
   ]
 }

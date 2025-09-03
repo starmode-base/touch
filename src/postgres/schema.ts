@@ -27,6 +27,7 @@ import {
   primaryKey,
   foreignKey,
   uniqueIndex,
+  index,
   text,
   timestamp,
   jsonb,
@@ -167,13 +168,9 @@ export const contactActivities = pgTable(
     workspaceId: text()
       .references(() => workspaces.id, { onDelete: "cascade" })
       .notNull(),
-    contactId: text()
-      .references(() => contacts.id, { onDelete: "cascade" })
-      .notNull(),
+    contactId: text().notNull(),
+    createdById: text().notNull(),
     happenedAt: date({ mode: "string" }).defaultNow().notNull(),
-    createdById: text()
-      .references(() => users.id, { onDelete: "cascade" })
-      .notNull(),
     kind: text()
       .$type<
         // A touch with the contact (call, email, etc.), used for contact's last
@@ -203,9 +200,13 @@ export const contactActivities = pgTable(
 
     // FK constraint: Contact must belong to this workspace
     foreignKey({
-      columns: [t.contactId, t.workspaceId],
-      foreignColumns: [contacts.id, contacts.workspaceId],
+      columns: [t.workspaceId, t.contactId],
+      foreignColumns: [contacts.workspaceId, contacts.id],
     }).onDelete("cascade"),
+
+    // Performance indexes for composite FKs
+    index().on(t.workspaceId, t.createdById),
+    index().on(t.workspaceId, t.contactId),
 
     // Check constraint: details required for system:* kinds, and must be NULL
     // for user:* kinds
@@ -249,12 +250,8 @@ export const opportunityContacts = pgTable(
     workspaceId: text()
       .references(() => workspaces.id, { onDelete: "cascade" })
       .notNull(),
-    opportunityId: text()
-      .references(() => opportunities.id, { onDelete: "cascade" })
-      .notNull(),
-    contactId: text()
-      .references(() => contacts.id, { onDelete: "cascade" })
-      .notNull(),
+    opportunityId: text().notNull(),
+    contactId: text().notNull(),
     createdAt: timestampField(),
     updatedAt: timestampField(),
     // Maybe:
@@ -266,15 +263,19 @@ export const opportunityContacts = pgTable(
 
     // FK constraint: Contact must belong to this workspace
     foreignKey({
-      columns: [t.contactId, t.workspaceId],
-      foreignColumns: [contacts.id, contacts.workspaceId],
+      columns: [t.workspaceId, t.contactId],
+      foreignColumns: [contacts.workspaceId, contacts.id],
     }).onDelete("cascade"),
 
     // FK constraint: Opportunity must belong to this workspace
     foreignKey({
-      columns: [t.opportunityId, t.workspaceId],
-      foreignColumns: [opportunities.id, opportunities.workspaceId],
+      columns: [t.workspaceId, t.opportunityId],
+      foreignColumns: [opportunities.workspaceId, opportunities.id],
     }).onDelete("cascade"),
+
+    // Performance indexes for composite FKs
+    index().on(t.workspaceId, t.contactId),
+    index().on(t.workspaceId, t.opportunityId),
   ],
 );
 
@@ -291,13 +292,9 @@ export const opportunityActivities = pgTable(
     workspaceId: text()
       .references(() => workspaces.id, { onDelete: "cascade" })
       .notNull(),
-    opportunityId: text()
-      .references(() => opportunities.id, { onDelete: "cascade" })
-      .notNull(),
+    opportunityId: text().notNull(),
+    createdById: text().notNull(),
     happenedAt: date({ mode: "string" }).defaultNow().notNull(),
-    createdById: text()
-      .references(() => users.id, { onDelete: "cascade" })
-      .notNull(),
     kind: text()
       .$type<
         // A user note about the opportunity
@@ -330,9 +327,13 @@ export const opportunityActivities = pgTable(
 
     // FK constraint: Opportunity must belong to this workspace
     foreignKey({
-      columns: [t.opportunityId, t.workspaceId],
-      foreignColumns: [opportunities.id, opportunities.workspaceId],
+      columns: [t.workspaceId, t.opportunityId],
+      foreignColumns: [opportunities.workspaceId, opportunities.id],
     }).onDelete("cascade"),
+
+    // Performance indexes for composite FKs
+    index().on(t.workspaceId, t.opportunityId),
+    index().on(t.workspaceId, t.createdById),
 
     // Enforce: at most one open next step per opportunity
     uniqueIndex()
