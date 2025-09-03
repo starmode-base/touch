@@ -5,7 +5,7 @@ import {
   createWorkspaceSF,
   getWorkspacesSF,
   updateWorkspaceSF,
-} from "~/routes";
+} from "~/server-functions/workspaces";
 
 const queryClient = new QueryClient();
 
