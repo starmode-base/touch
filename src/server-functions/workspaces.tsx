@@ -3,11 +3,13 @@ import { db, schema } from "~/postgres/db";
 import { z } from "zod";
 import { asc, eq, inArray } from "drizzle-orm";
 import { SecureToken } from "~/lib/secure-token";
+import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 
 /**
  * Create workspace
  */
 export const createWorkspaceSF = createServerFn({ method: "POST" })
+  .middleware([ensureViewerMiddleware])
   .validator(z.array(z.object({ name: z.string() })))
   .handler(async ({ data }) => {
     await db().insert(schema.workspaces).values(data);
@@ -17,8 +19,11 @@ export const createWorkspaceSF = createServerFn({ method: "POST" })
  * Update workspace
  */
 export const updateWorkspaceSF = createServerFn({ method: "POST" })
+  .middleware([ensureViewerMiddleware])
   .validator(z.array(z.object({ id: SecureToken, name: z.string() })))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    context.ensureIsInWorkspace(data.map((item) => item.id));
+
     await db().transaction(async (tx) => {
       await Promise.all(
         data.map((item) =>
@@ -35,8 +40,11 @@ export const updateWorkspaceSF = createServerFn({ method: "POST" })
  * Delete workspace
  */
 export const deleteWorkspaceSF = createServerFn({ method: "POST" })
+  .middleware([ensureViewerMiddleware])
   .validator(z.array(SecureToken))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    context.ensureIsInWorkspace(data);
+
     await db()
       .delete(schema.workspaces)
       .where(inArray(schema.workspaces.id, data));

@@ -7,7 +7,7 @@ import {
   createUpdateSchema,
 } from "drizzle-zod";
 import { schema } from "./db";
-import type { z } from "node_modules/zod/v4/classic/index.cjs";
+import type { z } from "zod";
 
 export const selectWorkspaceSchema = createSelectSchema(schema.workspaces);
 export const insertWorkspaceSchema = createInsertSchema(schema.workspaces);

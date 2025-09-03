@@ -13,7 +13,7 @@ import {
   UserButton,
 } from "@clerk/tanstack-react-start";
 import { createServerFn } from "@tanstack/react-start";
-import { syncViewer } from "~/middleware/auth-middleware";
+import { syncViewer } from "~/middleware/auth-viewer";
 
 const authStateFn = createServerFn({ method: "GET" }).handler(() => {
   return syncViewer();
