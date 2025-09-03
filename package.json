@@ -36,6 +36,7 @@
     "@tanstack/react-start": "^1.131.32",
     "@vercel/analytics": "^1.5.0",
     "drizzle-orm": "^0.44.5",
+    "drizzle-zod": "^0.8.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tailwindcss": "^4.1.12"

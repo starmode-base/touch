@@ -5,12 +5,12 @@ import { workspacesCollection } from "~/lib/collections";
 import { genSecureToken } from "~/lib/secure-token";
 import {
   createWorkspaceSF,
-  getWorkspacesSF,
+  listWorkspacesSF,
 } from "~/server-functions/workspaces";
 
 export const Route = createFileRoute("/")({
   ssr: false,
-  loader: () => getWorkspacesSF(),
+  loader: () => listWorkspacesSF(),
   component: Home,
 });
 
@@ -30,7 +30,7 @@ function Home() {
         <button
           onClick={async () => {
             await createWorkspace({
-              data: { name: "Workspace " + genSecureToken(3) },
+              data: [{ name: "Workspace " + genSecureToken(3) }],
             });
             await router.invalidate();
           }}
@@ -61,17 +61,27 @@ function Home() {
         </button>
         <div>
           {workspaces.data.map((workspace) => (
-            <div
-              key={workspace.id}
-              role="button"
-              className="select-none"
-              onClick={() => {
-                workspacesCollection.update(workspace.id, (draft) => {
-                  draft.name = "Workspace 2 " + genSecureToken(3);
-                });
-              }}
-            >
-              {workspace.name}
+            <div key={workspace.id} className="flex gap-2">
+              <div
+                role="button"
+                className="select-none"
+                onClick={() => {
+                  workspacesCollection.delete(workspace.id);
+                }}
+              >
+                Delete
+              </div>
+              <div
+                role="button"
+                className="select-none"
+                onClick={() => {
+                  workspacesCollection.update(workspace.id, (draft) => {
+                    draft.name = "Workspace 2 " + genSecureToken(3);
+                  });
+                }}
+              >
+                {workspace.name} - {workspace.id}
+              </div>
             </div>
           ))}
         </div>
