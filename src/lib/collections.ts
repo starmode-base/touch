@@ -7,7 +7,7 @@ import {
   listWorkspacesSF,
   updateWorkspaceSF,
 } from "~/server-functions/workspaces";
-import { selectWorkspaceSchema } from "~/postgres/validation";
+// import { selectWorkspaceSchema } from "~/postgres/validation";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +20,7 @@ export const workspacesCollection = createCollection(
     getKey: (item) => item.id,
 
     refetchInterval: 5000,
-    schema: selectWorkspaceSchema,
+    // schema: selectWorkspaceSchema,
 
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
