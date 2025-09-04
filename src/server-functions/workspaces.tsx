@@ -75,7 +75,7 @@ export const listWorkspacesSF = createServerFn({ method: "GET" }).handler(
     const workspaces = await db()
       .select()
       .from(schema.workspaces)
-      .orderBy(desc(schema.workspaces.createdAt));
+      .orderBy(desc(schema.workspaces.createdAt), desc(schema.workspaces.id));
     return workspaces;
   },
 );

@@ -22,7 +22,8 @@ function Home() {
   const workspaces = useLiveQuery((q) => {
     return q
       .from({ workspace: workspacesCollection })
-      .orderBy(({ workspace }) => workspace.createdAt, "desc");
+      .orderBy(({ workspace }) => workspace.createdAt, "desc")
+      .orderBy(({ workspace }) => workspace.id, "desc");
   });
 
   return (
