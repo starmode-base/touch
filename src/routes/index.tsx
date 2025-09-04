@@ -20,7 +20,9 @@ function Home() {
   const router = useRouter();
 
   const workspaces = useLiveQuery((q) => {
-    return q.from({ workspace: workspacesCollection });
+    return q
+      .from({ workspace: workspacesCollection })
+      .orderBy(({ workspace }) => workspace.createdAt, "desc");
   });
 
   return (

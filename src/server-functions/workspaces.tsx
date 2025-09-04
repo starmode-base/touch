@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { db, schema } from "~/postgres/db";
 import { z } from "zod";
-import { asc, eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { SecureToken } from "~/lib/secure-token";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { invariant } from "@tanstack/react-router";
@@ -75,7 +75,7 @@ export const listWorkspacesSF = createServerFn({ method: "GET" }).handler(
     const workspaces = await db()
       .select()
       .from(schema.workspaces)
-      .orderBy(asc(schema.workspaces.createdAt));
+      .orderBy(desc(schema.workspaces.createdAt));
     return workspaces;
   },
 );
