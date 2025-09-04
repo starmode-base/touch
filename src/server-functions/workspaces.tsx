@@ -4,6 +4,7 @@ import { z } from "zod";
 import { asc, eq, inArray } from "drizzle-orm";
 import { SecureToken } from "~/lib/secure-token";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
+import { invariant } from "@tanstack/react-router";
 
 /**
  * Create workspace
@@ -11,8 +12,24 @@ import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 export const createWorkspaceSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
   .validator(z.array(z.object({ name: z.string() })))
-  .handler(async ({ data }) => {
-    await db().insert(schema.workspaces).values(data);
+  .handler(async ({ data, context }) => {
+    // Transaction will roll back the first insert if the second insert fails
+    await db().transaction(async (tx) => {
+      const workspaceId = await tx
+        .insert(schema.workspaces)
+        .values(data)
+        .returning({ id: schema.workspaces.id })
+        .then(([workspaces]) => workspaces?.id);
+
+      invariant(workspaceId, "Unauthorized");
+
+      // Establish workspace membership
+      await tx.insert(schema.workspaceMemberships).values({
+        workspaceId,
+        userId: context.viewer.id,
+        role: "member",
+      });
+    });
   });
 
 /**
