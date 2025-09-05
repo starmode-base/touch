@@ -147,4 +147,17 @@ export default defineConfig([
    * https://tanstack.com/router/latest/docs/eslint/eslint-plugin-router
    */
   ...pluginRouter.configs["flat/recommended"],
+
+  /**
+   * Test files
+   *
+   * Allow expect.any() unsafe assignment of an `any` value
+   * https://vitest.dev/api/expect.html#expect-any
+   */
+  {
+    files: ["**/*.test.ts", "**/*.test.tsx"],
+    rules: {
+      "@typescript-eslint/no-unsafe-assignment": "off",
+    },
+  },
 ]);
