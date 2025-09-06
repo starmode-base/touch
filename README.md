@@ -75,3 +75,9 @@ IMPORTANT: Use the [Neon-Managed Integration](https://neon.com/docs/guides/neon-
 - [Neon testing](https://www.npmjs.com/package/neon-testing)
 - [Prettier](https://prettier.io/)
 - [ESLint](https://eslint.org/)
+
+## Platform
+
+- [TanStack Start](https://tanstack.com/start)
+- [TanStack Router](https://tanstack.com/router)
+- [TanStack DB](https://tanstack.com/db)
