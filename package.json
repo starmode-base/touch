@@ -29,6 +29,7 @@
     "@clerk/tanstack-react-start": "^0.23.4",
     "@neondatabase/serverless": "^1.0.1",
     "@tailwindcss/vite": "^4.1.13",
+    "@tanstack/electric-db-collection": "^0.1.13",
     "@tanstack/query-db-collection": "^0.2.11",
     "@tanstack/react-db": "^0.1.12",
     "@tanstack/react-router": "^1.131.35",
