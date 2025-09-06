@@ -1,13 +1,9 @@
-import {
-  clerkClient,
-  getAuth,
-  type User as ClerkUser,
-} from "@clerk/tanstack-react-start/server";
-import { invariant } from "@tanstack/react-router";
+import { getAuth } from "@clerk/tanstack-react-start/server";
 import { createMiddleware } from "@tanstack/react-start";
 import { getWebRequest } from "@tanstack/react-start/server";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, schema } from "~/postgres/db";
+import type { WorkspaceMemberRole } from "~/postgres/schema";
 
 /**
  * Fetch the clerk user id from the Clerk API
@@ -19,74 +15,104 @@ async function fetchClerkUserId(request: Request) {
 }
 
 /**
- * Fetch the clerk user from the Clerk API
- *
- * This is about 10x slower than fetchClerkUserId, so we only use it when
- * we need to get the user's email address.
- */
-async function fetchClerkUser(clerkUserId: string) {
-  return clerkClient().users.getUser(clerkUserId);
-}
-
-/**
- * Get the primary email address from a clerk user
- */
-function requireClerkPrimaryEmailAddress(clerkUser: ClerkUser) {
-  const email = clerkUser.primaryEmailAddress?.emailAddress;
-
-  // Users always have an email address since we're using the email address to
-  // sign up/in
-  invariant(email, "Failed to get primary email address");
-
-  return email;
-}
-
-/**
  * Get the viewer from the database
  */
 async function selectViewer(clerkUserId: string) {
   const viewer = await db().query.users.findFirst({
     where: eq(schema.users.clerkUserId, clerkUserId),
+    with: {
+      workspaceMemberships: true,
+    },
   });
 
   return viewer ?? null;
 }
 
-/**
- * Upsert the viewer in the database from the Clerk API
- */
-async function upsertViewer(clerkUserId: string) {
-  const clerkUser = await fetchClerkUser(clerkUserId);
-  const email = requireClerkPrimaryEmailAddress(clerkUser);
+export function buildWorkspaceGuards(
+  workspaceMemberships: {
+    workspaceId: string;
+    role: WorkspaceMemberRole;
+  }[],
+) {
+  /**
+   * Check if the viewer is a user of ALL provided workspace ID(s) (any role)
+   */
+  const isInWorkspace = (workspaceId: string | string[]): boolean => {
+    // Handle non-string, non-array inputs
+    if (typeof workspaceId !== "string" && !Array.isArray(workspaceId)) {
+      return false;
+    }
 
-  const [viewer] = await db()
-    .insert(schema.users)
-    .values({ clerkUserId, email })
-    .onConflictDoUpdate({
-      target: [schema.users.clerkUserId],
-      set: { email, updatedAt: sql`now()` },
-    })
-    .returning();
+    const workspaceIds =
+      typeof workspaceId === "string" ? [workspaceId] : workspaceId;
 
-  return viewer ?? null;
-}
+    // Empty array should return false - no workspaces to check means no
+    // authorization
+    if (workspaceIds.length === 0) return false;
 
-/**
- * Sync the Clerk user (email address) with the database and return the viewer,
- * or null if the user is not signed in.
- */
-export async function syncViewer() {
-  console.debug("syncViewer");
+    const memberWorkspaceIds = new Set(
+      workspaceMemberships.map((membership) => membership.workspaceId),
+    );
 
-  // Get the current clerk user id
-  const clerkUserId = await fetchClerkUserId(getWebRequest());
+    return workspaceIds.every(
+      (id) => typeof id === "string" && memberWorkspaceIds.has(id),
+    );
+  };
 
-  if (!clerkUserId) {
-    return null;
-  }
+  /**
+   * Ensure the viewer is a user of ALL the provided workspace ID(s) (any role)
+   */
+  const ensureIsInWorkspace = (workspaceId: string | string[]) => {
+    if (!isInWorkspace(workspaceId)) throw new Error("Unauthorized");
+  };
 
-  // Upsert and return the updated viewer
-  return upsertViewer(clerkUserId);
+  /**
+   * Check if the viewer has the provided role in ALL the provided workspace
+   * ID(s)
+   */
+  const hasWorkspaceRole = (
+    workspaceId: string | string[],
+    role: WorkspaceMemberRole,
+  ): boolean => {
+    // Handle non-string, non-array inputs
+    if (typeof workspaceId !== "string" && !Array.isArray(workspaceId)) {
+      return false;
+    }
+
+    const workspaceIds =
+      typeof workspaceId === "string" ? [workspaceId] : workspaceId;
+
+    // Empty array should return false - no workspaces to check means no
+    // authorization
+    if (workspaceIds.length === 0) return false;
+
+    return workspaceIds.every(
+      (id) =>
+        typeof id === "string" &&
+        workspaceMemberships.some(
+          (membership) =>
+            membership.workspaceId === id && membership.role === role,
+        ),
+    );
+  };
+
+  /**
+   * Ensure the viewer has the provided role in ALL the provided workspace
+   * ID(s)
+   */
+  const ensureHasWorkspaceRole = (
+    workspaceId: string | string[],
+    role: WorkspaceMemberRole,
+  ) => {
+    if (!hasWorkspaceRole(workspaceId, role)) throw new Error("Unauthorized");
+  };
+
+  return {
+    isInWorkspace,
+    hasWorkspaceRole,
+    ensureIsInWorkspace,
+    ensureHasWorkspaceRole,
+  };
 }
 
 /**
@@ -109,5 +135,10 @@ export const ensureViewerMiddleware = createMiddleware({
     throw new Error("Unauthorized");
   }
 
-  return next({ context: { viewer } });
+  return next({
+    context: {
+      viewer,
+      ...buildWorkspaceGuards(viewer.workspaceMemberships),
+    },
+  });
 });

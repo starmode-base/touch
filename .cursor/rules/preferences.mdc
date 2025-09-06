@@ -1,0 +1,15 @@
+---
+alwaysApply: true
+---
+
+## Code Style
+
+- Default to functional style, but be pragmatic and use imperative when needed
+  - Prefer pure functions
+  - Prefer immutability (local mutability is okay)
+
+## Testing Philosophy
+
+- Write code with testing in mind
+  - Strive to write functions that can be tested without mocks
+  - Create factories for boundary functions to support testing without mocks

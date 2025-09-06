@@ -1,0 +1,12 @@
+---
+description: When working with test files
+alwaysApply: false
+---
+
+## Instructions
+
+- Run tests with `vitest run`
+- Use the Arrange → Act → Assert (AAA) pattern
+- Use one top level `describe` per function/unit under test
+- Use `test()` instead of `it()`
+- It is okay to disable lint rules in test files if needed

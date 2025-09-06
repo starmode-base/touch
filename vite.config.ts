@@ -4,6 +4,7 @@ import tsConfigPaths from "vite-tsconfig-paths";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import metadata from "./metadata.json";
+import { neonTesting } from "neon-testing/vite";
 
 export default defineConfig({
   server: {
@@ -14,5 +15,6 @@ export default defineConfig({
     tanstackStart({ customViteReactPlugin: true }),
     viteReact(),
     tailwindcss(),
+    neonTesting(),
   ],
 });
