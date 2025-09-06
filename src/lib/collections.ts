@@ -8,10 +8,11 @@ import {
   updateWorkspaceSF,
 } from "~/server-functions/workspaces";
 import { selectWorkspaceSchema } from "~/postgres/validation";
+import { electricCollectionOptions } from "@tanstack/electric-db-collection";
 
 const queryClient = new QueryClient();
 
-export const workspacesCollection = createCollection(
+export const workspacesCollectionQuery = createCollection(
   queryCollectionOptions({
     id: "workspaces",
     queryKey: ["workspaces"],
@@ -43,6 +44,20 @@ export const workspacesCollection = createCollection(
       const data = transaction.mutations.map((item) => item.modified.id);
 
       await deleteWorkspaceSF({ data });
+    },
+  }),
+);
+
+export const workspacesCollectionElectric = createCollection(
+  electricCollectionOptions({
+    id: "workspaces-electric",
+    schema: selectWorkspaceSchema,
+    getKey: (item) => item.id,
+    shapeOptions: {
+      url: "http://localhost:3012/api/workspaces",
+      params: {
+        table: "workspaces",
+      },
     },
   }),
 );

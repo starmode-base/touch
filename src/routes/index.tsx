@@ -1,7 +1,10 @@
 import { useLiveQuery } from "@tanstack/react-db";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { workspacesCollection } from "~/lib/collections";
+import {
+  workspacesCollectionElectric,
+  workspacesCollectionQuery,
+} from "~/lib/collections";
 import { genSecureToken } from "~/lib/secure-token";
 import {
   createWorkspaceSF,
@@ -19,9 +22,16 @@ function Home() {
   const createWorkspace = useServerFn(createWorkspaceSF);
   const router = useRouter();
 
-  const workspaces = useLiveQuery((q) => {
+  const workspacesQuery = useLiveQuery((q) => {
     return q
-      .from({ workspace: workspacesCollection })
+      .from({ workspace: workspacesCollectionQuery })
+      .orderBy(({ workspace }) => workspace.createdAt, "desc")
+      .orderBy(({ workspace }) => workspace.id, "desc");
+  });
+
+  const workspacesElectric = useLiveQuery((q) => {
+    return q
+      .from({ workspace: workspacesCollectionElectric })
       .orderBy(({ workspace }) => workspace.createdAt, "desc")
       .orderBy(({ workspace }) => workspace.id, "desc");
   });
@@ -47,11 +57,12 @@ function Home() {
           ))}
         </div>
       </div>
+
       <div className="flex flex-col gap-4 rounded bg-emerald-100 p-4">
         Live Query
         <button
           onClick={() => {
-            workspacesCollection.insert({
+            workspacesCollectionQuery.insert({
               id: genSecureToken(),
               name: "Workspace " + genSecureToken(3),
               createdAt: new Date().toISOString(),
@@ -63,13 +74,13 @@ function Home() {
           Create Workspace
         </button>
         <div>
-          {workspaces.data.map((workspace) => (
+          {workspacesQuery.data.map((workspace) => (
             <div key={workspace.id} className="flex gap-2">
               <div
                 role="button"
                 className="select-none"
                 onClick={() => {
-                  workspacesCollection.delete(workspace.id);
+                  workspacesCollectionQuery.delete(workspace.id);
                 }}
               >
                 Delete
@@ -78,7 +89,7 @@ function Home() {
                 role="button"
                 className="select-none"
                 onClick={() => {
-                  workspacesCollection.update(workspace.id, (draft) => {
+                  workspacesCollectionQuery.update(workspace.id, (draft) => {
                     draft.name = "Workspace 2 " + genSecureToken(3);
                   });
                 }}
@@ -89,11 +100,12 @@ function Home() {
           ))}
         </div>
       </div>
+
       <div className="flex flex-col gap-4 rounded bg-amber-100 p-4">
         Electric Live Query
         <button
           onClick={() => {
-            workspacesCollection.insert({
+            workspacesCollectionElectric.insert({
               id: genSecureToken(),
               name: "Workspace " + genSecureToken(3),
               createdAt: new Date().toISOString(),
@@ -105,13 +117,13 @@ function Home() {
           Create Workspace
         </button>
         <div>
-          {workspaces.data.map((workspace) => (
+          {workspacesElectric.data.map((workspace) => (
             <div key={workspace.id} className="flex gap-2">
               <div
                 role="button"
                 className="select-none"
                 onClick={() => {
-                  workspacesCollection.delete(workspace.id);
+                  workspacesCollectionElectric.delete(workspace.id);
                 }}
               >
                 Delete
@@ -120,7 +132,7 @@ function Home() {
                 role="button"
                 className="select-none"
                 onClick={() => {
-                  workspacesCollection.update(workspace.id, (draft) => {
+                  workspacesCollectionElectric.update(workspace.id, (draft) => {
                     draft.name = "Workspace 2 " + genSecureToken(3);
                   });
                 }}

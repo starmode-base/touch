@@ -70,12 +70,18 @@ export const deleteWorkspaceSF = createServerFn({ method: "POST" })
 /**
  * List workspaces
  */
-export const listWorkspacesSF = createServerFn({ method: "GET" }).handler(
-  async () => {
+export const listWorkspacesSF = createServerFn({ method: "GET" })
+  .middleware([ensureViewerMiddleware])
+  .handler(async ({ context }) => {
+    // TODO: Move to middleware
+    const workspaceIds = context.viewer.workspaceMemberships.map(
+      (membership) => membership.workspaceId,
+    );
+
     const workspaces = await db()
       .select()
       .from(schema.workspaces)
+      .where(inArray(schema.workspaces.id, workspaceIds))
       .orderBy(desc(schema.workspaces.createdAt), desc(schema.workspaces.id));
     return workspaces;
-  },
-);
+  });
