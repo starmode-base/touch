@@ -44,7 +44,10 @@ export const ServerRoute = createServerFileRoute("/api/workspaces").methods({
     });
 
     // https://electric-sql.com/docs/guides/shapes#where-clause
-    const whereClause = `id IN (${workspaceIds.map((id) => `'${id}'`).join(",")})`;
+    const whereClause = workspaceIds.length
+      ? `id IN (${workspaceIds.map((id) => `'${id}'`).join(",")})`
+      : `FALSE`; //
+    console.log("whereClause", whereClause);
     originUrl.searchParams.set("where", whereClause);
 
     // Proxy the authorised request on to the Electric Cloud.
