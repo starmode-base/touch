@@ -1,10 +1,27 @@
 import { createServerFn } from "@tanstack/react-start";
-import { db, schema } from "~/postgres/db";
+import { db, schema, type PgTx } from "~/postgres/db";
 import { z } from "zod";
-import { desc, eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { SecureToken } from "~/lib/secure-token";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { invariant } from "@tanstack/react-router";
+
+async function generateTxId(tx: PgTx): Promise<number> {
+  // The ::xid cast strips off the epoch, giving you the raw 32-bit value
+  // that matches what PostgreSQL sends in logical replication streams
+  // (and then exposed through Electric which we'll match against
+  // in the client).
+  const result = await tx.execute(
+    sql`SELECT pg_current_xact_id()::xid::text as txid`,
+  );
+  const txid = result.rows[0]?.txid;
+
+  if (txid === undefined) {
+    throw new Error(`Failed to get transaction ID`);
+  }
+
+  return parseInt(txid as string, 10);
+}
 
 /**
  * Create workspace
@@ -14,7 +31,9 @@ export const createWorkspaceSF = createServerFn({ method: "POST" })
   .validator(z.array(z.object({ name: z.string() })))
   .handler(async ({ data, context }) => {
     // Transaction will roll back the first insert if the second insert fails
-    await db().transaction(async (tx) => {
+    const result = await db().transaction(async (tx) => {
+      const txid = await generateTxId(tx);
+
       const workspaceId = await tx
         .insert(schema.workspaces)
         .values(data)
@@ -29,7 +48,11 @@ export const createWorkspaceSF = createServerFn({ method: "POST" })
         userId: context.viewer.id,
         role: "member",
       });
+
+      return { txid };
     });
+
+    return result;
   });
 
 /**
@@ -41,7 +64,9 @@ export const updateWorkspaceSF = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     context.ensureIsInWorkspace(data.map((item) => item.id));
 
-    await db().transaction(async (tx) => {
+    const result = await db().transaction(async (tx) => {
+      const txid = await generateTxId(tx);
+
       await Promise.all(
         data.map((item) =>
           tx
@@ -50,7 +75,11 @@ export const updateWorkspaceSF = createServerFn({ method: "POST" })
             .where(eq(schema.workspaces.id, item.id)),
         ),
       );
+
+      return { txid };
     });
+
+    return result;
   });
 
 /**
@@ -62,9 +91,17 @@ export const deleteWorkspaceSF = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     context.ensureIsInWorkspace(data);
 
-    await db()
-      .delete(schema.workspaces)
-      .where(inArray(schema.workspaces.id, data));
+    const result = await db().transaction(async (tx) => {
+      const txid = await generateTxId(tx);
+
+      await tx
+        .delete(schema.workspaces)
+        .where(inArray(schema.workspaces.id, data));
+
+      return { txid };
+    });
+
+    return result;
   });
 
 /**

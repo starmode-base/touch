@@ -59,7 +59,7 @@ function Home() {
       </div>
 
       <div className="flex flex-col gap-4 rounded bg-emerald-100 p-4">
-        Live Query
+        Tanstack DB Query
         <button
           onClick={() => {
             workspacesCollectionQuery.insert({
@@ -102,7 +102,7 @@ function Home() {
       </div>
 
       <div className="flex flex-col gap-4 rounded bg-amber-100 p-4">
-        Electric Live Query
+        Tanstack DB Electric
         <button
           onClick={() => {
             workspacesCollectionElectric.insert({

@@ -59,5 +59,36 @@ export const workspacesCollectionElectric = createCollection(
         table: "workspaces",
       },
     },
+    onInsert: async ({ transaction }) => {
+      const data = transaction.mutations.map((item) => ({
+        name: item.modified.name,
+      }));
+
+      const result = await createWorkspaceSF({ data });
+      console.log(result);
+
+      return { txid: result.txid };
+    },
+
+    onUpdate: async ({ transaction }) => {
+      const data = transaction.mutations.map((item) => ({
+        id: item.modified.id,
+        name: item.modified.name,
+      }));
+
+      const result = await updateWorkspaceSF({ data });
+      console.log(result);
+
+      return { txid: result.txid };
+    },
+
+    onDelete: async ({ transaction }) => {
+      const data = transaction.mutations.map((item) => item.modified.id);
+
+      const result = await deleteWorkspaceSF({ data });
+      console.log(result);
+
+      return { txid: result.txid };
+    },
   }),
 );
