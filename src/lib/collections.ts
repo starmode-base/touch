@@ -74,7 +74,7 @@ export const workspacesCollectionElectric = createCollection(
     }),
     getKey: (item) => item.id,
     shapeOptions: {
-      url: "http://localhost:3012/api/workspaces",
+      url: new URL(`/api/workspaces`, window.location.origin).toString(),
     },
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
@@ -123,7 +123,7 @@ export const contactsCollection = createCollection(
     }),
     getKey: (item) => item.id,
     shapeOptions: {
-      url: "http://localhost:3012/api/contacts",
+      url: new URL(`/api/contacts`, window.location.origin).toString(),
     },
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => {
