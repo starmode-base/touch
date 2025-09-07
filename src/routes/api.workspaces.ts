@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 
 export const ServerRoute = createServerFileRoute("/api/workspaces").methods({
   GET: async ({ request }) => {
+    console.log("GET /api/workspaces");
     const { userId } = await getAuth(request);
 
     if (!userId) {
@@ -41,7 +42,7 @@ export const ServerRoute = createServerFileRoute("/api/workspaces").methods({
     // Passthrough parameters from electric client
     const proxyUrl = new URL(request.url);
     proxyUrl.searchParams.forEach((value, key) => {
-      if ([...ELECTRIC_PROTOCOL_QUERY_PARAMS, "table"].includes(key)) {
+      if (ELECTRIC_PROTOCOL_QUERY_PARAMS.includes(key)) {
         originUrl.searchParams.set(key, value);
       }
     });
