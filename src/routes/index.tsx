@@ -32,7 +32,7 @@ function Home() {
   const workspacesElectric = useLiveQuery((q) => {
     return q
       .from({ workspace: workspacesCollectionElectric })
-      .orderBy(({ workspace }) => workspace.createdAt, "desc")
+      .orderBy(({ workspace }) => workspace.created_at, "desc")
       .orderBy(({ workspace }) => workspace.id, "desc");
   });
 
@@ -108,8 +108,8 @@ function Home() {
             workspacesCollectionElectric.insert({
               id: genSecureToken(),
               name: "Workspace " + genSecureToken(3),
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
             });
           }}
           className="h-fit w-fit rounded bg-sky-500 px-4 py-1 text-white"

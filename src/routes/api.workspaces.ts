@@ -28,12 +28,15 @@ export const ServerRoute = createServerFileRoute("/api/workspaces").methods({
       })
       .then((m) => m.map((m) => m.workspaceId));
 
-    // Construct the origin URL.
+    // Construct the origin URL
     const originUrl = new URL(`/v1/shape`, `https://api.electric-sql.cloud`);
 
-    // Add the source params.
+    // Add the source params
     originUrl.searchParams.set(`source_id`, ensureEnv("ELECTRIC_SOURCE_ID"));
     originUrl.searchParams.set(`secret`, ensureEnv("ELECTRIC_SOURCE_SECRET"));
+
+    // Table
+    originUrl.searchParams.set("table", "workspaces");
 
     // Passthrough parameters from electric client
     const proxyUrl = new URL(request.url);
