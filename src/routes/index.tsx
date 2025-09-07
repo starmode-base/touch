@@ -1,5 +1,5 @@
 import { useLiveQuery } from "@tanstack/react-db";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   workspacesCollectionElectric,
@@ -96,6 +96,9 @@ function Home() {
               >
                 {workspace.name} - {workspace.id.slice(0, 8)}
               </div>
+              <Link to="/$workspace" params={{ workspace: workspace.id }}>
+                Go
+              </Link>
             </div>
           ))}
         </div>

@@ -5,7 +5,7 @@ import { getAuth } from "@clerk/tanstack-react-start/server";
 import { db, schema } from "~/postgres/db";
 import { eq } from "drizzle-orm";
 
-export const ServerRoute = createServerFileRoute("/api/workspaces").methods({
+export const ServerRoute = createServerFileRoute("/api/contacts").methods({
   GET: async ({ request }) => {
     const { userId } = await getAuth(request);
 
@@ -40,7 +40,7 @@ export const ServerRoute = createServerFileRoute("/api/workspaces").methods({
     originUrl.searchParams.set(`secret`, ensureEnv("ELECTRIC_SOURCE_SECRET"));
 
     // Table
-    originUrl.searchParams.set("table", "workspaces");
+    originUrl.searchParams.set("table", "contacts");
 
     // Passthrough parameters from electric client
     const proxyUrl = new URL(request.url);
@@ -52,7 +52,7 @@ export const ServerRoute = createServerFileRoute("/api/workspaces").methods({
 
     // https://electric-sql.com/docs/guides/shapes#where-clause
     const whereClause = workspaceIds.length
-      ? `id IN (${workspaceIds.map((id) => `'${id}'`).join(",")})`
+      ? `workspace_id IN (${workspaceIds.map((id) => `'${id}'`).join(",")})`
       : `FALSE`; //
     originUrl.searchParams.set("where", whereClause);
 

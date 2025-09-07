@@ -1,27 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-import { db, schema, type PgTx } from "~/postgres/db";
+import { db, schema } from "~/postgres/db";
 import { z } from "zod";
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { SecureToken } from "~/lib/secure-token";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { invariant } from "@tanstack/react-router";
-
-async function generateTxId(tx: PgTx): Promise<number> {
-  // The ::xid cast strips off the epoch, giving you the raw 32-bit value
-  // that matches what PostgreSQL sends in logical replication streams
-  // (and then exposed through Electric which we'll match against
-  // in the client).
-  const result = await tx.execute(
-    sql`SELECT pg_current_xact_id()::xid::text as txid`,
-  );
-  const txid = result.rows[0]?.txid;
-
-  if (txid === undefined) {
-    throw new Error(`Failed to get transaction ID`);
-  }
-
-  return parseInt(txid as string, 10);
-}
+import { generateTxId } from "../postgres/helpers";
 
 /**
  * Create workspace
@@ -60,9 +44,16 @@ export const createWorkspaceSF = createServerFn({ method: "POST" })
  */
 export const updateWorkspaceSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(z.array(z.object({ id: SecureToken, name: z.string() })))
+  .validator(
+    z.array(
+      z.object({
+        key: z.object({ id: SecureToken }),
+        fields: z.object({ name: z.string() }),
+      }),
+    ),
+  )
   .handler(async ({ data, context }) => {
-    context.ensureIsInWorkspace(data.map((item) => item.id));
+    context.ensureIsInWorkspace(data.map((item) => item.key.id));
 
     const result = await db().transaction(async (tx) => {
       const txid = await generateTxId(tx);
@@ -71,8 +62,8 @@ export const updateWorkspaceSF = createServerFn({ method: "POST" })
         data.map((item) =>
           tx
             .update(schema.workspaces)
-            .set({ name: item.name })
-            .where(eq(schema.workspaces.id, item.id)),
+            .set(item.fields)
+            .where(eq(schema.workspaces.id, item.key.id)),
         ),
       );
 

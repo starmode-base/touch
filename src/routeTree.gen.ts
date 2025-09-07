@@ -12,7 +12,9 @@ import { createServerRootRoute } from '@tanstack/react-start/server'
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorkspaceIndexRouteImport } from './routes/$workspace.index'
 import { ServerRoute as ApiWorkspacesServerRouteImport } from './routes/api.workspaces'
+import { ServerRoute as ApiContactsServerRouteImport } from './routes/api.contacts'
 
 const rootServerRouteImport = createServerRootRoute()
 
@@ -21,52 +23,70 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkspaceIndexRoute = WorkspaceIndexRouteImport.update({
+  id: '/$workspace/',
+  path: '/$workspace/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWorkspacesServerRoute = ApiWorkspacesServerRouteImport.update({
   id: '/api/workspaces',
   path: '/api/workspaces',
   getParentRoute: () => rootServerRouteImport,
 } as any)
+const ApiContactsServerRoute = ApiContactsServerRouteImport.update({
+  id: '/api/contacts',
+  path: '/api/contacts',
+  getParentRoute: () => rootServerRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$workspace': typeof WorkspaceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$workspace': typeof WorkspaceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$workspace/': typeof WorkspaceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/$workspace'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/$workspace'
+  id: '__root__' | '/' | '/$workspace/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  WorkspaceIndexRoute: typeof WorkspaceIndexRoute
 }
 export interface FileServerRoutesByFullPath {
+  '/api/contacts': typeof ApiContactsServerRoute
   '/api/workspaces': typeof ApiWorkspacesServerRoute
 }
 export interface FileServerRoutesByTo {
+  '/api/contacts': typeof ApiContactsServerRoute
   '/api/workspaces': typeof ApiWorkspacesServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
+  '/api/contacts': typeof ApiContactsServerRoute
   '/api/workspaces': typeof ApiWorkspacesServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/workspaces'
+  fullPaths: '/api/contacts' | '/api/workspaces'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/workspaces'
-  id: '__root__' | '/api/workspaces'
+  to: '/api/contacts' | '/api/workspaces'
+  id: '__root__' | '/api/contacts' | '/api/workspaces'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
+  ApiContactsServerRoute: typeof ApiContactsServerRoute
   ApiWorkspacesServerRoute: typeof ApiWorkspacesServerRoute
 }
 
@@ -77,6 +97,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$workspace/': {
+      id: '/$workspace/'
+      path: '/$workspace'
+      fullPath: '/$workspace'
+      preLoaderRoute: typeof WorkspaceIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -90,16 +117,25 @@ declare module '@tanstack/react-start/server' {
       preLoaderRoute: typeof ApiWorkspacesServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
+    '/api/contacts': {
+      id: '/api/contacts'
+      path: '/api/contacts'
+      fullPath: '/api/contacts'
+      preLoaderRoute: typeof ApiContactsServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  WorkspaceIndexRoute: WorkspaceIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
+  ApiContactsServerRoute: ApiContactsServerRoute,
   ApiWorkspacesServerRoute: ApiWorkspacesServerRoute,
 }
 export const serverRouteTree = rootServerRouteImport
