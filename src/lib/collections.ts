@@ -27,6 +27,9 @@ import {
 
 const queryClient = new QueryClient();
 
+/**
+ * Workspaces collection (Query)
+ */
 export const workspacesCollectionQuery = createCollection(
   queryCollectionOptions({
     id: "workspaces",
@@ -63,6 +66,9 @@ export const workspacesCollectionQuery = createCollection(
   }),
 );
 
+/**
+ * Workspaces collection (Electric)
+ */
 export const workspacesCollectionElectric = createCollection(
   electricCollectionOptions({
     id: "workspaces-electric",
@@ -88,8 +94,12 @@ export const workspacesCollectionElectric = createCollection(
 
     onUpdate: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
-        key: { id: item.modified.id },
-        fields: { name: item.modified.name },
+        key: {
+          id: item.modified.id,
+        },
+        fields: {
+          name: item.modified.name,
+        },
       }));
 
       const result = await updateWorkspaceSF({ data });
@@ -108,7 +118,7 @@ export const workspacesCollectionElectric = createCollection(
 );
 
 /**
- * Contacts collection
+ * Contacts collection (Electric)
  */
 export const contactsCollection = createCollection(
   electricCollectionOptions({

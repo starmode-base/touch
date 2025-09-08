@@ -11,6 +11,7 @@
 import { createServerRootRoute } from '@tanstack/react-start/server'
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WorkspaceIndexRouteImport } from './routes/$workspace.index'
 import { ServerRoute as ApiWorkspacesServerRouteImport } from './routes/api.workspaces'
@@ -18,6 +19,11 @@ import { ServerRoute as ApiContactsServerRouteImport } from './routes/api.contac
 
 const rootServerRouteImport = createServerRootRoute()
 
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -41,27 +47,31 @@ const ApiContactsServerRoute = ApiContactsServerRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/demo': typeof DemoRoute
   '/$workspace': typeof WorkspaceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/demo': typeof DemoRoute
   '/$workspace': typeof WorkspaceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/demo': typeof DemoRoute
   '/$workspace/': typeof WorkspaceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$workspace'
+  fullPaths: '/' | '/demo' | '/$workspace'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$workspace'
-  id: '__root__' | '/' | '/$workspace/'
+  to: '/' | '/demo' | '/$workspace'
+  id: '__root__' | '/' | '/demo' | '/$workspace/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DemoRoute: typeof DemoRoute
   WorkspaceIndexRoute: typeof WorkspaceIndexRoute
 }
 export interface FileServerRoutesByFullPath {
@@ -92,6 +102,13 @@ export interface RootServerRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -129,6 +146,7 @@ declare module '@tanstack/react-start/server' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DemoRoute: DemoRoute,
   WorkspaceIndexRoute: WorkspaceIndexRoute,
 }
 export const routeTree = rootRouteImport
