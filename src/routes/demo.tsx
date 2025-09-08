@@ -1,6 +1,7 @@
 import { useLiveQuery } from "@tanstack/react-db";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { Button } from "~/components/atoms";
 import {
   workspacesCollectionElectric,
   workspacesCollectionQuery,
@@ -40,17 +41,16 @@ function Home() {
     <div className="grid flex-1 grid-cols-3 gap-4 p-4">
       <div className="flex flex-col gap-4 rounded bg-sky-100 p-4">
         RPC
-        <button
+        <Button
           onClick={async () => {
             await createWorkspace({
               data: [{ name: "Workspace " + genSecureToken(3) }],
             });
             await router.invalidate();
           }}
-          className="h-fit w-fit rounded bg-sky-500 px-4 py-1 text-white"
         >
           Create Workspace
-        </button>
+        </Button>
         <div>
           {data.map((workspace) => (
             <div key={workspace.id}>{workspace.name}</div>
@@ -60,7 +60,7 @@ function Home() {
 
       <div className="flex flex-col gap-4 rounded bg-emerald-100 p-4">
         Tanstack DB Query
-        <button
+        <Button
           onClick={() => {
             workspacesCollectionQuery.insert({
               id: genSecureToken(),
@@ -69,10 +69,9 @@ function Home() {
               updatedAt: new Date().toISOString(),
             });
           }}
-          className="h-fit w-fit rounded bg-sky-500 px-4 py-1 text-white"
         >
           Create Workspace
-        </button>
+        </Button>
         <div>
           {workspacesQuery.data.map((workspace) => (
             <div key={workspace.id} className="flex gap-2">
@@ -106,7 +105,7 @@ function Home() {
 
       <div className="flex flex-col gap-4 rounded bg-amber-100 p-4">
         Tanstack DB Electric
-        <button
+        <Button
           onClick={() => {
             workspacesCollectionElectric.insert({
               id: genSecureToken(),
@@ -115,10 +114,9 @@ function Home() {
               updated_at: new Date().toISOString(),
             });
           }}
-          className="h-fit w-fit rounded bg-sky-500 px-4 py-1 text-white"
         >
           Create Workspace
-        </button>
+        </Button>
         <div>
           {workspacesElectric.data.map((workspace) => (
             <div key={workspace.id} className="flex gap-2">

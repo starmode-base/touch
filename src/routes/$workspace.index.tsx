@@ -1,9 +1,10 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { contactsCollection } from "~/lib/collections";
 import { genSecureToken } from "~/lib/secure-token";
 import { createContactSF } from "~/server-functions/contacts";
+import { Button } from "~/components/atoms";
 
 export const Route = createFileRoute("/$workspace/")({
   ssr: false,
@@ -25,18 +26,11 @@ function RouteComponent() {
   return (
     <div>
       <div className="flex gap-2 p-2">
-        <Link
-          className="h-fit w-fit rounded bg-sky-500 px-4 py-1 text-white"
-          to="/"
-        >
-          Home
-        </Link>
-        <button
-          className="h-fit w-fit rounded bg-sky-500 px-4 py-1 text-white"
+        <Button
           onClick={async () => {
             await createContact({
               data: {
-                name: "Contact " + genSecureToken(3),
+                name: "Contact " + genSecureToken(6),
                 linkedin: "https://linkedin.com/in/" + genSecureToken(3),
                 workspaceId: params.workspace,
               },
@@ -44,13 +38,12 @@ function RouteComponent() {
           }}
         >
           Create contact (RPC)
-        </button>
-        <button
-          className="h-fit w-fit rounded bg-sky-500 px-4 py-1 text-white"
+        </Button>
+        <Button
           onClick={() => {
             contactsCollection.insert({
               id: genSecureToken(),
-              name: "Contact " + genSecureToken(3),
+              name: "Contact " + genSecureToken(6),
               linkedin: "https://linkedin.com/in/" + genSecureToken(3),
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
@@ -58,29 +51,29 @@ function RouteComponent() {
             });
           }}
         >
-          Create contact (Sync)
-        </button>
+          Create contact (Tanstack DB/Electric)
+        </Button>
       </div>
-      <div>
+      <div className="flex flex-col gap-1 p-2">
         {contacts.data.map((contact) => (
           <div key={contact.id} className="flex gap-2">
-            <div
-              role="button"
-              onClick={() => {
-                contactsCollection.update(contact.id, (draft) => {
-                  draft.name = "Contact 2 " + genSecureToken(3);
-                });
-              }}
-            >
-              {contact.name}
-            </div>
-            <button
+            <Button
               onClick={() => {
                 contactsCollection.delete(contact.id);
               }}
             >
               Delete
-            </button>
+            </Button>
+            <Button
+              onClick={() => {
+                contactsCollection.update(contact.id, (draft) => {
+                  draft.name = "Contact " + genSecureToken(6);
+                });
+              }}
+            >
+              Update
+            </Button>
+            <div>{contact.name}</div>
           </div>
         ))}
       </div>
