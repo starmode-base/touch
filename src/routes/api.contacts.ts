@@ -10,7 +10,10 @@ export const ServerRoute = createServerFileRoute("/api/contacts").methods({
     const { userId } = await getAuth(request);
 
     if (!userId) {
-      throw new Error("Unauthorized");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      });
     }
 
     const workspaceIds = await db()
