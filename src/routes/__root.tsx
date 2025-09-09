@@ -14,6 +14,7 @@ import {
 } from "@clerk/tanstack-react-start";
 import { createServerFn } from "@tanstack/react-start";
 import { syncViewer } from "~/middleware/auth-viewer";
+import { Button, LinkButton } from "~/components/atoms";
 
 const authStateFn = createServerFn({ method: "GET" }).handler(() => {
   return syncViewer();
@@ -75,13 +76,15 @@ function RootLayout(props: React.PropsWithChildren) {
     <main className="flex h-dvh flex-col">
       <SignedIn>
         <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white p-4">
-          <div>You are signed in as: {viewer?.email}</div>
+          <div className="flex items-center gap-2">
+            <LinkButton to="/">Home</LinkButton>
+            <LinkButton to="/demo">Demo</LinkButton>
+            <div>You are signed in as: {viewer?.email}</div>
+          </div>
           <div className="flex items-center gap-2">
             <UserButton />
             <SignOutButton>
-              <button className="h-fit rounded bg-sky-500 px-4 py-1 text-white">
-                Sign out
-              </button>
+              <Button>Sign out</Button>
             </SignOutButton>
           </div>
         </div>
@@ -95,14 +98,10 @@ function RootLayout(props: React.PropsWithChildren) {
           <div className="max-w-xs text-center">{metadata.description}</div>
           <div className="m-auto flex gap-2">
             <SignInButton mode="modal">
-              <button className="rounded bg-sky-500 px-4 py-1 text-white">
-                Sign in
-              </button>
+              <Button>Sign in</Button>
             </SignInButton>
             <SignUpButton mode="modal">
-              <button className="rounded bg-sky-500 px-4 py-1 text-white">
-                Sign up
-              </button>
+              <Button>Sign up</Button>
             </SignUpButton>
           </div>
         </div>

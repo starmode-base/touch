@@ -2,14 +2,19 @@
 alwaysApply: true
 ---
 
-## Code Style
+## Code style
 
 - Default to functional style, but be pragmatic and use imperative when needed
   - Prefer pure functions
   - Prefer immutability (local mutability is okay)
 
-## Testing Philosophy
+## Testing philosophy
 
 - Write code with testing in mind
   - Strive to write functions that can be tested without mocks
   - Create factories for boundary functions to support testing without mocks
+
+## Documentation
+
+- Always use sentence case for titles (never title case)
+- In code comments with _one_ sentence, omit the period

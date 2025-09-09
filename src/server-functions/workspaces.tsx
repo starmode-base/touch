@@ -5,6 +5,7 @@ import { desc, eq, inArray } from "drizzle-orm";
 import { SecureToken } from "~/lib/secure-token";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { invariant } from "@tanstack/react-router";
+import { generateTxId } from "../postgres/helpers";
 
 /**
  * Create workspace
@@ -14,7 +15,9 @@ export const createWorkspaceSF = createServerFn({ method: "POST" })
   .validator(z.array(z.object({ name: z.string() })))
   .handler(async ({ data, context }) => {
     // Transaction will roll back the first insert if the second insert fails
-    await db().transaction(async (tx) => {
+    const result = await db().transaction(async (tx) => {
+      const txid = await generateTxId(tx);
+
       const workspaceId = await tx
         .insert(schema.workspaces)
         .values(data)
@@ -29,7 +32,11 @@ export const createWorkspaceSF = createServerFn({ method: "POST" })
         userId: context.viewer.id,
         role: "member",
       });
+
+      return { txid };
     });
+
+    return result;
   });
 
 /**
@@ -37,20 +44,33 @@ export const createWorkspaceSF = createServerFn({ method: "POST" })
  */
 export const updateWorkspaceSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(z.array(z.object({ id: SecureToken, name: z.string() })))
+  .validator(
+    z.array(
+      z.object({
+        key: z.object({ id: SecureToken }),
+        fields: z.object({ name: z.string() }),
+      }),
+    ),
+  )
   .handler(async ({ data, context }) => {
-    context.ensureIsInWorkspace(data.map((item) => item.id));
+    context.ensureIsInWorkspace(data.map((item) => item.key.id));
 
-    await db().transaction(async (tx) => {
+    const result = await db().transaction(async (tx) => {
+      const txid = await generateTxId(tx);
+
       await Promise.all(
         data.map((item) =>
           tx
             .update(schema.workspaces)
-            .set({ name: item.name })
-            .where(eq(schema.workspaces.id, item.id)),
+            .set(item.fields)
+            .where(eq(schema.workspaces.id, item.key.id)),
         ),
       );
+
+      return { txid };
     });
+
+    return result;
   });
 
 /**
@@ -62,20 +82,34 @@ export const deleteWorkspaceSF = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     context.ensureIsInWorkspace(data);
 
-    await db()
-      .delete(schema.workspaces)
-      .where(inArray(schema.workspaces.id, data));
+    const result = await db().transaction(async (tx) => {
+      const txid = await generateTxId(tx);
+
+      await tx
+        .delete(schema.workspaces)
+        .where(inArray(schema.workspaces.id, data));
+
+      return { txid };
+    });
+
+    return result;
   });
 
 /**
  * List workspaces
  */
-export const listWorkspacesSF = createServerFn({ method: "GET" }).handler(
-  async () => {
+export const listWorkspacesSF = createServerFn({ method: "GET" })
+  .middleware([ensureViewerMiddleware])
+  .handler(async ({ context }) => {
+    // TODO: Move to middleware
+    const workspaceIds = context.viewer.workspaceMemberships.map(
+      (membership) => membership.workspaceId,
+    );
+
     const workspaces = await db()
       .select()
       .from(schema.workspaces)
+      .where(inArray(schema.workspaces.id, workspaceIds))
       .orderBy(desc(schema.workspaces.createdAt), desc(schema.workspaces.id));
     return workspaces;
-  },
-);
+  });

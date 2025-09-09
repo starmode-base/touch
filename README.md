@@ -61,6 +61,7 @@ IMPORTANT: Use the [Neon-Managed Integration](https://neon.com/docs/guides/neon-
 - [Vercel](https://vercel.com/starmode/touch)
 - [Vercel Analytics](https://vercel.com/starmode/touch/analytics)
 - [Vercel Environment Variables](https://vercel.com/starmode/touch/settings/environment-variables)
+- [Electric Cloud](https://dashboard.electric-sql.cloud/)
 
 ## Configured tools
 
@@ -81,3 +82,4 @@ IMPORTANT: Use the [Neon-Managed Integration](https://neon.com/docs/guides/neon-
 - [TanStack Start](https://tanstack.com/start)
 - [TanStack Router](https://tanstack.com/router)
 - [TanStack DB](https://tanstack.com/db)
+- [Electric](https://electric-sql.com/)
