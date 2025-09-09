@@ -33,6 +33,12 @@ export const createWorkspaceSF = createServerFn({ method: "POST" })
         role: "member",
       });
 
+      // Establish contact roles for the workspace
+      await tx.insert(schema.contactRoles).values([
+        { workspaceId, key: "inner_circle", name: "Inner circle" },
+        { workspaceId, key: "peer_referral", name: "Peer referral" },
+      ]);
+
       return { txid };
     });
 

@@ -7,7 +7,7 @@ import {
   opportunities,
   opportunityActivities,
   users,
-  opportunityContacts,
+  opportunityContactLinks,
 } from "./schema";
 
 export const contactActivitiesRelations = relations(
@@ -34,7 +34,7 @@ export const workspacesRelations = relations(workspaces, ({ many }) => ({
   opportunities: many(opportunities),
   opportunityActivities: many(opportunityActivities),
   workspaceMemberships: many(workspaceMemberships),
-  opportunityContacts: many(opportunityContacts),
+  opportunityContacts: many(opportunityContactLinks),
 }));
 
 export const workspaceMembershipsRelations = relations(
@@ -59,7 +59,7 @@ export const contactsRelations = relations(contacts, ({ one, many }) => ({
     fields: [contacts.workspaceId],
     references: [workspaces.id],
   }),
-  opportunityContacts: many(opportunityContacts),
+  opportunityContacts: many(opportunityContactLinks),
 }));
 
 export const opportunitiesRelations = relations(
@@ -70,7 +70,7 @@ export const opportunitiesRelations = relations(
       references: [workspaces.id],
     }),
     opportunityActivities: many(opportunityActivities),
-    opportunityContacts: many(opportunityContacts),
+    opportunityContacts: many(opportunityContactLinks),
   }),
 );
 
@@ -97,18 +97,18 @@ export const usersRelations = relations(users, ({ many }) => ({
 }));
 
 export const opportunityContactsRelations = relations(
-  opportunityContacts,
+  opportunityContactLinks,
   ({ one }) => ({
     workspace: one(workspaces, {
-      fields: [opportunityContacts.workspaceId],
+      fields: [opportunityContactLinks.workspaceId],
       references: [workspaces.id],
     }),
     contact: one(contacts, {
-      fields: [opportunityContacts.workspaceId],
+      fields: [opportunityContactLinks.workspaceId],
       references: [contacts.id],
     }),
     opportunity: one(opportunities, {
-      fields: [opportunityContacts.workspaceId],
+      fields: [opportunityContactLinks.workspaceId],
       references: [opportunities.id],
     }),
   }),
