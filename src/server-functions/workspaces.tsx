@@ -8,11 +8,18 @@ import { invariant } from "@tanstack/react-router";
 import { generateTxId } from "../postgres/helpers";
 
 /**
+ * Validation schema for creating a workspace
+ */
+export const createWorkspaceInputSchema = z.object({
+  name: z.string().nonempty(),
+});
+
+/**
  * Create workspace
  */
 export const createWorkspaceSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(z.array(z.object({ name: z.string() })))
+  .validator(z.array(createWorkspaceInputSchema))
   .handler(async ({ data, context }) => {
     // Transaction will roll back the first insert if the second insert fails
     const result = await db().transaction(async (tx) => {
