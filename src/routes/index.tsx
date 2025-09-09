@@ -74,9 +74,13 @@ function Home() {
         </form>
         <div className="flex flex-col gap-1">
           {workspacesQuery.data.map((workspace) => (
-            <div key={workspace.id} className="flex gap-2">
+            <div key={workspace.id} className="flex items-center gap-2">
               <Button
                 onClick={() => {
+                  const ok = confirm(
+                    `Are you sure you want to delete this workspace?`,
+                  );
+                  if (!ok) return;
                   workspacesCollectionQuery.delete(workspace.id);
                 }}
               >
@@ -92,7 +96,7 @@ function Home() {
                 Update
               </Button>
               <Link to="/$workspace" params={{ workspace: workspace.id }}>
-                {workspace.name} - {workspace.id.slice(0, 8)}
+                {workspace.name}
               </Link>
             </div>
           ))}
