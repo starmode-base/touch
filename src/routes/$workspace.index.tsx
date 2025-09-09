@@ -25,7 +25,7 @@ function RouteComponent() {
 
   return (
     <div>
-      <div className="flex gap-2 p-2">
+      <div className="flex gap-2 rounded p-4 px-6">
         <Button
           onClick={async () => {
             await createContact({
@@ -56,7 +56,10 @@ function RouteComponent() {
       </div>
       <div className="flex flex-col gap-1 p-2">
         {contacts.data.map((contact) => (
-          <div key={contact.id} className="flex gap-2">
+          <div
+            key={contact.id}
+            className="flex gap-2 rounded border border-slate-200 bg-white p-4"
+          >
             <Button
               onClick={() => {
                 contactsCollection.delete(contact.id);
