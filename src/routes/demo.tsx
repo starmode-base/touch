@@ -95,7 +95,10 @@ function Home() {
               >
                 {workspace.name} - {workspace.id.slice(0, 8)}
               </div>
-              <Link to="/$workspace" params={{ workspace: workspace.id }}>
+              <Link
+                to="/$workspace/contacts"
+                params={{ workspace: workspace.id }}
+              >
                 Go
               </Link>
             </div>

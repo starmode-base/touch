@@ -8,11 +8,18 @@ import { invariant } from "@tanstack/react-router";
 import { generateTxId } from "../postgres/helpers";
 
 /**
+ * Validation schema for creating a workspace
+ */
+export const createWorkspaceInputSchema = z.object({
+  name: z.string().trim().nonempty().max(64),
+});
+
+/**
  * Create workspace
  */
 export const createWorkspaceSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(z.array(z.object({ name: z.string() })))
+  .validator(z.array(createWorkspaceInputSchema))
   .handler(async ({ data, context }) => {
     // Transaction will roll back the first insert if the second insert fails
     const result = await db().transaction(async (tx) => {
@@ -33,6 +40,12 @@ export const createWorkspaceSF = createServerFn({ method: "POST" })
         role: "member",
       });
 
+      // Establish contact roles for the workspace
+      await tx.insert(schema.contactRoles).values([
+        { workspaceId, key: "inner_circle", name: "Inner circle" },
+        { workspaceId, key: "peer_referral", name: "Peer referral" },
+      ]);
+
       return { txid };
     });
 
@@ -47,8 +60,12 @@ export const updateWorkspaceSF = createServerFn({ method: "POST" })
   .validator(
     z.array(
       z.object({
-        key: z.object({ id: SecureToken }),
-        fields: z.object({ name: z.string() }),
+        key: z.object({
+          id: SecureToken,
+        }),
+        fields: z.object({
+          name: createWorkspaceInputSchema.shape.name,
+        }),
       }),
     ),
   )
