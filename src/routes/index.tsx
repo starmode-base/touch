@@ -86,15 +86,6 @@ function Home() {
               >
                 Delete
               </Button>
-              <Button
-                onClick={() => {
-                  workspacesCollectionQuery.update(workspace.id, (draft) => {
-                    draft.name = "Workspace 2 " + genSecureToken(3);
-                  });
-                }}
-              >
-                Update
-              </Button>
               <Link
                 to="/$workspace/contacts"
                 params={{ workspace: workspace.id }}

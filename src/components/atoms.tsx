@@ -89,7 +89,7 @@ export function ContactCard(props: {
   );
 }
 
-function EditInput(props: {
+export function EditInput(props: {
   displayValue?: string;
   value: string;
   onUpdate: (value: string) => void;
@@ -138,7 +138,7 @@ function EditInput(props: {
   return (
     <div className="group flex items-center gap-2 pr-9 hover:pr-0">
       {props.type === "text" ? (
-        <div>{props.value}</div>
+        <div>{displayValue}</div>
       ) : (
         <a href={props.value} target="_blank" className="text-sm text-sky-500">
           {displayValue}

@@ -6,7 +6,7 @@ import {
 } from "~/lib/collections";
 import { genSecureToken } from "~/lib/secure-token";
 import { createContactInputSchema } from "~/server-functions/contacts";
-import { Button, ContactCard } from "~/components/atoms";
+import { Button, ContactCard, EditInput } from "~/components/atoms";
 import { useState } from "react";
 import { extractLinkedInAndName } from "~/lib/linkedin-extractor";
 
@@ -32,12 +32,21 @@ function RouteComponent() {
       .from({ workspace: workspacesCollectionQuery })
       .where(({ workspace }) => eq(workspace.id, params.workspace));
   });
-  const workspaceName = workspace.data[0]?.name;
+  const workspaceName = workspace.data[0]?.name ?? "";
 
   return (
     <div className="flex flex-1 flex-col">
       <div className="heading-1 shrink-0 px-6 py-2">
-        {workspaceName} - Contacts
+        <EditInput
+          type="text"
+          value={workspaceName}
+          displayValue={`${workspaceName} — Contacts`}
+          onUpdate={(value) => {
+            workspacesCollectionQuery.update(params.workspace, (draft) => {
+              draft.name = value;
+            });
+          }}
+        />
       </div>
       <div className="flex flex-1 flex-col gap-1 p-2">
         {contacts.data.map((contact) => (
