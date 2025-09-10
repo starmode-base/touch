@@ -2,6 +2,10 @@
 alwaysApply: true
 ---
 
+## Instructions
+
+- Avoid premature/paranoid defensive programming; guard only against known error cases
+
 ## Code style
 
 - Default to functional style, but be pragmatic and use imperative when needed
