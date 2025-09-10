@@ -121,48 +121,44 @@ function EditInput(props: {
   const displayValue =
     typeof props.displayValue === "string" ? props.displayValue : props.value;
 
+  if (isEditing) {
+    return (
+      <div className="group flex items-center gap-2">
+        <input
+          className="flex-1 italic outline-none"
+          type="text"
+          autoFocus
+          value={editValue}
+          onChange={(e) => {
+            setEditValue(e.target.value);
+          }}
+          onKeyDown={handleKeyDown}
+          onBlur={() => {
+            setIsEditing(false);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
-    <>
-      {isEditing ? (
-        <div className="group flex items-center gap-2">
-          <input
-            className="flex-1 italic outline-none"
-            type="text"
-            autoFocus
-            value={editValue}
-            onChange={(e) => {
-              setEditValue(e.target.value);
-            }}
-            onKeyDown={handleKeyDown}
-            onBlur={() => {
-              setIsEditing(false);
-            }}
-          />
-        </div>
+    <div className="group flex items-center gap-2">
+      {props.type === "text" ? (
+        <div>{props.value}</div>
       ) : (
-        <div className="group flex items-center gap-2">
-          {props.type === "text" ? (
-            <div>{props.value}</div>
-          ) : (
-            <a
-              href={props.value}
-              target="_blank"
-              className="text-sm text-sky-500"
-            >
-              {displayValue}
-            </a>
-          )}
-          <button
-            onClick={() => {
-              setEditValue(props.value);
-              setIsEditing(true);
-            }}
-            className="-my-1 hidden p-1 group-hover:block"
-          >
-            <PencilSquareIcon className="size-5" />
-          </button>
-        </div>
+        <a href={props.value} target="_blank" className="text-sm text-sky-500">
+          {displayValue}
+        </a>
       )}
-    </>
+      <button
+        onClick={() => {
+          setEditValue(props.value);
+          setIsEditing(true);
+        }}
+        className="-my-1 hidden p-1 group-hover:block"
+      >
+        <PencilSquareIcon className="size-5" />
+      </button>
+    </div>
   );
 }
