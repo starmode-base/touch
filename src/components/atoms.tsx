@@ -24,7 +24,7 @@ export function LinkButton(props: LinkProps) {
   );
 }
 
-export function extractLinkedInPath(url: string): string | null {
+function extractLinkedInPath(url: string): string | null {
   try {
     const urlObj = new URL(url);
 
@@ -51,8 +51,8 @@ export function ContactCard(props: {
   onUpdate: (args: { name: string; linkedin?: string }) => void;
 }) {
   return (
-    <div className="flex items-center gap-2 rounded border border-slate-200 bg-white p-2">
-      <div className="flex-1">
+    <div className="flex items-center justify-between gap-2 rounded border border-slate-200 bg-white p-2">
+      <div>
         <EditInput
           type="text"
           value={props.name}
@@ -81,15 +81,9 @@ export function ContactCard(props: {
       </div>
       <button
         onClick={props.onDelete}
-        className="h-fit w-fit rounded p-1 hover:bg-slate-100"
+        className="rounded p-1 hover:bg-slate-100"
       >
         <TrashIcon className="size-5" />
-      </button>
-      <button
-        onClick={props.onDelete}
-        className="h-fit w-fit rounded p-1 hover:bg-slate-100"
-      >
-        <PencilSquareIcon className="size-5" />
       </button>
     </div>
   );
@@ -142,7 +136,7 @@ function EditInput(props: {
   }
 
   return (
-    <div className="group flex items-center gap-2">
+    <div className="group flex items-center gap-2 pr-9 hover:pr-0">
       {props.type === "text" ? (
         <div>{props.value}</div>
       ) : (

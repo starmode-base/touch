@@ -45,8 +45,8 @@ export const updateContactSF = createServerFn({ method: "POST" })
         id: SecureToken,
       }),
       fields: z.object({
-        name: z.string(),
-        linkedin: z.string().nullable(),
+        name: createContactInputSchema.shape.name,
+        linkedin: createContactInputSchema.shape.linkedin,
       }),
     }),
   )
@@ -84,14 +84,14 @@ export const updateContactSF = createServerFn({ method: "POST" })
  */
 export const deleteContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(z.object({ contactId: SecureToken }))
+  .validator(z.object({ id: SecureToken }))
   .handler(async ({ data, context }) => {
     return db().transaction(async (tx) => {
       const txid = await generateTxId(tx);
 
       const contactWorkspaceId = await tx.query.contacts
         .findFirst({
-          where: eq(schema.contacts.id, data.contactId),
+          where: eq(schema.contacts.id, data.id),
           columns: {
             workspaceId: true,
           },
@@ -102,9 +102,7 @@ export const deleteContactSF = createServerFn({ method: "POST" })
       // Ensure the user is in the workspace
       context.ensureIsInWorkspace(contactWorkspaceId);
 
-      await tx
-        .delete(schema.contacts)
-        .where(eq(schema.contacts.id, data.contactId));
+      await tx.delete(schema.contacts).where(eq(schema.contacts.id, data.id));
 
       return { txid };
     });

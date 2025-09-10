@@ -60,8 +60,12 @@ export const updateWorkspaceSF = createServerFn({ method: "POST" })
   .validator(
     z.array(
       z.object({
-        key: z.object({ id: SecureToken }),
-        fields: z.object({ name: z.string() }),
+        key: z.object({
+          id: SecureToken,
+        }),
+        fields: z.object({
+          name: createWorkspaceInputSchema.shape.name,
+        }),
       }),
     ),
   )

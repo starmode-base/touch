@@ -165,7 +165,7 @@ export const contactsCollection = createCollection(
       const data = transaction.mutations.map((item) => item.modified.id);
 
       const txid = await Promise.all(
-        data.map((item) => deleteContactSF({ data: { contactId: item } })),
+        data.map((item) => deleteContactSF({ data: { id: item } })),
       );
 
       return { txid: txid.map((item) => item.txid) };
