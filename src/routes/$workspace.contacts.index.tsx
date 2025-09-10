@@ -1,6 +1,9 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { createFileRoute } from "@tanstack/react-router";
-import { contactsCollection } from "~/lib/collections";
+import {
+  contactsCollection,
+  workspacesCollectionQuery,
+} from "~/lib/collections";
 import { genSecureToken } from "~/lib/secure-token";
 import { createContactInputSchema } from "~/server-functions/contacts";
 import { Button, ContactCard } from "~/components/atoms";
@@ -13,6 +16,7 @@ export const Route = createFileRoute("/$workspace/contacts/")({
 
 function RouteComponent() {
   const params = Route.useParams();
+  const [isValid, setIsValid] = useState(false);
 
   const contacts = useLiveQuery((q) => {
     return q
@@ -22,11 +26,18 @@ function RouteComponent() {
       .orderBy(({ contact }) => contact.id, "desc");
   });
 
-  const [isValid, setIsValid] = useState(false);
+  const workspace = useLiveQuery((q) => {
+    return q
+      .from({ workspace: workspacesCollectionQuery })
+      .where(({ workspace }) => eq(workspace.id, params.workspace));
+  });
+  const workspaceName = workspace.data[0]?.name;
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="heading-1 shrink-0 px-6 py-2">Contacts</div>
+      <div className="heading-1 shrink-0 px-6 py-2">
+        {workspaceName} - Contacts
+      </div>
       <div className="flex flex-1 flex-col gap-1 p-2">
         {contacts.data.map((contact) => (
           <ContactCard
@@ -96,7 +107,7 @@ function RouteComponent() {
             className="flex-1 rounded border border-slate-200 px-2"
           />
           <Button type="submit" disabled={!isValid} role="button">
-            Save Save Save Save Save Save
+            Add [Enter]
           </Button>
         </form>
       </div>

@@ -245,14 +245,14 @@ export const contactActivities = pgTable(
         // A user note about the contact
         | "user:note"
         // System activities so users can see who created/updated contacts
-        | "system:contact_created" // body=name, linkedin
-        | "system:contact_updated" // body=new name, new linkedin
+        | "system:created" // body=name, linkedin
+        | "system:updated" // body=new name, new linkedin
       >()
       .notNull(),
     // Human-readable description of the activity, used for all kinds
     body: text().notNull(),
     // Only for kind:'system:*'
-    details: jsonb().$type<{ name?: string; linkedin?: string }>(),
+    details: jsonb().$type<{ name?: string; linkedin?: string | null }>(),
   },
   (t) => [
     // FK constraint: Actor must belong to this workspace
@@ -368,8 +368,8 @@ export const opportunityActivities = pgTable(
         // Next activity to do to advance the opportunity, has a due date
         | "user:next_step"
         // System activities so users can see who created/updated opportunities
-        | "system:opportunity_created" // body=name, status
-        | "system:opportunity_updated" // body=new name, new status
+        | "system:created" // body=name, status
+        | "system:updated" // body=new name, new status
       >()
       .notNull(),
     // Human-readable description of the activity, used for all kinds
