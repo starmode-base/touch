@@ -6,7 +6,7 @@ import { createContactInputSchema } from "~/server-functions/contacts";
 import { Button, ContactCard } from "~/components/atoms";
 import { useState } from "react";
 
-export const Route = createFileRoute("/$workspace/")({
+export const Route = createFileRoute("/$workspace/contacts/")({
   ssr: false,
   component: RouteComponent,
 });

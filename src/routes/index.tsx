@@ -95,7 +95,10 @@ function Home() {
               >
                 Update
               </Button>
-              <Link to="/$workspace" params={{ workspace: workspace.id }}>
+              <Link
+                to="/$workspace/contacts"
+                params={{ workspace: workspace.id }}
+              >
                 {workspace.name}
               </Link>
             </div>

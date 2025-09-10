@@ -12,9 +12,8 @@ import { createServerRootRoute } from '@tanstack/react-start/server'
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DemoRouteImport } from './routes/demo'
-import { Route as WorkspaceRouteImport } from './routes/$workspace'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as WorkspaceIndexRouteImport } from './routes/$workspace.index'
+import { Route as WorkspaceContactsIndexRouteImport } from './routes/$workspace.contacts.index'
 import { ServerRoute as ApiWorkspacesServerRouteImport } from './routes/api.workspaces'
 import { ServerRoute as ApiContactsServerRouteImport } from './routes/api.contacts'
 
@@ -25,20 +24,15 @@ const DemoRoute = DemoRouteImport.update({
   path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WorkspaceRoute = WorkspaceRouteImport.update({
-  id: '/$workspace',
-  path: '/$workspace',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WorkspaceIndexRoute = WorkspaceIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => WorkspaceRoute,
+const WorkspaceContactsIndexRoute = WorkspaceContactsIndexRouteImport.update({
+  id: '/$workspace/contacts/',
+  path: '/$workspace/contacts/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWorkspacesServerRoute = ApiWorkspacesServerRouteImport.update({
   id: '/api/workspaces',
@@ -53,34 +47,32 @@ const ApiContactsServerRoute = ApiContactsServerRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$workspace': typeof WorkspaceRouteWithChildren
   '/demo': typeof DemoRoute
-  '/$workspace/': typeof WorkspaceIndexRoute
+  '/$workspace/contacts': typeof WorkspaceContactsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
-  '/$workspace': typeof WorkspaceIndexRoute
+  '/$workspace/contacts': typeof WorkspaceContactsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/$workspace': typeof WorkspaceRouteWithChildren
   '/demo': typeof DemoRoute
-  '/$workspace/': typeof WorkspaceIndexRoute
+  '/$workspace/contacts/': typeof WorkspaceContactsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$workspace' | '/demo' | '/$workspace/'
+  fullPaths: '/' | '/demo' | '/$workspace/contacts'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/$workspace'
-  id: '__root__' | '/' | '/$workspace' | '/demo' | '/$workspace/'
+  to: '/' | '/demo' | '/$workspace/contacts'
+  id: '__root__' | '/' | '/demo' | '/$workspace/contacts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  WorkspaceRoute: typeof WorkspaceRouteWithChildren
   DemoRoute: typeof DemoRoute
+  WorkspaceContactsIndexRoute: typeof WorkspaceContactsIndexRoute
 }
 export interface FileServerRoutesByFullPath {
   '/api/contacts': typeof ApiContactsServerRoute
@@ -117,13 +109,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$workspace': {
-      id: '/$workspace'
-      path: '/$workspace'
-      fullPath: '/$workspace'
-      preLoaderRoute: typeof WorkspaceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -131,12 +116,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$workspace/': {
-      id: '/$workspace/'
-      path: '/'
-      fullPath: '/$workspace/'
-      preLoaderRoute: typeof WorkspaceIndexRouteImport
-      parentRoute: typeof WorkspaceRoute
+    '/$workspace/contacts/': {
+      id: '/$workspace/contacts/'
+      path: '/$workspace/contacts'
+      fullPath: '/$workspace/contacts'
+      preLoaderRoute: typeof WorkspaceContactsIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -159,22 +144,10 @@ declare module '@tanstack/react-start/server' {
   }
 }
 
-interface WorkspaceRouteChildren {
-  WorkspaceIndexRoute: typeof WorkspaceIndexRoute
-}
-
-const WorkspaceRouteChildren: WorkspaceRouteChildren = {
-  WorkspaceIndexRoute: WorkspaceIndexRoute,
-}
-
-const WorkspaceRouteWithChildren = WorkspaceRoute._addFileChildren(
-  WorkspaceRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  WorkspaceRoute: WorkspaceRouteWithChildren,
   DemoRoute: DemoRoute,
+  WorkspaceContactsIndexRoute: WorkspaceContactsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
