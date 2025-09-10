@@ -37,10 +37,8 @@ export const workspacesCollectionQuery = createCollection(
     queryFn: () => listWorkspacesSF(),
     queryClient,
     getKey: (item) => item.id,
-
     refetchInterval: 5000,
     schema: selectWorkspaceSchema,
-
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
         name: item.modified.name,
@@ -48,7 +46,6 @@ export const workspacesCollectionQuery = createCollection(
 
       await createWorkspaceSF({ data });
     },
-
     onUpdate: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
         key: { id: item.modified.id },
@@ -57,7 +54,6 @@ export const workspacesCollectionQuery = createCollection(
 
       await updateWorkspaceSF({ data });
     },
-
     onDelete: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => item.modified.id);
 
@@ -91,7 +87,6 @@ export const workspacesCollectionElectric = createCollection(
 
       return { txid: result.txid };
     },
-
     onUpdate: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
         key: {
@@ -106,7 +101,6 @@ export const workspacesCollectionElectric = createCollection(
 
       return { txid: result.txid };
     },
-
     onDelete: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => item.modified.id);
 
@@ -150,7 +144,6 @@ export const contactsCollection = createCollection(
 
       return { txid: txid.map((item) => item.txid) };
     },
-
     onUpdate: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
         key: {
@@ -168,7 +161,6 @@ export const contactsCollection = createCollection(
 
       return { txid: txid.map((item) => item.txid) };
     },
-
     onDelete: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => item.modified.id);
 

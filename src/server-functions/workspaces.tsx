@@ -11,7 +11,7 @@ import { generateTxId } from "../postgres/helpers";
  * Validation schema for creating a workspace
  */
 export const createWorkspaceInputSchema = z.object({
-  name: z.string().nonempty(),
+  name: z.string().nonempty().max(64),
 });
 
 /**

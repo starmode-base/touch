@@ -1,10 +1,10 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { contactsCollection } from "~/lib/collections";
 import { genSecureToken } from "~/lib/secure-token";
-import { createContactSF } from "~/server-functions/contacts";
-import { Button } from "~/components/atoms";
+import { createContactInputSchema } from "~/server-functions/contacts";
+import { Button, ContactCard } from "~/components/atoms";
+import { useState } from "react";
 
 export const Route = createFileRoute("/$workspace/")({
   ssr: false,
@@ -12,7 +12,6 @@ export const Route = createFileRoute("/$workspace/")({
 });
 
 function RouteComponent() {
-  const createContact = useServerFn(createContactSF);
   const params = Route.useParams();
 
   const contacts = useLiveQuery((q) => {
@@ -23,38 +22,32 @@ function RouteComponent() {
       .orderBy(({ contact }) => contact.id, "desc");
   });
 
+  const [isValid, setIsValid] = useState(false);
+
   return (
-    <div>
-      <div className="flex gap-2 rounded p-4 px-6">
-        <Button
-          onClick={async () => {
-            await createContact({
-              data: {
-                name: "Contact " + genSecureToken(6),
-                linkedin: "https://linkedin.com/in/" + genSecureToken(3),
-                workspaceId: params.workspace,
-              },
-            });
-          }}
-        >
-          Create contact (RPC)
-        </Button>
-        <Button
-          onClick={() => {
-            contactsCollection.insert({
-              id: genSecureToken(),
-              name: "Contact " + genSecureToken(6),
-              linkedin: "https://linkedin.com/in/" + genSecureToken(3),
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              workspace_id: params.workspace,
-            });
-          }}
-        >
-          Create contact (Tanstack DB/Electric)
-        </Button>
-      </div>
-      <div className="flex flex-col gap-1 p-2">
+    <div className="flex flex-1 flex-col">
+      <div className="heading-1 shrink-0 px-6 py-2">Contacts</div>
+      <div className="flex flex-1 flex-col gap-1 p-2">
+        {contacts.data.map((contact) => (
+          <ContactCard
+            key={contact.id}
+            name={contact.name}
+            linkedin={contact.linkedin ?? undefined}
+            onDelete={() => {
+              const ok = confirm(
+                "Are you sure you want to delete this contact?",
+              );
+              if (!ok) return;
+              contactsCollection.delete(contact.id);
+            }}
+            onUpdate={(args) => {
+              contactsCollection.update(contact.id, (draft) => {
+                draft.name = args.name;
+                draft.linkedin = args.linkedin ?? null;
+              });
+            }}
+          />
+        ))}
         {contacts.data.map((contact) => (
           <div
             key={contact.id}
@@ -62,6 +55,10 @@ function RouteComponent() {
           >
             <Button
               onClick={() => {
+                const ok = confirm(
+                  "Are you sure you want to delete this contact?",
+                );
+                if (!ok) return;
                 contactsCollection.delete(contact.id);
               }}
             >
@@ -79,6 +76,57 @@ function RouteComponent() {
             <div>{contact.name}</div>
           </div>
         ))}
+      </div>
+      <div className="shrink-0 bg-slate-100 p-2">
+        <form
+          className="flex gap-2"
+          onInput={(e) => {
+            const fd = new FormData(e.currentTarget);
+
+            const ok = createContactInputSchema.safeParse({
+              name: fd.get("name"),
+              linkedin: null,
+              workspaceId: params.workspace,
+            }).success;
+
+            setIsValid(e.currentTarget.checkValidity() && ok);
+          }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const fd = new FormData(e.currentTarget);
+
+            const values = createContactInputSchema.parse({
+              name: fd.get("name"),
+              linkedin: null,
+              workspaceId: params.workspace,
+            });
+
+            contactsCollection.insert({
+              id: genSecureToken(),
+              workspace_id: values.workspaceId,
+              name: values.name,
+              linkedin: values.linkedin,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+
+            e.currentTarget.reset();
+            setIsValid(false);
+          }}
+        >
+          <input
+            type="text"
+            name="name"
+            placeholder="Contact name"
+            required
+            autoFocus
+            data-1p-ignore // 1password ignore
+            className="flex-1 rounded border border-slate-200 px-2"
+          />
+          <Button type="submit" disabled={!isValid} role="button">
+            Save Save Save Save Save Save
+          </Button>
+        </form>
       </div>
     </div>
   );

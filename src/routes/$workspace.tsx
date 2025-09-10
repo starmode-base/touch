@@ -6,7 +6,7 @@ export const Route = createFileRoute("/$workspace")({
 
 function RouteComponent() {
   return (
-    <div className="bg-pattern-lines flex-1">
+    <div className="bg-pattern-lines flex flex-1">
       <Outlet />
     </div>
   );

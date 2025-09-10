@@ -8,17 +8,20 @@ import { invariant } from "@tanstack/react-router";
 import { generateTxId } from "~/postgres/helpers";
 
 /**
+ * Validation schema for creating a contact
+ */
+export const createContactInputSchema = z.object({
+  workspaceId: SecureToken,
+  name: z.string().nonempty().max(64),
+  linkedin: z.string().nonempty().max(64).nullable(),
+});
+
+/**
  * Create contact
  */
 export const createContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(
-    z.object({
-      workspaceId: z.string(),
-      name: z.string(),
-      linkedin: z.string().nullable(),
-    }),
-  )
+  .validator(createContactInputSchema)
   .handler(async ({ data, context }) => {
     context.ensureIsInWorkspace(data.workspaceId);
 
