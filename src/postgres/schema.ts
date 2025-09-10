@@ -252,7 +252,7 @@ export const contactActivities = pgTable(
     // Human-readable description of the activity, used for all kinds
     body: text().notNull(),
     // Only for kind:'system:*'
-    details: jsonb().$type<{ name?: string; linkedin?: string | null }>(),
+    details: jsonb().$type<{ name: string; linkedin: string | null }>(),
   },
   (t) => [
     // FK constraint: Actor must belong to this workspace

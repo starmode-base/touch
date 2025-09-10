@@ -72,7 +72,7 @@ export function ContactCard(props: {
         ) : (
           <EditInput
             type="text"
-            value={"https://linkedin.com/in/"}
+            value={"https://www.linkedin.com/in/"}
             onUpdate={(value) => {
               props.onUpdate({ name: props.name, linkedin: value });
             }}

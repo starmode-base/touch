@@ -6,14 +6,15 @@ import { SecureToken } from "~/lib/secure-token";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { invariant } from "@tanstack/react-router";
 import { generateTxId } from "~/postgres/helpers";
+import { linkedinPatternExact } from "~/lib/linkedin-extractor";
 
 /**
  * Validation schema for creating a contact
  */
 export const createContactInputSchema = z.object({
   workspaceId: SecureToken,
-  name: z.string().nonempty().max(64),
-  linkedin: z.string().nonempty().max(64).nullable(),
+  name: z.string().trim().nonempty().max(64),
+  linkedin: z.string().trim().regex(linkedinPatternExact).max(64).nullable(),
 });
 
 /**

@@ -1,12 +1,14 @@
 ---
-description: When working with test files
-alwaysApply: false
+alwaysApply: true
 ---
 
-## Instructions
+## Instructions for tests
 
 - Run tests with `vitest run`
-- Use the Arrange → Act → Assert (AAA) pattern
-- Use one top level `describe` per function/unit under test
-- Use `test()` instead of `it()`
-- It is okay to disable lint rules in test files if needed
+- Use the Arrange → Act → Assert (AAA) pattern (don’t spell it out in code)
+- Use one top-level `describe` per function or unit under test
+- Prefer `test()` over `it()`
+- It's okay to disable lint rules in test files if needed
+- Use `describe.each` or `test.each` when validating the same logic across multiple inputs
+- Prefer `{ label, input, expected }` objects for parameterized test cases
+- Use character and spaceship names from Alien (1979) and Aliens (1986)

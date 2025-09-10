@@ -8,6 +8,7 @@ import { genSecureToken } from "~/lib/secure-token";
 import { createContactInputSchema } from "~/server-functions/contacts";
 import { Button, ContactCard } from "~/components/atoms";
 import { useState } from "react";
+import { extractLinkedInAndName } from "~/lib/linkedin-extractor";
 
 export const Route = createFileRoute("/$workspace/contacts/")({
   ssr: false,
@@ -84,11 +85,13 @@ function RouteComponent() {
               workspaceId: params.workspace,
             });
 
+            const { name, linkedinUrl } = extractLinkedInAndName(values.name);
+
             contactsCollection.insert({
               id: genSecureToken(),
               workspace_id: values.workspaceId,
-              name: values.name,
-              linkedin: values.linkedin,
+              name,
+              linkedin: linkedinUrl,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             });
