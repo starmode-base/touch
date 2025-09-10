@@ -24,6 +24,26 @@ export function LinkButton(props: LinkProps) {
   );
 }
 
+export function extractLinkedInPath(url: string): string | null {
+  try {
+    const urlObj = new URL(url);
+
+    // Check if it's a LinkedIn URL
+    if (!urlObj.hostname.includes("linkedin.com")) {
+      return null;
+    }
+
+    // Return the pathname if it starts with /in/ (without leading slash)
+    if (urlObj.pathname.startsWith("/in/")) {
+      return urlObj.pathname.slice(1);
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function ContactCard(props: {
   name: string;
   linkedin?: string;
@@ -44,11 +64,20 @@ export function ContactCard(props: {
           <EditInput
             type="link"
             value={props.linkedin}
+            displayValue={extractLinkedInPath(props.linkedin) ?? undefined}
             onUpdate={(value) => {
               props.onUpdate({ name: props.name, linkedin: value });
             }}
           />
-        ) : null}
+        ) : (
+          <EditInput
+            type="text"
+            value={"https://linkedin.com/in/"}
+            onUpdate={(value) => {
+              props.onUpdate({ name: props.name, linkedin: value });
+            }}
+          />
+        )}
       </div>
       <button
         onClick={props.onDelete}
@@ -67,6 +96,7 @@ export function ContactCard(props: {
 }
 
 function EditInput(props: {
+  displayValue?: string;
   value: string;
   onUpdate: (value: string) => void;
   type: "text" | "link";
@@ -87,6 +117,9 @@ function EditInput(props: {
       props.onUpdate(editValue);
     }
   };
+
+  const displayValue =
+    typeof props.displayValue === "string" ? props.displayValue : props.value;
 
   return (
     <>
@@ -116,7 +149,7 @@ function EditInput(props: {
               target="_blank"
               className="text-sm text-sky-500"
             >
-              {props.value}
+              {displayValue}
             </a>
           )}
           <button
@@ -124,8 +157,9 @@ function EditInput(props: {
               setEditValue(props.value);
               setIsEditing(true);
             }}
+            className="-my-1 hidden p-1 group-hover:block"
           >
-            <PencilSquareIcon className="hidden size-5 group-hover:block" />
+            <PencilSquareIcon className="size-5" />
           </button>
         </div>
       )}
