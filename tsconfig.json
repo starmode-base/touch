@@ -1,6 +1,11 @@
 {
-  "include": ["**/*.ts", "**/*.tsx", "**/*.js"],
-  "exclude": ["chrome/**/*"],
+  "include": [
+    "src",
+    "scripts",
+    "vite.config.ts",
+    "drizzle.config.ts",
+    "eslint.config.js"
+  ],
   "compilerOptions": {
     "strict": true,
     "esModuleInterop": true,
