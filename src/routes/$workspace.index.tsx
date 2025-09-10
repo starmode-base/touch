@@ -48,34 +48,6 @@ function RouteComponent() {
             }}
           />
         ))}
-        {contacts.data.map((contact) => (
-          <div
-            key={contact.id}
-            className="flex gap-2 rounded border border-slate-200 bg-white p-4"
-          >
-            <Button
-              onClick={() => {
-                const ok = confirm(
-                  "Are you sure you want to delete this contact?",
-                );
-                if (!ok) return;
-                contactsCollection.delete(contact.id);
-              }}
-            >
-              Delete
-            </Button>
-            <Button
-              onClick={() => {
-                contactsCollection.update(contact.id, (draft) => {
-                  draft.name = "Contact " + genSecureToken(6);
-                });
-              }}
-            >
-              Update
-            </Button>
-            <div>{contact.name}</div>
-          </div>
-        ))}
       </div>
       <div className="shrink-0 bg-slate-100 p-2">
         <form
