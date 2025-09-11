@@ -2,8 +2,8 @@
   "name": "touch-chrome",
   "private": true,
   "scripts": {
-    "chrome:dev": "bun build ./*.ts --outdir ./ --watch",
-    "chrome:build": "bun build ./*.ts --outdir ./",
+    "dev": "bun build ./*.ts --outdir ./ --watch",
+    "build": "bun build ./*.ts --outdir ./",
     "typecheck": "tsc"
   },
   "devDependencies": {
