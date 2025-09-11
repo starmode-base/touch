@@ -2,9 +2,9 @@
   "name": "touch-chrome",
   "private": true,
   "scripts": {
-    "chrome:dev": "bun build ./background.ts ./options.ts --outdir ./ --watch",
-    "chrome:build": "bun build ./background.ts ./options.ts --outdir ./",
-    "typecheck": "tsc -p . --noEmit"
+    "chrome:dev": "bun build ./*.ts --outdir ./ --watch",
+    "chrome:build": "bun build ./*.ts --outdir ./",
+    "typecheck": "tsc"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.9",
