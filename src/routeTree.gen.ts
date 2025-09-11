@@ -12,23 +12,18 @@ import { createServerRootRoute } from '@tanstack/react-start/server'
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DemoRouteImport } from './routes/demo'
-import { Route as ChromeRouteImport } from './routes/chrome'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WorkspaceContactsIndexRouteImport } from './routes/$workspace.contacts.index'
 import { Route as WorkspaceContactsContactRouteImport } from './routes/$workspace.contacts.$contact'
 import { ServerRoute as ApiWorkspacesServerRouteImport } from './routes/api.workspaces'
 import { ServerRoute as ApiContactsServerRouteImport } from './routes/api.contacts'
+import { ServerRoute as ApiChromeServerRouteImport } from './routes/api.chrome'
 
 const rootServerRouteImport = createServerRootRoute()
 
 const DemoRoute = DemoRouteImport.update({
   id: '/demo',
   path: '/demo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChromeRoute = ChromeRouteImport.update({
-  id: '/chrome',
-  path: '/chrome',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -57,17 +52,20 @@ const ApiContactsServerRoute = ApiContactsServerRouteImport.update({
   path: '/api/contacts',
   getParentRoute: () => rootServerRouteImport,
 } as any)
+const ApiChromeServerRoute = ApiChromeServerRouteImport.update({
+  id: '/api/chrome',
+  path: '/api/chrome',
+  getParentRoute: () => rootServerRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/chrome': typeof ChromeRoute
   '/demo': typeof DemoRoute
   '/$workspace/contacts/$contact': typeof WorkspaceContactsContactRoute
   '/$workspace/contacts': typeof WorkspaceContactsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/chrome': typeof ChromeRoute
   '/demo': typeof DemoRoute
   '/$workspace/contacts/$contact': typeof WorkspaceContactsContactRoute
   '/$workspace/contacts': typeof WorkspaceContactsIndexRoute
@@ -75,7 +73,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/chrome': typeof ChromeRoute
   '/demo': typeof DemoRoute
   '/$workspace/contacts/$contact': typeof WorkspaceContactsContactRoute
   '/$workspace/contacts/': typeof WorkspaceContactsIndexRoute
@@ -84,21 +81,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/chrome'
     | '/demo'
     | '/$workspace/contacts/$contact'
     | '/$workspace/contacts'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/chrome'
-    | '/demo'
-    | '/$workspace/contacts/$contact'
-    | '/$workspace/contacts'
+  to: '/' | '/demo' | '/$workspace/contacts/$contact' | '/$workspace/contacts'
   id:
     | '__root__'
     | '/'
-    | '/chrome'
     | '/demo'
     | '/$workspace/contacts/$contact'
     | '/$workspace/contacts/'
@@ -106,33 +96,36 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ChromeRoute: typeof ChromeRoute
   DemoRoute: typeof DemoRoute
   WorkspaceContactsContactRoute: typeof WorkspaceContactsContactRoute
   WorkspaceContactsIndexRoute: typeof WorkspaceContactsIndexRoute
 }
 export interface FileServerRoutesByFullPath {
+  '/api/chrome': typeof ApiChromeServerRoute
   '/api/contacts': typeof ApiContactsServerRoute
   '/api/workspaces': typeof ApiWorkspacesServerRoute
 }
 export interface FileServerRoutesByTo {
+  '/api/chrome': typeof ApiChromeServerRoute
   '/api/contacts': typeof ApiContactsServerRoute
   '/api/workspaces': typeof ApiWorkspacesServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
+  '/api/chrome': typeof ApiChromeServerRoute
   '/api/contacts': typeof ApiContactsServerRoute
   '/api/workspaces': typeof ApiWorkspacesServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/contacts' | '/api/workspaces'
+  fullPaths: '/api/chrome' | '/api/contacts' | '/api/workspaces'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/contacts' | '/api/workspaces'
-  id: '__root__' | '/api/contacts' | '/api/workspaces'
+  to: '/api/chrome' | '/api/contacts' | '/api/workspaces'
+  id: '__root__' | '/api/chrome' | '/api/contacts' | '/api/workspaces'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
+  ApiChromeServerRoute: typeof ApiChromeServerRoute
   ApiContactsServerRoute: typeof ApiContactsServerRoute
   ApiWorkspacesServerRoute: typeof ApiWorkspacesServerRoute
 }
@@ -144,13 +137,6 @@ declare module '@tanstack/react-router' {
       path: '/demo'
       fullPath: '/demo'
       preLoaderRoute: typeof DemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/chrome': {
-      id: '/chrome'
-      path: '/chrome'
-      fullPath: '/chrome'
-      preLoaderRoute: typeof ChromeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -192,12 +178,18 @@ declare module '@tanstack/react-start/server' {
       preLoaderRoute: typeof ApiContactsServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
+    '/api/chrome': {
+      id: '/api/chrome'
+      path: '/api/chrome'
+      fullPath: '/api/chrome'
+      preLoaderRoute: typeof ApiChromeServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ChromeRoute: ChromeRoute,
   DemoRoute: DemoRoute,
   WorkspaceContactsContactRoute: WorkspaceContactsContactRoute,
   WorkspaceContactsIndexRoute: WorkspaceContactsIndexRoute,
@@ -206,6 +198,7 @@ export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
+  ApiChromeServerRoute: ApiChromeServerRoute,
   ApiContactsServerRoute: ApiContactsServerRoute,
   ApiWorkspacesServerRoute: ApiWorkspacesServerRoute,
 }

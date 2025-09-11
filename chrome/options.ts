@@ -1,34 +1,30 @@
 const DEFAULTS = {
-  baseUrl: "http://localhost:3012/",
-  workspaceId: "GjzejeIz75q6ikorjIDx",
+  origins: ["http://localhost:3012", "https://touch.starmode.dev"],
 };
 
 (async function init() {
   const settings = await chrome.storage.sync.get(DEFAULTS);
-  const baseUrlInput = document.getElementById(
-    "baseUrl",
-  ) as HTMLInputElement | null;
-  const workspaceIdInput = document.getElementById(
-    "workspaceId",
-  ) as HTMLInputElement | null;
-  if (baseUrlInput) baseUrlInput.value = String(settings.baseUrl || "");
-  if (workspaceIdInput)
-    workspaceIdInput.value = String(settings.workspaceId || "");
+  const originsInput = document.getElementById(
+    "origins",
+  ) as HTMLTextAreaElement | null;
+  if (originsInput)
+    originsInput.value = Array.isArray(settings.origins)
+      ? settings.origins.join("\n")
+      : "";
 })();
 
 const saveBtn = document.getElementById("save");
 
 if (saveBtn) {
   saveBtn.addEventListener("click", async () => {
-    const baseUrl =
-      (
-        document.getElementById("baseUrl") as HTMLInputElement | null
-      )?.value.trim() || "";
-    const workspaceId =
-      (
-        document.getElementById("workspaceId") as HTMLInputElement | null
-      )?.value.trim() || "";
-    await chrome.storage.sync.set({ baseUrl, workspaceId });
+    const origins = (
+      (document.getElementById("origins") as HTMLTextAreaElement | null)
+        ?.value || ""
+    )
+      .split(/\n+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    await chrome.storage.sync.set({ origins });
     alert("Saved");
   });
 }

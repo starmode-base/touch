@@ -10,5 +10,9 @@
     "service_worker": "background.js",
     "type": "module"
   },
-  "permissions": ["storage", "scripting", "activeTab", "tabs", "notifications"]
+  "permissions": ["storage", "scripting", "activeTab", "tabs", "notifications"],
+  "host_permissions": [
+    "http://localhost:3012/*",
+    "https://touch.starmode.dev/*"
+  ]
 }

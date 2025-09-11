@@ -29,14 +29,14 @@
   <body>
     <h1>Touch extension</h1>
     <label>
-      App base URL
-      <input id="baseUrl" placeholder="https://your-app.example.com xx" />
-      <small>Your app origin (production or local)</small>
-    </label>
-    <label>
-      Workspace ID
-      <input id="workspaceId" placeholder="st_xxx" />
-      <small>Paste from your app</small>
+      Touch app origins (one per line)
+      <textarea
+        id="origins"
+        rows="4"
+        placeholder="http://localhost:3012
+https://touch.starmode.dev"
+      ></textarea>
+      <small>Used to find an open tab and infer workspace automatically</small>
     </label>
     <button id="save">Save</button>
     <script src="options.js"></script>
