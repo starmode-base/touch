@@ -1,12 +1,14 @@
-# Touch Chrome extension (dev mode)
+# Touch Chrome extension
+
+Usage:
 
 - Open chrome://extensions
 - Enable Developer mode
 - Load unpacked → select this folder
+- Make sure you have a Touch tab open with a workspace selected
 - Click the extension on a LinkedIn profile page
-- Set base URL and workspace ID in the options page
 
 Notes:
 
-- Uses your existing app session by opening /chrome with query params
-- Requires no additional CORS or cookie changes in the app
+- Uses your existing app session by communicating with open Touch tabs
+- Automatically detects workspace ID from the most recently used Touch tab
