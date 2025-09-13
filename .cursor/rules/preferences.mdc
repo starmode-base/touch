@@ -12,6 +12,7 @@ alwaysApply: true
 ## Code style
 
 - Default to functional style, but be pragmatic and use imperative when needed
+  - If you write imperative code, leave code comments explaining why
   - Prefer pure functions
   - Prefer immutability (local mutability is acceptable if there is good reason to use it)
 
