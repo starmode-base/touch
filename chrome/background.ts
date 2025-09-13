@@ -148,8 +148,9 @@ async function notify(message: string) {
       title: "Touch",
       message,
     });
-  } catch {
+  } catch (error) {
     // notifications permission not granted; ignore
+    console.log("error", error);
   }
 }
 
