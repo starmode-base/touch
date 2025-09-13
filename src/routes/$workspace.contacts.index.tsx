@@ -1,6 +1,7 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  contactRolesCollection,
   contactsCollection,
   workspacesCollectionQuery,
 } from "~/lib/collections";
@@ -33,6 +34,16 @@ function RouteComponent() {
       .where(({ workspace }) => eq(workspace.id, params.workspace));
   });
   const workspaceName = workspace.data[0]?.name ?? "";
+
+  const contactRoles = useLiveQuery((q) => {
+    return q
+      .from({ contactRole: contactRolesCollection })
+      .where(({ contactRole }) =>
+        eq(contactRole.workspace_id, params.workspace),
+      );
+  });
+
+  console.log(contactRoles.data);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -67,6 +78,12 @@ function RouteComponent() {
                 draft.linkedin = args.linkedin ?? null;
               });
             }}
+            roles={contactRoles.data.map((role) => {
+              return {
+                id: role.id,
+                name: role.name,
+              };
+            })}
           />
         ))}
       </div>

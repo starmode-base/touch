@@ -172,3 +172,19 @@ export const contactsCollection = createCollection(
     },
   }),
 );
+
+export const contactRolesCollection = createCollection(
+  electricCollectionOptions({
+    id: "contact-roles-electric",
+    schema: z.object({
+      id: z.string(),
+      key: z.string(),
+      name: z.string(),
+      workspace_id: z.string(),
+    }),
+    getKey: (item) => item.id,
+    shapeOptions: {
+      url: new URL(`/api/contact-roles`, window.location.origin).toString(),
+    },
+  }),
+);

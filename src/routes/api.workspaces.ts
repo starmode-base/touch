@@ -1,39 +1,18 @@
 import { createServerFileRoute } from "@tanstack/react-start/server";
 import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from "@electric-sql/client";
 import { ensureEnv } from "~/lib/env";
-import { getAuth } from "@clerk/tanstack-react-start/server";
-import { db, schema } from "~/postgres/db";
-import { eq } from "drizzle-orm";
+import { getViewer } from "~/lib/auth";
 
 export const ServerRoute = createServerFileRoute("/api/workspaces").methods({
   GET: async ({ request }) => {
-    const { userId } = await getAuth(request);
+    const viewer = await getViewer(request);
 
-    if (!userId) {
+    if (!viewer) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "content-type": "application/json" },
       });
     }
-
-    const workspaceIds = await db()
-      .query.users.findFirst({
-        where: eq(schema.users.clerkUserId, userId),
-        columns: {
-          id: true,
-        },
-        with: {
-          workspaceMemberships: {
-            columns: {
-              workspaceId: true,
-            },
-          },
-        },
-      })
-      .then(
-        (viewer) =>
-          viewer?.workspaceMemberships.map((m) => m.workspaceId) ?? [],
-      );
 
     // Construct the origin URL
     const originUrl = new URL(`/v1/shape`, `https://api.electric-sql.cloud`);
@@ -41,9 +20,6 @@ export const ServerRoute = createServerFileRoute("/api/workspaces").methods({
     // Add the source params
     originUrl.searchParams.set(`source_id`, ensureEnv("ELECTRIC_SOURCE_ID"));
     originUrl.searchParams.set(`secret`, ensureEnv("ELECTRIC_SOURCE_SECRET"));
-
-    // Table
-    originUrl.searchParams.set("table", "workspaces");
 
     // Passthrough parameters from electric client
     const proxyUrl = new URL(request.url);
@@ -53,9 +29,12 @@ export const ServerRoute = createServerFileRoute("/api/workspaces").methods({
       }
     });
 
+    // Table
+    originUrl.searchParams.set("table", "workspaces");
+
     // https://electric-sql.com/docs/guides/shapes#where-clause
-    const whereClause = workspaceIds.length
-      ? `id IN (${workspaceIds.map((id) => `'${id}'`).join(",")})`
+    const whereClause = viewer.workspaceMembershipIds.length
+      ? `id IN (${viewer.workspaceMembershipIds.map((id) => `'${id}'`).join(",")})`
       : `FALSE`; //
     originUrl.searchParams.set("where", whereClause);
 

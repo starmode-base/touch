@@ -49,6 +49,7 @@ export function ContactCard(props: {
   linkedin?: string;
   onDelete: () => void;
   onUpdate: (args: { name: string; linkedin?: string }) => void;
+  roles: { id: string; name: string }[];
 }) {
   return (
     <div className="flex items-center justify-between gap-2 rounded border border-slate-200 bg-white p-2">
@@ -78,6 +79,13 @@ export function ContactCard(props: {
             }}
           />
         )}
+        <div className="flex gap-1">
+          {props.roles.map((role) => (
+            <div key={role.id} className="text-sm text-slate-500">
+              {role.name}
+            </div>
+          ))}
+        </div>
       </div>
       <button
         onClick={props.onDelete}

@@ -3,7 +3,7 @@ import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from "@electric-sql/client";
 import { ensureEnv } from "~/lib/env";
 import { getViewer } from "~/lib/auth";
 
-export const ServerRoute = createServerFileRoute("/api/contacts").methods({
+export const ServerRoute = createServerFileRoute("/api/contact-roles").methods({
   GET: async ({ request }) => {
     const viewer = await getViewer(request);
 
@@ -30,7 +30,7 @@ export const ServerRoute = createServerFileRoute("/api/contacts").methods({
     });
 
     // Table
-    originUrl.searchParams.set("table", "contacts");
+    originUrl.searchParams.set("table", "contact_roles");
 
     // https://electric-sql.com/docs/guides/shapes#where-clause
     const whereClause = viewer.workspaceMembershipIds.length

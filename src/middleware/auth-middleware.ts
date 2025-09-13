@@ -137,7 +137,12 @@ export const ensureViewerMiddleware = createMiddleware({
 
   return next({
     context: {
-      viewer,
+      viewer: {
+        ...viewer,
+        workspaceMembershipIds: viewer.workspaceMemberships.map(
+          (membership) => membership.workspaceId,
+        ),
+      },
       ...buildWorkspaceGuards(viewer.workspaceMemberships),
     },
   });

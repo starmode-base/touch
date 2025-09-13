@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { db, schema } from "~/postgres/db";
 import { z } from "zod";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { SecureToken } from "~/lib/secure-token";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { invariant } from "@tanstack/react-router";
@@ -225,5 +225,16 @@ export const deleteContactSF = createServerFn({ method: "POST" })
       await tx.delete(schema.contacts).where(eq(schema.contacts.id, data.id));
 
       return { txid };
+    });
+  });
+
+export const listContactsSF = createServerFn({ method: "GET" })
+  .middleware([ensureViewerMiddleware])
+  .handler(async ({ context }) => {
+    return db().query.contacts.findMany({
+      where: inArray(
+        schema.contacts.workspaceId,
+        context.viewer.workspaceMembershipIds,
+      ),
     });
   });
