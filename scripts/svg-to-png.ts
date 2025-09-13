@@ -15,5 +15,5 @@ export async function convertSvgToPng(inputFileUrl: URL, sizes: number[]) {
   }
 }
 
-const sizes = [16, 32, 64, 128, 256, 512];
+const sizes = [16, 32, 48, 64, 128, 256, 512];
 await convertSvgToPng(new URL("../public/icon.svg", import.meta.url), sizes);

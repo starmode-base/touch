@@ -14,5 +14,9 @@
   "host_permissions": [
     "http://localhost:3012/*",
     "https://touch.starmode.dev/*"
-  ]
+  ],
+  "icons": {
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  }
 }
