@@ -5,15 +5,14 @@
   "action": {
     "default_title": "Save to Touch"
   },
-  "options_page": "options.html",
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
-  "permissions": ["storage", "scripting", "activeTab", "tabs", "notifications"],
+  "permissions": ["scripting", "activeTab", "tabs", "notifications"],
   "host_permissions": [
-    "http://localhost:3012/*",
-    "https://touch.starmode.dev/*"
+    "https://touch.starmode.dev/*",
+    "http://localhost:3012/*"
   ],
   "icons": {
     "48": "icon-48.png",

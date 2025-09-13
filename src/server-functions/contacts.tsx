@@ -138,6 +138,8 @@ export const upsertContactSF = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     context.ensureIsInWorkspace(data.workspaceId);
 
+    console.log("data", data);
+
     return db().transaction(async (tx) => {
       // Try to create the contact first
       const [created] = await tx
