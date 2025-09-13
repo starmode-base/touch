@@ -45,8 +45,8 @@ async function notify(message: string): Promise<void> {
  * Get the allowed origins from the manifest
  */
 function getAllowedOriginsFromManifest(): string[] {
-  const hostPermissions: string[] =
-    chrome.runtime.getManifest().host_permissions;
+  const hostPermissions = chrome.runtime.getManifest()
+    .host_permissions as string[];
 
   return hostPermissions.map((p) => new URL(p).origin);
 }
@@ -94,7 +94,7 @@ async function findBestTouchTab(origins: string[]) {
 chrome.action.onClicked.addListener((tab) => {
   const run = async () => {
     try {
-      if (!tab || typeof tab.id !== "number") throw new Error("No active tab");
+      if (typeof tab.id !== "number") throw new Error("No active tab");
 
       // 1) Extract LinkedIn data from the current tab
       const [injection] = await chrome.scripting.executeScript({
@@ -135,7 +135,7 @@ chrome.action.onClicked.addListener((tab) => {
       // 3) Post directly via the Touch tab so auth cookies apply
       const [inj] = await chrome.scripting.executeScript({
         target: { tabId: touchTabId },
-        args: [{ name: name, linkedin: linkedin }],
+        args: [{ name, linkedin }],
         func: async (payload) => {
           const extractWorkspaceIdFromPath = (pathname: string) => {
             const [candidate] = pathname.split("/").filter(Boolean);
@@ -168,12 +168,26 @@ chrome.action.onClicked.addListener((tab) => {
               }),
             });
 
+            type UpsertContactSFReturnType =
+              | {
+                  mode: "created";
+                  contactId: string;
+                }
+              | {
+                  mode: "updated";
+                  contactId: string;
+                }
+              | {
+                  mode: "noop";
+                  contactId?: undefined;
+                };
+
             if (!res.ok) {
-              const data = await res.json().catch(() => ({}));
+              const data = (await res.json()) as UpsertContactSFReturnType;
               return { ok: false as const, status: res.status, data };
             }
 
-            const data = await res.json().catch(() => ({}));
+            const data = (await res.json()) as UpsertContactSFReturnType;
 
             return { ok: true as const, data };
           } catch (e) {
@@ -190,9 +204,9 @@ chrome.action.onClicked.addListener((tab) => {
 
       if (result?.ok) {
         await notify(
-          result.data?.mode === "created"
+          result.data.mode === "created"
             ? "Contact created"
-            : result.data?.mode === "updated"
+            : result.data.mode === "updated"
               ? "Contact updated"
               : "Contact up to date",
         );
@@ -200,7 +214,7 @@ chrome.action.onClicked.addListener((tab) => {
       }
 
       await notify(
-        result?.error ||
+        result?.error ??
           (result?.status === 401
             ? "Sign in to Touch"
             : "Failed to save contact"),
