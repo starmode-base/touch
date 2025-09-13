@@ -18,7 +18,7 @@ export default defineConfig([
    * Ignore files
    */
   {
-    ignores: [".nitro/*", ".output/*", ".tanstack/*", "chrome/*.js"],
+    ignores: [".nitro/*", ".output/*", ".tanstack/*", "chrome/*"],
   },
 
   /**
