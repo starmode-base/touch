@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Touch",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "Save to Touch"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["scripting", "activeTab", "tabs", "notifications"],
+  "host_permissions": [
+    "https://touch.starmode.dev/*",
+    "http://localhost:3012/*"
+  ],
+  "icons": {
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  }
+}

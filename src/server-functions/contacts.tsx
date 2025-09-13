@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { db, schema } from "~/postgres/db";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { SecureToken } from "~/lib/secure-token";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { invariant } from "@tanstack/react-router";
@@ -115,6 +115,88 @@ export const updateContactSF = createServerFn({ method: "POST" })
     });
 
     return result;
+  });
+
+/**
+ * Validation schema for creating a contact
+ */
+export const upsertContactInputSchema = z.object({
+  workspaceId: SecureToken,
+  name: z.string().trim().nonempty().max(64),
+  linkedin: z.string().trim().regex(linkedinPatternExact).max(64),
+});
+
+/**
+ * Upsert contact
+ *
+ * Creates a contact if it doesn't exist, otherwise updates the name if the
+ * LinkedIn URL is the same.
+ */
+export const upsertContactSF = createServerFn({ method: "POST" })
+  .middleware([ensureViewerMiddleware])
+  .validator(upsertContactInputSchema)
+  .handler(async ({ data, context }) => {
+    context.ensureIsInWorkspace(data.workspaceId);
+
+    console.log("data", data);
+
+    return db().transaction(async (tx) => {
+      // Try to create the contact first
+      const [created] = await tx
+        .insert(schema.contacts)
+        .values(data)
+        .onConflictDoNothing({
+          target: [schema.contacts.workspaceId, schema.contacts.linkedin],
+        })
+        .returning({ id: schema.contacts.id });
+
+      if (created) {
+        const details = { name: data.name, linkedin: data.linkedin };
+        await tx.insert(schema.contactActivities).values({
+          workspaceId: data.workspaceId,
+          contactId: created.id,
+          createdById: context.viewer.id,
+          kind: "system:created",
+          body: JSON.stringify(details),
+          details,
+        });
+
+        return { mode: "created" as const, contactId: created.id };
+      }
+
+      // Contact exists: update name only if it actually changed
+      const [updated] = await tx
+        .update(schema.contacts)
+        .set({
+          name: data.name,
+          updatedAt: sql`now()`,
+        })
+        .where(
+          and(
+            eq(schema.contacts.workspaceId, data.workspaceId),
+            eq(schema.contacts.linkedin, data.linkedin),
+            sql`${schema.contacts.name} IS DISTINCT FROM ${data.name}`,
+          ),
+        )
+        .returning({ id: schema.contacts.id });
+
+      if (updated) {
+        const details = { name: data.name, linkedin: data.linkedin };
+        await tx.insert(schema.contactActivities).values({
+          workspaceId: data.workspaceId,
+          contactId: updated.id,
+          createdById: context.viewer.id,
+          kind: "system:updated",
+          body: JSON.stringify(details),
+          details,
+        });
+
+        return { mode: "updated" as const, contactId: updated.id };
+      }
+
+      // No change needed (name already the same)
+      return { mode: "noop" as const };
+    });
   });
 
 /**
