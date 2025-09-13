@@ -85,7 +85,7 @@ async function findBestTouchTab(origins: string[]) {
 
     if (!best?.id) return null;
 
-    return { id: best.id, origin } as const;
+    return best.id;
   }
 
   return null;
@@ -125,21 +125,26 @@ chrome.action.onClicked.addListener((tab) => {
       // 2) Locate the best Touch tab within the first origin (by manifest
       //    order) that has open tabs
       const allowedOrigins = getAllowedOriginsFromManifest();
-      const touchTab = await findBestTouchTab(allowedOrigins);
+      const touchTabId = await findBestTouchTab(allowedOrigins);
 
-      if (!touchTab) {
+      if (!touchTabId) {
         await notify("Open the Touch app to sync contacts");
         return;
       }
 
       // 3) Post directly via the Touch tab so auth cookies apply
-      const injections = await chrome.scripting.executeScript({
-        target: { tabId: touchTab.id },
+      const [inj] = await chrome.scripting.executeScript({
+        target: { tabId: touchTabId },
+        args: [{ name: name, linkedin: linkedin }],
         func: async (payload) => {
           const extractWorkspaceIdFromPath = (pathname: string) => {
-            const parts = pathname.split("/").filter(Boolean);
-            const candidate = parts[0] || "";
-            return /^[0-9A-Za-z]{20}$/.test(candidate) ? candidate : "";
+            const [candidate] = pathname.split("/").filter(Boolean);
+
+            if (!candidate) return null;
+
+            if (!/^[0-9A-Za-z]{20}$/.test(candidate)) return null;
+
+            return candidate;
           };
 
           const workspaceId = extractWorkspaceIdFromPath(
@@ -172,13 +177,16 @@ chrome.action.onClicked.addListener((tab) => {
 
             return { ok: true as const, data };
           } catch (e) {
-            return { ok: false as const, error: (e as Error).message };
+            if (e instanceof Error) {
+              return { ok: false as const, error: e.message };
+            }
+
+            throw e;
           }
         },
-        args: [{ name: name, linkedin: linkedin }],
       });
 
-      const result = injections[0]?.result;
+      const result = inj?.result;
 
       if (result?.ok) {
         await notify(
