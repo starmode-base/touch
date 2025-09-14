@@ -169,7 +169,9 @@ export const contactRoles = pgTable(
     workspaceId: text()
       .references(() => workspaces.id, { onDelete: "cascade" })
       .notNull(),
+    // Ex: "inner_circle", "peer_referral", "etc."
     key: text().notNull(),
+    // Ex: "Inner circle", "Peer referral"
     name: text().notNull(),
   },
   (t) => [
