@@ -1,3 +1,6 @@
+/**
+ * API route for the Chrome extension
+ */
 import { createServerFileRoute } from "@tanstack/react-start/server";
 import {
   upsertContactInputSchema,

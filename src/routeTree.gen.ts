@@ -18,6 +18,8 @@ import { Route as WorkspaceContactsContactRouteImport } from './routes/$workspac
 import { ServerRoute as ApiWorkspacesServerRouteImport } from './routes/api.workspaces'
 import { ServerRoute as ApiContactsServerRouteImport } from './routes/api.contacts'
 import { ServerRoute as ApiContactRolesServerRouteImport } from './routes/api.contact-roles'
+import { ServerRoute as ApiContactRoleAssignmentsServerRouteImport } from './routes/api.contact-role-assignments'
+import { ServerRoute as ApiContactActivitiesServerRouteImport } from './routes/api.contact-activities'
 import { ServerRoute as ApiChromeServerRouteImport } from './routes/api.chrome'
 
 const rootServerRouteImport = createServerRootRoute()
@@ -58,6 +60,18 @@ const ApiContactRolesServerRoute = ApiContactRolesServerRouteImport.update({
   path: '/api/contact-roles',
   getParentRoute: () => rootServerRouteImport,
 } as any)
+const ApiContactRoleAssignmentsServerRoute =
+  ApiContactRoleAssignmentsServerRouteImport.update({
+    id: '/api/contact-role-assignments',
+    path: '/api/contact-role-assignments',
+    getParentRoute: () => rootServerRouteImport,
+  } as any)
+const ApiContactActivitiesServerRoute =
+  ApiContactActivitiesServerRouteImport.update({
+    id: '/api/contact-activities',
+    path: '/api/contact-activities',
+    getParentRoute: () => rootServerRouteImport,
+  } as any)
 const ApiChromeServerRoute = ApiChromeServerRouteImport.update({
   id: '/api/chrome',
   path: '/api/chrome',
@@ -108,12 +122,16 @@ export interface RootRouteChildren {
 }
 export interface FileServerRoutesByFullPath {
   '/api/chrome': typeof ApiChromeServerRoute
+  '/api/contact-activities': typeof ApiContactActivitiesServerRoute
+  '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsServerRoute
   '/api/contact-roles': typeof ApiContactRolesServerRoute
   '/api/contacts': typeof ApiContactsServerRoute
   '/api/workspaces': typeof ApiWorkspacesServerRoute
 }
 export interface FileServerRoutesByTo {
   '/api/chrome': typeof ApiChromeServerRoute
+  '/api/contact-activities': typeof ApiContactActivitiesServerRoute
+  '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsServerRoute
   '/api/contact-roles': typeof ApiContactRolesServerRoute
   '/api/contacts': typeof ApiContactsServerRoute
   '/api/workspaces': typeof ApiWorkspacesServerRoute
@@ -121,6 +139,8 @@ export interface FileServerRoutesByTo {
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
   '/api/chrome': typeof ApiChromeServerRoute
+  '/api/contact-activities': typeof ApiContactActivitiesServerRoute
+  '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsServerRoute
   '/api/contact-roles': typeof ApiContactRolesServerRoute
   '/api/contacts': typeof ApiContactsServerRoute
   '/api/workspaces': typeof ApiWorkspacesServerRoute
@@ -129,14 +149,24 @@ export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
   fullPaths:
     | '/api/chrome'
+    | '/api/contact-activities'
+    | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
     | '/api/workspaces'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/chrome' | '/api/contact-roles' | '/api/contacts' | '/api/workspaces'
+  to:
+    | '/api/chrome'
+    | '/api/contact-activities'
+    | '/api/contact-role-assignments'
+    | '/api/contact-roles'
+    | '/api/contacts'
+    | '/api/workspaces'
   id:
     | '__root__'
     | '/api/chrome'
+    | '/api/contact-activities'
+    | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
     | '/api/workspaces'
@@ -144,6 +174,8 @@ export interface FileServerRouteTypes {
 }
 export interface RootServerRouteChildren {
   ApiChromeServerRoute: typeof ApiChromeServerRoute
+  ApiContactActivitiesServerRoute: typeof ApiContactActivitiesServerRoute
+  ApiContactRoleAssignmentsServerRoute: typeof ApiContactRoleAssignmentsServerRoute
   ApiContactRolesServerRoute: typeof ApiContactRolesServerRoute
   ApiContactsServerRoute: typeof ApiContactsServerRoute
   ApiWorkspacesServerRoute: typeof ApiWorkspacesServerRoute
@@ -204,6 +236,20 @@ declare module '@tanstack/react-start/server' {
       preLoaderRoute: typeof ApiContactRolesServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
+    '/api/contact-role-assignments': {
+      id: '/api/contact-role-assignments'
+      path: '/api/contact-role-assignments'
+      fullPath: '/api/contact-role-assignments'
+      preLoaderRoute: typeof ApiContactRoleAssignmentsServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
+    '/api/contact-activities': {
+      id: '/api/contact-activities'
+      path: '/api/contact-activities'
+      fullPath: '/api/contact-activities'
+      preLoaderRoute: typeof ApiContactActivitiesServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
     '/api/chrome': {
       id: '/api/chrome'
       path: '/api/chrome'
@@ -225,6 +271,8 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
   ApiChromeServerRoute: ApiChromeServerRoute,
+  ApiContactActivitiesServerRoute: ApiContactActivitiesServerRoute,
+  ApiContactRoleAssignmentsServerRoute: ApiContactRoleAssignmentsServerRoute,
   ApiContactRolesServerRoute: ApiContactRolesServerRoute,
   ApiContactsServerRoute: ApiContactsServerRoute,
   ApiWorkspacesServerRoute: ApiWorkspacesServerRoute,
