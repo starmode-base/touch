@@ -12,21 +12,21 @@ import {
   SignUpButton,
   UserButton,
 } from "@clerk/tanstack-react-start";
-// import { createServerFn } from "@tanstack/react-start";
-// import { syncViewer } from "~/middleware/auth-viewer";
+import { createServerFn } from "@tanstack/react-start";
+import { syncViewer } from "~/middleware/auth-viewer";
 import { Button, LinkButton } from "~/components/atoms";
 
-// const authStateFn = createServerFn({ method: "GET" }).handler(() => {
-//   return syncViewer();
-// });
+const authStateFn = createServerFn({ method: "GET" }).handler(() => {
+  return syncViewer();
+});
 
 export const Route = createRootRoute({
-  // beforeLoad: async () => ({
-  //   viewer: await authStateFn(),
-  // }),
-  // loader: ({ context }) => {
-  //   return context.viewer;
-  // },
+  beforeLoad: async () => ({
+    viewer: await authStateFn(),
+  }),
+  loader: ({ context }) => {
+    return context.viewer;
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -70,7 +70,7 @@ function Providers(props: React.PropsWithChildren) {
 }
 
 function RootLayout(props: React.PropsWithChildren) {
-  // const viewer = Route.useLoaderData();
+  const viewer = Route.useLoaderData();
 
   return (
     <main className="flex h-dvh flex-col">
@@ -79,6 +79,7 @@ function RootLayout(props: React.PropsWithChildren) {
           <div className="flex items-center gap-2">
             <LinkButton to="/">Home</LinkButton>
             <LinkButton to="/demo">Demo</LinkButton>
+            <div>You are signed in as: {viewer?.email}</div>
           </div>
           <div className="flex items-center gap-2">
             <UserButton />
