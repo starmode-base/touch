@@ -46,7 +46,7 @@ function RouteComponent() {
   console.log(contactRoles.data);
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="heading-1 shrink-0 px-6 py-2">
         <EditInput
           type="text"
@@ -59,7 +59,7 @@ function RouteComponent() {
           }}
         />
       </div>
-      <div className="flex flex-1 flex-col gap-1 p-2">
+      <div className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
         {contacts.data.map((contact) => (
           <ContactCard
             key={contact.id}
@@ -87,7 +87,7 @@ function RouteComponent() {
           />
         ))}
       </div>
-      <div className="shrink-0 bg-slate-100 p-2">
+      <div className="h-1/2 shrink-0 border-t border-slate-200 bg-slate-100 p-8">
         <form
           className="flex gap-2"
           onInput={(e) => {

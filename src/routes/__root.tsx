@@ -1,5 +1,5 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+// import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import appCss from "~/styles/app.css?url";
 import metadata from "../../metadata.json";
 import { inject } from "@vercel/analytics";
@@ -56,7 +56,7 @@ function RootDocument(props: React.PropsWithChildren) {
         </head>
         <body>
           <RootLayout>{props.children}</RootLayout>
-          <TanStackRouterDevtools position="bottom-right" />
+          {/* <TanStackRouterDevtools position="bottom-left" /> */}
           <Scripts />
         </body>
       </html>
@@ -70,7 +70,7 @@ function Providers(props: React.PropsWithChildren) {
 
 function RootLayout(props: React.PropsWithChildren) {
   return (
-    <main className="flex h-dvh flex-col">
+    <main className="bg-pattern-lines flex h-dvh flex-col">
       <SignedIn>
         <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white p-4">
           <div className="flex items-center gap-2">

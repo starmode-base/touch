@@ -26,7 +26,7 @@ function Home() {
   });
 
   return (
-    <div className="bg-pattern-lines grid flex-1 gap-4 p-4">
+    <div className="grid flex-1 gap-4 p-4">
       <div className="flex flex-col gap-4 rounded border border-slate-200 bg-white p-4">
         <div className="text-lg font-medium">Workspaces</div>
         <form
