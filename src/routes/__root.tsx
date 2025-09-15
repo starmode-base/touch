@@ -22,11 +22,10 @@ const authStateFn = createServerFn({ method: "GET" }).handler(() => {
 
 export const Route = createRootRoute({
   beforeLoad: async () => ({
+    // Ensure the viewer is synced from Clerk to the database. This also makes
+    // the viewer available as context in the loader of descendant routes.
     viewer: await authStateFn(),
   }),
-  loader: ({ context }) => {
-    return context.viewer;
-  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -70,8 +69,6 @@ function Providers(props: React.PropsWithChildren) {
 }
 
 function RootLayout(props: React.PropsWithChildren) {
-  const viewer = Route.useLoaderData();
-
   return (
     <main className="flex h-dvh flex-col">
       <SignedIn>
@@ -79,7 +76,6 @@ function RootLayout(props: React.PropsWithChildren) {
           <div className="flex items-center gap-2">
             <LinkButton to="/">Home</LinkButton>
             <LinkButton to="/demo">Demo</LinkButton>
-            <div>You are signed in as: {viewer?.email}</div>
           </div>
           <div className="flex items-center gap-2">
             <UserButton />
