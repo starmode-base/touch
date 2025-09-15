@@ -1,5 +1,5 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
-import { TrashIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
+import { TrashIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
 export function Button(props: React.ComponentPropsWithoutRef<"button">) {
@@ -44,6 +44,14 @@ function extractLinkedInPath(url: string): string | null {
   }
 }
 
+function Pill(props: { children: React.ReactNode }) {
+  return (
+    <div className="rounded bg-slate-100 px-2 py-1 text-sm">
+      {props.children}
+    </div>
+  );
+}
+
 export function ContactCard(props: {
   name: string;
   linkedin?: string;
@@ -52,40 +60,36 @@ export function ContactCard(props: {
   roles: { id: string; name: string }[];
 }) {
   return (
-    <div className="flex items-center justify-between gap-2 rounded border border-slate-200 bg-white p-2">
-      <div>
+    <div className="grid grid-cols-4 items-center justify-between gap-2 rounded border border-slate-200 bg-white p-2">
+      <EditInput
+        type="text"
+        value={props.name}
+        onUpdate={(value) => {
+          props.onUpdate({ name: value, linkedin: props.linkedin });
+        }}
+      />
+      {props.linkedin ? (
         <EditInput
-          type="text"
-          value={props.name}
+          type="link"
+          value={props.linkedin}
+          displayValue={extractLinkedInPath(props.linkedin) ?? undefined}
           onUpdate={(value) => {
-            props.onUpdate({ name: value, linkedin: props.linkedin });
+            props.onUpdate({ name: props.name, linkedin: value });
           }}
         />
-        {props.linkedin ? (
-          <EditInput
-            type="link"
-            value={props.linkedin}
-            displayValue={extractLinkedInPath(props.linkedin) ?? undefined}
-            onUpdate={(value) => {
-              props.onUpdate({ name: props.name, linkedin: value });
-            }}
-          />
-        ) : (
-          <EditInput
-            type="text"
-            value={"https://www.linkedin.com/in/"}
-            onUpdate={(value) => {
-              props.onUpdate({ name: props.name, linkedin: value });
-            }}
-          />
-        )}
-        <div className="flex gap-1">
-          {props.roles.map((role) => (
-            <div key={role.id} className="text-sm text-slate-500">
-              {role.name}
-            </div>
-          ))}
-        </div>
+      ) : (
+        <EditInput
+          type="text"
+          value={"https://www.linkedin.com/in/"}
+          onUpdate={(value) => {
+            props.onUpdate({ name: props.name, linkedin: value });
+          }}
+        />
+      )}
+      <div className="flex gap-2">
+        {props.roles.map((role) => (
+          <Pill key={role.id}>{role.name}</Pill>
+        ))}
       </div>
       <button
         onClick={props.onDelete}
@@ -125,42 +129,48 @@ export function EditInput(props: {
 
   if (isEditing) {
     return (
-      <div className="group flex items-center gap-2">
-        <input
-          className="flex-1 italic outline-none"
-          type="text"
-          autoFocus
-          value={editValue}
-          onChange={(e) => {
-            setEditValue(e.target.value);
-          }}
-          onKeyDown={handleKeyDown}
-          onBlur={() => {
-            setIsEditing(false);
-          }}
-        />
+      <input
+        className="rounded px-2 py-1 italic underline decoration-slate-300 decoration-dotted outline-none"
+        type="text"
+        autoFocus
+        value={editValue}
+        onChange={(e) => {
+          setEditValue(e.target.value);
+        }}
+        onKeyDown={handleKeyDown}
+        onBlur={() => {
+          setIsEditing(false);
+        }}
+        spellCheck={false}
+      />
+    );
+  }
+
+  if (props.type === "text") {
+    return (
+      <div
+        className="rounded px-2 py-1 hover:bg-slate-50"
+        onClick={() => {
+          setEditValue(props.value);
+          setIsEditing(true);
+        }}
+      >
+        {displayValue}
       </div>
     );
   }
 
   return (
-    <div className="group flex items-center gap-2 pr-9 hover:pr-0">
-      {props.type === "text" ? (
-        <div>{displayValue}</div>
-      ) : (
-        <a href={props.value} target="_blank" className="text-sm text-sky-500">
-          {displayValue}
-        </a>
-      )}
-      <button
-        onClick={() => {
-          setEditValue(props.value);
-          setIsEditing(true);
-        }}
-        className="-my-1 hidden p-1 group-hover:block"
-      >
-        <PencilSquareIcon className="size-5" />
-      </button>
+    <div
+      className="rounded px-2 py-1 hover:bg-slate-50"
+      onClick={() => {
+        setEditValue(props.value);
+        setIsEditing(true);
+      }}
+    >
+      <a href={props.value} target="_blank" className="text-sky-500">
+        {displayValue}
+      </a>
     </div>
   );
 }

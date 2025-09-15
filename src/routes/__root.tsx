@@ -70,7 +70,7 @@ function Providers(props: React.PropsWithChildren) {
 
 function RootLayout(props: React.PropsWithChildren) {
   return (
-    <main className="bg-pattern-lines flex h-dvh flex-col">
+    <main className="bg-pattern-lines flex h-dvh flex-col bg-slate-50">
       <SignedIn>
         <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white p-4">
           <div className="flex items-center gap-2">

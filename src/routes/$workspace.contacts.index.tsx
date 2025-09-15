@@ -47,11 +47,11 @@ function RouteComponent() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="heading-1 shrink-0 px-6 py-2">
+      <div className="heading-1 flex shrink-0 px-6 py-2">
         <EditInput
           type="text"
           value={workspaceName}
-          displayValue={`${workspaceName} — Contacts`}
+          displayValue={workspaceName}
           onUpdate={(value) => {
             workspacesCollectionQuery.update(params.workspace, (draft) => {
               draft.name = value;
