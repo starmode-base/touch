@@ -242,7 +242,8 @@ export const contactActivities = pgTable(
         // A touch with the contact (call, email, etc.), used for contact's last
         // touch date.
         | "user:touch"
-        // A user note about the contact
+        // A user note about the contact, does not update the contact's last
+        // touch date
         | "user:note"
         // System activities so users can see who created/updated contacts
         | "system:created" // body=name, linkedin
