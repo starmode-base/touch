@@ -8,13 +8,11 @@ import {
   SignedIn,
   SignedOut,
   SignInButton,
-  SignOutButton,
   SignUpButton,
-  UserButton,
 } from "@clerk/tanstack-react-start";
 import { createServerFn } from "@tanstack/react-start";
 import { syncViewer } from "~/middleware/auth-viewer";
-import { Button, LinkButton } from "~/components/atoms";
+import { Button } from "~/components/atoms";
 
 const authStateFn = createServerFn({ method: "GET" }).handler(() => {
   return syncViewer();
@@ -71,21 +69,7 @@ function Providers(props: React.PropsWithChildren) {
 function RootLayout(props: React.PropsWithChildren) {
   return (
     <main className="bg-pattern-lines flex h-dvh flex-col bg-slate-50">
-      <SignedIn>
-        <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-2">
-            <LinkButton to="/">Home</LinkButton>
-            <LinkButton to="/demo">Demo</LinkButton>
-          </div>
-          <div className="flex items-center gap-2">
-            <UserButton />
-            <SignOutButton>
-              <Button>Sign out</Button>
-            </SignOutButton>
-          </div>
-        </div>
-        {props.children}
-      </SignedIn>
+      <SignedIn>{props.children}</SignedIn>
       <SignedOut>
         <div className="m-auto flex flex-col gap-4 rounded border border-slate-100 bg-white p-8">
           <div className="text-center text-4xl font-extrabold">

@@ -1,5 +1,5 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   contactRolesCollection,
   contactsCollection,
@@ -10,6 +10,7 @@ import { createContactInputSchema } from "~/server-functions/contacts";
 import { Button, ContactCard, EditInput } from "~/components/atoms";
 import { useState } from "react";
 import { extractLinkedInAndName } from "~/lib/linkedin-extractor";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 export const Route = createFileRoute("/$workspace/contacts/")({
   ssr: false,
@@ -43,23 +44,26 @@ function RouteComponent() {
       );
   });
 
-  console.log(contactRoles.data);
-
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="heading-1 flex shrink-0 px-6 py-2">
-        <EditInput
-          type="text"
-          value={workspaceName}
-          displayValue={workspaceName}
-          onUpdate={(value) => {
-            workspacesCollectionQuery.update(params.workspace, (draft) => {
-              draft.name = value;
-            });
-          }}
-        />
+      <div className="flex items-center gap-2 px-2">
+        <Link to="/" className="rounded p-2">
+          <ArrowLeftIcon className="size-5" />
+        </Link>
+        <div className="heading-1 flex shrink-0 py-2">
+          <EditInput
+            type="text"
+            value={workspaceName}
+            displayValue={workspaceName}
+            onUpdate={(value) => {
+              workspacesCollectionQuery.update(params.workspace, (draft) => {
+                draft.name = value;
+              });
+            }}
+          />
+        </div>
       </div>
-      <div className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
+      <div className="flex flex-1 flex-col gap-1 overflow-y-auto px-2">
         {contacts.data.map((contact) => (
           <ContactCard
             key={contact.id}

@@ -1,5 +1,5 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
-import { TrashIcon } from "@heroicons/react/24/outline";
+import { CalendarIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
 export function Button(props: React.ComponentPropsWithoutRef<"button">) {
@@ -60,7 +60,7 @@ export function ContactCard(props: {
   roles: { id: string; name: string }[];
 }) {
   return (
-    <div className="grid grid-cols-4 items-center justify-between gap-2 rounded border border-slate-200 bg-white p-2">
+    <div className="grid grid-cols-5 items-center justify-between gap-2 rounded border border-slate-200 bg-white p-2">
       <EditInput
         type="text"
         value={props.name}
@@ -91,9 +91,13 @@ export function ContactCard(props: {
           <Pill key={role.id}>{role.name}</Pill>
         ))}
       </div>
+      <div className="flex items-center justify-center gap-1 text-xs text-slate-800">
+        <CalendarIcon className="size-4" />
+        2025-01-01
+      </div>
       <button
         onClick={props.onDelete}
-        className="rounded p-1 hover:bg-slate-100"
+        className="w-fit rounded p-1 hover:bg-slate-100"
       >
         <TrashIcon className="size-5" />
       </button>
