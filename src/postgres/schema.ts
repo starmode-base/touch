@@ -20,7 +20,6 @@
  * ```
  */
 import {
-  boolean,
   check,
   date,
   numeric,
@@ -84,7 +83,6 @@ export const users = pgTable("users", {
   email: text().notNull(),
   /** Stable unique user identifier from Clerk */
   clerkUserId: text().notNull().unique(),
-  isSuperuser: boolean().notNull().default(false),
 });
 
 export type UserSelect = typeof users.$inferSelect;
