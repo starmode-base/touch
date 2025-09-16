@@ -1,5 +1,9 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
-import { CalendarIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  CalendarIcon,
+  TrashIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import { useState } from "react";
 
 export function Button(props: React.ComponentPropsWithoutRef<"button">) {
@@ -44,10 +48,31 @@ function extractLinkedInPath(url: string): string | null {
   }
 }
 
-function Pill(props: { children: React.ReactNode }) {
+function Chip(props: {
+  children: React.ReactNode;
+  onClick: () => void;
+  onDelete: () => void;
+}) {
   return (
-    <div className="rounded bg-slate-100 px-2 py-1 text-sm">
-      {props.children}
+    <div className="flex items-center gap-1 rounded-full bg-slate-300 pr-2 pl-3 text-xs font-medium text-slate-800">
+      <div
+        className="py-1 whitespace-nowrap"
+        onClick={() => {
+          console.log("clicked 1");
+          props.onClick();
+        }}
+      >
+        {props.children}
+      </div>
+      <button
+        className="flex size-4 items-center justify-center rounded-full hover:bg-white/25"
+        onClick={() => {
+          console.log("clicked 2");
+          props.onDelete();
+        }}
+      >
+        <XMarkIcon className="size-3" />
+      </button>
     </div>
   );
 }
@@ -58,6 +83,8 @@ export function ContactCard(props: {
   onDelete: () => void;
   onUpdate: (args: { name: string; linkedin?: string }) => void;
   roles: { id: string; name: string }[];
+  onRoleClick: (roleId: string) => void;
+  onRoleDelete: (roleId: string) => void;
 }) {
   return (
     <div className="grid grid-cols-5 items-center justify-between gap-2 rounded border border-slate-200 bg-white p-2">
@@ -88,7 +115,22 @@ export function ContactCard(props: {
       )}
       <div className="flex gap-2">
         {props.roles.map((role) => (
-          <Pill key={role.id}>{role.name}</Pill>
+          <Chip
+            key={role.id}
+            onDelete={() => {
+              props.onRoleDelete(role.id);
+            }}
+            onClick={() => {
+              props.onRoleClick(role.id);
+              // contactRoleAssignmentsCollection.insert({
+              //   contact_id: props.id,
+              //   role_id: role.id,
+              //   workspace_id: props.workspaceId,
+              // });
+            }}
+          >
+            {role.name}
+          </Chip>
         ))}
       </div>
       <div className="flex items-center justify-center gap-1 text-xs text-slate-800">

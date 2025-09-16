@@ -1,6 +1,7 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  contactRoleAssignmentsCollection,
   contactRolesCollection,
   contactsCollection,
   workspacesCollectionQuery,
@@ -43,6 +44,16 @@ function RouteComponent() {
         eq(contactRole.workspace_id, params.workspace),
       );
   });
+
+  const contactRoleAssignments = useLiveQuery((q) => {
+    return q
+      .from({ contactRoleAssignment: contactRoleAssignmentsCollection })
+      .where(({ contactRoleAssignment }) =>
+        eq(contactRoleAssignment.workspace_id, params.workspace),
+      );
+  });
+
+  console.log(contactRoleAssignments.data);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -88,6 +99,26 @@ function RouteComponent() {
                 name: role.name,
               };
             })}
+            onRoleClick={(roleId) => {
+              console.log("roleId", roleId);
+              contactRoleAssignmentsCollection.insert({
+                // id: genSecureToken(),
+                workspace_id: params.workspace,
+                contact_id: contact.id,
+                contact_role_id: roleId,
+                // contact_id: contact.id,
+                //   role_id: roleId,
+                //   workspace_id: params.workspace,
+              });
+            }}
+            onRoleDelete={(roleId) => {
+              console.log("roleId", roleId);
+              // contactRoleAssignmentsCollection.delete({
+              //   workspace_id: params.workspace,
+              //   contact_id: contact.id,
+              //   contact_role_id: roleId,
+              // });
+            }}
           />
         ))}
       </div>

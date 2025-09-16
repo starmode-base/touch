@@ -24,6 +24,10 @@ import {
   deleteContactSF,
   updateContactSF,
 } from "~/server-functions/contacts";
+import {
+  createContactRoleAssignmentSF,
+  // deleteContactRoleAssignmentSF,
+} from "~/server-functions/contact-role-assignments";
 
 const queryClient = new QueryClient();
 
@@ -173,6 +177,9 @@ export const contactsCollection = createCollection(
   }),
 );
 
+/**
+ * Contact roles collection (Electric)
+ */
 export const contactRolesCollection = createCollection(
   electricCollectionOptions({
     id: "contact-roles-electric",
@@ -186,5 +193,55 @@ export const contactRolesCollection = createCollection(
     shapeOptions: {
       url: new URL(`/api/contact-roles`, window.location.origin).toString(),
     },
+  }),
+);
+
+/**
+ * Contact role assignments collection (Electric)
+ */
+export const contactRoleAssignmentsCollection = createCollection(
+  electricCollectionOptions({
+    id: "contact-role-assignments-electric",
+    schema: z.object({
+      workspace_id: z.string(),
+      contact_id: z.string(),
+      contact_role_id: z.string(),
+      // created_at: z.string(),
+      // updated_at: z.string(),
+    }),
+    getKey: (item) =>
+      item.workspace_id + item.contact_id + item.contact_role_id,
+    shapeOptions: {
+      url: new URL(
+        `/api/contact-role-assignments`,
+        window.location.origin,
+      ).toString(),
+    },
+    onInsert: async ({ transaction }) => {
+      const data = transaction.mutations.map((item) => ({
+        workspaceId: item.modified.workspace_id,
+        contactId: item.modified.contact_id,
+        contactRoleId: item.modified.contact_role_id,
+      }));
+
+      const txid = await Promise.all(
+        data.map((item) => createContactRoleAssignmentSF({ data: item })),
+      );
+
+      return { txid: txid.map((item) => item.txid) };
+    },
+    // onDelete: async ({ transaction }) => {
+    //   const data = transaction.mutations.map((item) => ({
+    //     workspaceId: item.modified.workspace_id,
+    //     contactId: item.modified.contact_id,
+    //     contactRoleId: item.modified.contact_role_id,
+    //   }));
+
+    //   const txid = await Promise.all(
+    //     data.map((item) => deleteContactRoleAssignmentSF({ data: item })),
+    //   );
+
+    //   return { txid: txid.map((item) => item.txid) };
+    // },
   }),
 );
