@@ -26,7 +26,7 @@ import {
 } from "~/server-functions/contacts";
 import {
   createContactRoleAssignmentSF,
-  // deleteContactRoleAssignmentSF,
+  deleteContactRoleAssignmentSF,
 } from "~/server-functions/contact-role-assignments";
 
 const queryClient = new QueryClient();
@@ -206,11 +206,12 @@ export const contactRoleAssignmentsCollection = createCollection(
       workspace_id: z.string(),
       contact_id: z.string(),
       contact_role_id: z.string(),
-      // created_at: z.string(),
-      // updated_at: z.string(),
     }),
-    getKey: (item) =>
-      item.workspace_id + item.contact_id + item.contact_role_id,
+    getKey: (item) => {
+      return (
+        item.workspace_id + "|" + item.contact_id + "|" + item.contact_role_id
+      );
+    },
     shapeOptions: {
       url: new URL(
         `/api/contact-role-assignments`,
@@ -230,18 +231,18 @@ export const contactRoleAssignmentsCollection = createCollection(
 
       return { txid: txid.map((item) => item.txid) };
     },
-    // onDelete: async ({ transaction }) => {
-    //   const data = transaction.mutations.map((item) => ({
-    //     workspaceId: item.modified.workspace_id,
-    //     contactId: item.modified.contact_id,
-    //     contactRoleId: item.modified.contact_role_id,
-    //   }));
+    onDelete: async ({ transaction }) => {
+      const data = transaction.mutations.map((item) => ({
+        workspaceId: item.modified.workspace_id,
+        contactId: item.modified.contact_id,
+        contactRoleId: item.modified.contact_role_id,
+      }));
 
-    //   const txid = await Promise.all(
-    //     data.map((item) => deleteContactRoleAssignmentSF({ data: item })),
-    //   );
+      const txid = await Promise.all(
+        data.map((item) => deleteContactRoleAssignmentSF({ data: item })),
+      );
 
-    //   return { txid: txid.map((item) => item.txid) };
-    // },
+      return { txid: txid.map((item) => item.txid) };
+    },
   }),
 );

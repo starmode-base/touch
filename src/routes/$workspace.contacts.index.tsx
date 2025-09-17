@@ -9,7 +9,7 @@ import {
 import { genSecureToken } from "~/lib/secure-token";
 import { createContactInputSchema } from "~/server-functions/contacts";
 import { Button, ContactCard, EditInput } from "~/components/atoms";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { extractLinkedInAndName } from "~/lib/linkedin-extractor";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
@@ -21,14 +21,6 @@ export const Route = createFileRoute("/$workspace/contacts/")({
 function RouteComponent() {
   const params = Route.useParams();
   const [isValid, setIsValid] = useState(false);
-
-  const contacts = useLiveQuery((q) => {
-    return q
-      .from({ contact: contactsCollection })
-      .where(({ contact }) => eq(contact.workspace_id, params.workspace))
-      .orderBy(({ contact }) => contact.created_at, "desc")
-      .orderBy(({ contact }) => contact.id, "desc");
-  });
 
   const workspace = useLiveQuery((q) => {
     return q
@@ -45,15 +37,38 @@ function RouteComponent() {
       );
   });
 
-  const contactRoleAssignments = useLiveQuery((q) => {
+  const contacts = useLiveQuery((q) => {
     return q
-      .from({ contactRoleAssignment: contactRoleAssignmentsCollection })
-      .where(({ contactRoleAssignment }) =>
-        eq(contactRoleAssignment.workspace_id, params.workspace),
-      );
+      .from({ contact: contactsCollection })
+      .where(({ contact }) => eq(contact.workspace_id, params.workspace))
+      .orderBy(({ contact }) => contact.created_at, "desc")
+      .orderBy(({ contact }) => contact.id, "desc");
   });
 
-  console.log(contactRoleAssignments.data);
+  const roleAssignmentsWithRole = useLiveQuery((q) => {
+    return q
+      .from({ cra: contactRoleAssignmentsCollection })
+      .where(({ cra }) => eq(cra.workspace_id, params.workspace))
+      .innerJoin({ role: contactRolesCollection }, ({ cra, role }) =>
+        eq(cra.contact_role_id, role.id),
+      )
+      .select(({ cra, role }) => ({
+        contact_id: cra.contact_id,
+        role: { id: role.id, name: role.name },
+      }));
+  });
+
+  const activeRolesByContactId = useMemo(() => {
+    const map = new Map<string, { id: string; name: string }[]>();
+
+    for (const row of roleAssignmentsWithRole.data) {
+      const current = map.get(row.contact_id) ?? [];
+      current.push({ id: row.role.id, name: row.role.name });
+      map.set(row.contact_id, current);
+    }
+
+    return map;
+  }, [roleAssignmentsWithRole.data]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -93,31 +108,30 @@ function RouteComponent() {
                 draft.linkedin = args.linkedin ?? null;
               });
             }}
-            roles={contactRoles.data.map((role) => {
-              return {
-                id: role.id,
-                name: role.name,
-              };
-            })}
+            roles={contactRoles.data
+              .filter(
+                (role) =>
+                  !activeRolesByContactId
+                    .get(contact.id)
+                    ?.some((r) => r.id === role.id),
+              )
+              .map((role) => {
+                return {
+                  id: role.id,
+                  name: role.name,
+                };
+              })}
+            activeRoles={activeRolesByContactId.get(contact.id) ?? []}
             onRoleClick={(roleId) => {
-              console.log("roleId", roleId);
               contactRoleAssignmentsCollection.insert({
-                // id: genSecureToken(),
                 workspace_id: params.workspace,
                 contact_id: contact.id,
                 contact_role_id: roleId,
-                // contact_id: contact.id,
-                //   role_id: roleId,
-                //   workspace_id: params.workspace,
               });
             }}
             onRoleDelete={(roleId) => {
-              console.log("roleId", roleId);
-              // contactRoleAssignmentsCollection.delete({
-              //   workspace_id: params.workspace,
-              //   contact_id: contact.id,
-              //   contact_role_id: roleId,
-              // });
+              const key = params.workspace + "|" + contact.id + "|" + roleId;
+              contactRoleAssignmentsCollection.delete(key);
             }}
           />
         ))}

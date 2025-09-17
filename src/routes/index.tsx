@@ -28,7 +28,6 @@ function Home() {
 
   return (
     <>
-      {" "}
       <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white p-4">
         <div className="flex items-center gap-2">
           <LinkButton to="/">Home</LinkButton>
