@@ -48,21 +48,6 @@ function extractLinkedInPath(url: string): string | null {
   }
 }
 
-function ChipA(props: { children: React.ReactNode; onClick: () => void }) {
-  return (
-    <div className="flex items-center gap-1 rounded-full bg-slate-50 px-3 text-xs font-medium text-slate-800 outline outline-slate-200">
-      <div
-        className="py-1 whitespace-nowrap"
-        onClick={() => {
-          props.onClick();
-        }}
-      >
-        {props.children}
-      </div>
-    </div>
-  );
-}
-
 function Chip(props: {
   children: React.ReactNode;
   onClick?: () => void;
@@ -127,17 +112,7 @@ export function ContactCard(props: {
           }}
         />
       )}
-      <div className="flex gap-2">
-        {props.roles.map((role) => (
-          <ChipA
-            key={role.id}
-            onClick={() => {
-              props.onRoleClick(role.id);
-            }}
-          >
-            {role.name}
-          </ChipA>
-        ))}
+      <div className="flex items-center gap-2">
         {props.activeRoles.map((role) => (
           <Chip
             key={role.id}
@@ -148,6 +123,28 @@ export function ContactCard(props: {
             {role.name}
           </Chip>
         ))}
+        {props.roles.length > 0 ? (
+          <select
+            aria-label="Add role"
+            className="rounded-full border border-slate-200 px-2 py-1 text-xs text-slate-800"
+            onChange={(e) => {
+              const roleId = e.target.value;
+              if (!roleId) return;
+              props.onRoleClick(roleId);
+              e.currentTarget.selectedIndex = 0;
+            }}
+            value=""
+          >
+            <option value="" disabled>
+              Add role…
+            </option>
+            {props.roles.map((role) => (
+              <option key={role.id} value={role.id}>
+                {role.name}
+              </option>
+            ))}
+          </select>
+        ) : null}
       </div>
       <div className="flex items-center justify-center gap-1 text-xs text-slate-800">
         <CalendarIcon className="size-4" />
