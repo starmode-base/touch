@@ -8,7 +8,7 @@ export function SplitScreen(props: {
   const containerRef = useRef<HTMLDivElement>(null);
   const [rightWidth, setRightWidth] = useState<number | null>(null);
 
-  // Initialize right pane to 50% of container width
+  // Initialize right pane to 25% of container width
   useLayoutEffect(() => {
     const node = containerRef.current;
     if (!node) return;
@@ -16,7 +16,7 @@ export function SplitScreen(props: {
     const rect = node.getBoundingClientRect();
 
     if (rect.width > 0 && rightWidth === null) {
-      setRightWidth(rect.width / 2);
+      setRightWidth(rect.width / 4);
     }
   }, [rightWidth]);
 
@@ -57,23 +57,17 @@ export function SplitScreen(props: {
   const rightPaneStyle =
     rightWidth !== null ? { width: rightWidth } : undefined;
 
+  const handleStyle = { width: separatorWidth };
+
   return (
-    <div
-      ref={containerRef}
-      className="flex min-h-0 min-w-0 flex-1 overflow-hidden bg-red-500"
-    >
-      <div className="min-h-0 min-w-[200px] flex-1 overflow-y-auto bg-blue-500">
-        {props.children[0]}
-      </div>
+    <div ref={containerRef} className="flex min-h-0 flex-1">
+      <div className="flex min-w-[200px] flex-1">{props.children[0]}</div>
       <div
-        className="shrink-0 cursor-col-resize bg-neutral-300 hover:bg-neutral-400"
-        style={{ width: separatorWidth }}
+        className="shrink-0 cursor-col-resize bg-slate-400 hover:bg-cyan-500"
+        style={handleStyle}
         onPointerDown={beginResize}
       />
-      <div
-        style={rightPaneStyle}
-        className="min-h-0 min-w-[260px] overflow-y-auto bg-green-500"
-      >
+      <div style={rightPaneStyle} className="flex min-w-[260px]">
         {props.children[1]}
       </div>
     </div>
