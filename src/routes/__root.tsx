@@ -19,6 +19,7 @@ const authStateFn = createServerFn({ method: "GET" }).handler(() => {
 });
 
 export const Route = createRootRoute({
+  ssr: false,
   beforeLoad: async () => ({
     // Ensure the viewer is synced from Clerk to the database. This also makes
     // the viewer available as context in the loader of descendant routes.

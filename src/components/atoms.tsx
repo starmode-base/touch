@@ -86,7 +86,7 @@ export function ContactCard(props: {
   onRoleDelete: (roleId: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-5 items-center justify-between gap-2 rounded border border-slate-200 bg-white p-2">
+    <div className="grid grid-cols-5 items-center justify-between gap-2 rounded border border-slate-200 bg-white p-2 whitespace-nowrap">
       <EditInput
         type="text"
         value={props.name}

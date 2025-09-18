@@ -1,15 +1,13 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  contactRoleAssignmentsCollection,
-  contactRolesCollection,
   contactsCollection,
   workspacesCollectionQuery,
 } from "~/lib/collections";
 import { genSecureToken } from "~/lib/secure-token";
 import { createContactInputSchema } from "~/server-functions/contacts";
-import { Button, ContactCard, EditInput } from "~/components/atoms";
-import { useState, useMemo } from "react";
+import { Button, EditInput } from "~/components/atoms";
+import { useState } from "react";
 import { extractLinkedInAndName } from "~/lib/linkedin-extractor";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
@@ -28,47 +26,6 @@ function RouteComponent() {
       .where(({ workspace }) => eq(workspace.id, params.workspace));
   });
   const workspaceName = workspace.data[0]?.name ?? "";
-
-  const contactRoles = useLiveQuery((q) => {
-    return q
-      .from({ contactRole: contactRolesCollection })
-      .where(({ contactRole }) =>
-        eq(contactRole.workspace_id, params.workspace),
-      );
-  });
-
-  const contacts = useLiveQuery((q) => {
-    return q
-      .from({ contact: contactsCollection })
-      .where(({ contact }) => eq(contact.workspace_id, params.workspace))
-      .orderBy(({ contact }) => contact.created_at, "desc")
-      .orderBy(({ contact }) => contact.id, "desc");
-  });
-
-  const roleAssignmentsWithRole = useLiveQuery((q) => {
-    return q
-      .from({ cra: contactRoleAssignmentsCollection })
-      .where(({ cra }) => eq(cra.workspace_id, params.workspace))
-      .innerJoin({ role: contactRolesCollection }, ({ cra, role }) =>
-        eq(cra.contact_role_id, role.id),
-      )
-      .select(({ cra, role }) => ({
-        contact_id: cra.contact_id,
-        role: { id: role.id, name: role.name },
-      }));
-  });
-
-  const activeRolesByContactId = useMemo(() => {
-    const map = new Map<string, { id: string; name: string }[]>();
-
-    for (const row of roleAssignmentsWithRole.data) {
-      const current = map.get(row.contact_id) ?? [];
-      current.push({ id: row.role.id, name: row.role.name });
-      map.set(row.contact_id, current);
-    }
-
-    return map;
-  }, [roleAssignmentsWithRole.data]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -89,53 +46,7 @@ function RouteComponent() {
           />
         </div>
       </div>
-      <div className="flex flex-1 flex-col gap-1 overflow-y-auto px-2">
-        {contacts.data.map((contact) => (
-          <ContactCard
-            key={contact.id}
-            name={contact.name}
-            linkedin={contact.linkedin ?? undefined}
-            onDelete={() => {
-              const ok = confirm(
-                "Are you sure you want to delete this contact?",
-              );
-              if (!ok) return;
-              contactsCollection.delete(contact.id);
-            }}
-            onUpdate={(args) => {
-              contactsCollection.update(contact.id, (draft) => {
-                draft.name = args.name;
-                draft.linkedin = args.linkedin ?? null;
-              });
-            }}
-            roles={contactRoles.data
-              .filter(
-                (role) =>
-                  !activeRolesByContactId
-                    .get(contact.id)
-                    ?.some((r) => r.id === role.id),
-              )
-              .map((role) => {
-                return {
-                  id: role.id,
-                  name: role.name,
-                };
-              })}
-            activeRoles={activeRolesByContactId.get(contact.id) ?? []}
-            onRoleClick={(roleId) => {
-              contactRoleAssignmentsCollection.insert({
-                workspace_id: params.workspace,
-                contact_id: contact.id,
-                contact_role_id: roleId,
-              });
-            }}
-            onRoleDelete={(roleId) => {
-              const key = params.workspace + "|" + contact.id + "|" + roleId;
-              contactRoleAssignmentsCollection.delete(key);
-            }}
-          />
-        ))}
-      </div>
+      <div className="flex flex-1 flex-col gap-1 overflow-y-auto px-2">XXX</div>
       <div className="h-1/2 shrink-0 border-t border-slate-200 bg-slate-100 p-8">
         <form
           className="flex gap-2"
