@@ -42,8 +42,25 @@ export const createWorkspaceSF = createServerFn({ method: "POST" })
 
       // Establish contact roles for the workspace
       await tx.insert(schema.contactRoles).values([
-        { workspaceId, key: "inner_circle", name: "Inner circle" },
-        { workspaceId, key: "peer_referral", name: "Peer referral" },
+        {
+          workspaceId,
+          key: "inner_circle",
+          name: "Inner circle",
+          qualifier:
+            "Someone I have or want to build a strong relationship with.",
+        },
+        {
+          workspaceId,
+          key: "peer",
+          name: "Peer",
+          qualifier: "Someone I have worked alongside as a fellow consultant.",
+        },
+        {
+          workspaceId,
+          key: "customer",
+          name: "Customer",
+          qualifier: "Someone who has hired me for a consulting project.",
+        },
       ]);
 
       return { txid };

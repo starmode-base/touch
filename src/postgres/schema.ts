@@ -167,10 +167,13 @@ export const contactRoles = pgTable(
     workspaceId: text()
       .references(() => workspaces.id, { onDelete: "cascade" })
       .notNull(),
-    // Ex: "inner_circle", "peer_referral", "etc."
+    // Ex: "inner_circle", "peer", "etc."
     key: text().notNull(),
-    // Ex: "Inner circle", "Peer referral"
+    // Ex: "Inner circle", "Peer"
     name: text().notNull(),
+    // Qualifier for the role (who can have this role assigned to them), used
+    // for display
+    qualifier: text().notNull(),
   },
   (t) => [
     // Enforce: Role name is unique per workspace
