@@ -30,11 +30,7 @@ function RouteComponent() {
   );
 
   return (
-    <div
-      // className="flex-1 px-2"
-      // className="flex items-center border-t border-slate-200 bg-slate-100 px-2"
-      className="flex flex-1 flex-col gap-1 overflow-y-auto px-2"
-    >
+    <div className="flex flex-1 flex-col gap-1 overflow-y-auto px-2">
       <div className="heading-1 py-2">Contact Activities</div>
       <div className="flex flex-col gap-1 text-sm">
         {contactActivities.data.map((contactActivity) => (
