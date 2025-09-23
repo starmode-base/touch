@@ -54,6 +54,8 @@ export function Contacts(props: { workspaceId: string }) {
       {contacts.data.map((contact) => (
         <ContactCard
           key={contact.id}
+          workspaceId={props.workspaceId}
+          id={contact.id}
           name={contact.name}
           linkedin={contact.linkedin ?? undefined}
           onDelete={() => {

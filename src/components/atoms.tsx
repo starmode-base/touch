@@ -1,6 +1,7 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
 import {
   CalendarIcon,
+  PencilIcon,
   TrashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -84,9 +85,11 @@ export function ContactCard(props: {
   activeRoles: { id: string; name: string }[];
   onRoleClick: (roleId: string) => void;
   onRoleDelete: (roleId: string) => void;
+  workspaceId: string;
+  id: string;
 }) {
   return (
-    <div className="grid grid-cols-5 items-center justify-between gap-2 rounded border border-slate-200 bg-white p-2 whitespace-nowrap">
+    <div className="grid grid-cols-5 items-center justify-between gap-2 rounded border border-slate-200 bg-white p-2 text-sm whitespace-nowrap">
       <EditInput
         type="text"
         value={props.name}
@@ -150,12 +153,20 @@ export function ContactCard(props: {
         <CalendarIcon className="size-4" />
         2025-01-01
       </div>
-      <button
-        onClick={props.onDelete}
-        className="w-fit rounded p-1 hover:bg-slate-100"
-      >
-        <TrashIcon className="size-5" />
-      </button>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={props.onDelete}
+          className="w-fit rounded p-1 hover:bg-slate-100"
+        >
+          <TrashIcon className="size-4" />
+        </button>
+        <Link
+          to="/$workspace/contacts/$contact"
+          params={{ workspace: props.workspaceId, contact: props.id }}
+        >
+          <PencilIcon className="size-4" />
+        </Link>
+      </div>
     </div>
   );
 }

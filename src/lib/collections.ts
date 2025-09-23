@@ -246,3 +246,34 @@ export const contactRoleAssignmentsCollection = createCollection(
     },
   }),
 );
+
+/**
+ * Contact activities collection (Electric)
+ */
+export const contactActivitiesCollection = createCollection(
+  electricCollectionOptions({
+    id: "contact-activities-electric",
+    schema: z.object({
+      id: z.string(),
+      created_at: z.string(),
+      updated_at: z.string(),
+      workspace_id: z.string(),
+      contact_id: z.string(),
+      created_by_id: z.string(),
+      happened_at: z.string(),
+      kind: z.string(),
+      body: z.string(),
+      details: z.object({
+        name: z.string(),
+        linkedin: z.string().nullable(),
+      }),
+    }),
+    getKey: (item) => item.id,
+    shapeOptions: {
+      url: new URL(
+        `/api/contact-activities`,
+        window.location.origin,
+      ).toString(),
+    },
+  }),
+);
