@@ -24,6 +24,10 @@ import {
   deleteContactSF,
   updateContactSF,
 } from "~/server-functions/contacts";
+import {
+  createContactRoleAssignmentSF,
+  deleteContactRoleAssignmentSF,
+} from "~/server-functions/contact-role-assignments";
 
 const queryClient = new QueryClient();
 
@@ -37,10 +41,8 @@ export const workspacesCollectionQuery = createCollection(
     queryFn: () => listWorkspacesSF(),
     queryClient,
     getKey: (item) => item.id,
-
     refetchInterval: 5000,
     schema: selectWorkspaceSchema,
-
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
         name: item.modified.name,
@@ -48,7 +50,6 @@ export const workspacesCollectionQuery = createCollection(
 
       await createWorkspaceSF({ data });
     },
-
     onUpdate: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
         key: { id: item.modified.id },
@@ -57,7 +58,6 @@ export const workspacesCollectionQuery = createCollection(
 
       await updateWorkspaceSF({ data });
     },
-
     onDelete: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => item.modified.id);
 
@@ -91,7 +91,6 @@ export const workspacesCollectionElectric = createCollection(
 
       return { txid: result.txid };
     },
-
     onUpdate: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
         key: {
@@ -106,7 +105,6 @@ export const workspacesCollectionElectric = createCollection(
 
       return { txid: result.txid };
     },
-
     onDelete: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => item.modified.id);
 
@@ -150,7 +148,6 @@ export const contactsCollection = createCollection(
 
       return { txid: txid.map((item) => item.txid) };
     },
-
     onUpdate: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
         key: {
@@ -168,15 +165,115 @@ export const contactsCollection = createCollection(
 
       return { txid: txid.map((item) => item.txid) };
     },
-
     onDelete: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => item.modified.id);
 
       const txid = await Promise.all(
-        data.map((item) => deleteContactSF({ data: { contactId: item } })),
+        data.map((item) => deleteContactSF({ data: { id: item } })),
       );
 
       return { txid: txid.map((item) => item.txid) };
+    },
+  }),
+);
+
+/**
+ * Contact roles collection (Electric)
+ */
+export const contactRolesCollection = createCollection(
+  electricCollectionOptions({
+    id: "contact-roles-electric",
+    schema: z.object({
+      id: z.string(),
+      key: z.string(),
+      name: z.string(),
+      workspace_id: z.string(),
+    }),
+    getKey: (item) => item.id,
+    shapeOptions: {
+      url: new URL(`/api/contact-roles`, window.location.origin).toString(),
+    },
+  }),
+);
+
+/**
+ * Contact role assignments collection (Electric)
+ */
+export const contactRoleAssignmentsCollection = createCollection(
+  electricCollectionOptions({
+    id: "contact-role-assignments-electric",
+    schema: z.object({
+      workspace_id: z.string(),
+      contact_id: z.string(),
+      contact_role_id: z.string(),
+    }),
+    getKey: (item) => {
+      return (
+        item.workspace_id + "|" + item.contact_id + "|" + item.contact_role_id
+      );
+    },
+    shapeOptions: {
+      url: new URL(
+        `/api/contact-role-assignments`,
+        window.location.origin,
+      ).toString(),
+    },
+    onInsert: async ({ transaction }) => {
+      const data = transaction.mutations.map((item) => ({
+        workspaceId: item.modified.workspace_id,
+        contactId: item.modified.contact_id,
+        contactRoleId: item.modified.contact_role_id,
+      }));
+
+      const txid = await Promise.all(
+        data.map((item) => createContactRoleAssignmentSF({ data: item })),
+      );
+
+      return { txid: txid.map((item) => item.txid) };
+    },
+    onDelete: async ({ transaction }) => {
+      const data = transaction.mutations.map((item) => ({
+        workspaceId: item.modified.workspace_id,
+        contactId: item.modified.contact_id,
+        contactRoleId: item.modified.contact_role_id,
+      }));
+
+      const txid = await Promise.all(
+        data.map((item) => deleteContactRoleAssignmentSF({ data: item })),
+      );
+
+      return { txid: txid.map((item) => item.txid) };
+    },
+  }),
+);
+
+/**
+ * Contact activities collection (Electric)
+ */
+export const contactActivitiesCollection = createCollection(
+  electricCollectionOptions({
+    id: "contact-activities-electric",
+    schema: z.object({
+      id: z.string(),
+      created_at: z.string(),
+      updated_at: z.string(),
+      workspace_id: z.string(),
+      contact_id: z.string(),
+      created_by_id: z.string(),
+      happened_at: z.string(),
+      kind: z.string(),
+      body: z.string(),
+      details: z.object({
+        name: z.string(),
+        linkedin: z.string().nullable(),
+      }),
+    }),
+    getKey: (item) => item.id,
+    shapeOptions: {
+      url: new URL(
+        `/api/contact-activities`,
+        window.location.origin,
+      ).toString(),
     },
   }),
 );

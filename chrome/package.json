@@ -1,0 +1,13 @@
+{
+  "name": "touch-chrome",
+  "private": true,
+  "scripts": {
+    "dev": "bun build ./*.ts --outdir ./ --watch",
+    "build": "bun build ./*.ts --outdir ./",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.11",
+    "typescript": "^5.9.2"
+  }
+}

@@ -2,11 +2,19 @@
 alwaysApply: true
 ---
 
+## Instructions
+
+- Avoid premature/paranoid defensive programming; guard only against known error cases
+- Only engineer for what the requirements are, less is more
+- Avoid premature optimizations
+- Prefer failing fast over speculative fallbacks; do not invent defaults or silent recovery without an explicit requirement or observed failures
+
 ## Code style
 
 - Default to functional style, but be pragmatic and use imperative when needed
+  - If you write imperative code, leave code comments explaining why
   - Prefer pure functions
-  - Prefer immutability (local mutability is okay)
+  - Prefer immutability (local mutability is acceptable if there is good reason to use it)
 
 ## Testing philosophy
 

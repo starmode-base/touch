@@ -4,10 +4,12 @@ import {
   contactActivities,
   workspaceMemberships,
   contacts,
+  contactRoles,
   opportunities,
   opportunityActivities,
   users,
-  opportunityContacts,
+  contactRoleAssignments,
+  opportunityContactLinks,
 } from "./schema";
 
 export const contactActivitiesRelations = relations(
@@ -19,7 +21,7 @@ export const contactActivitiesRelations = relations(
     }),
     workspaceMembership: one(workspaceMemberships, {
       fields: [contactActivities.workspaceId],
-      references: [workspaceMemberships.userId],
+      references: [workspaceMemberships.workspaceId],
     }),
     contact: one(contacts, {
       fields: [contactActivities.workspaceId],
@@ -31,10 +33,12 @@ export const contactActivitiesRelations = relations(
 export const workspacesRelations = relations(workspaces, ({ many }) => ({
   contactActivities: many(contactActivities),
   contacts: many(contacts),
+  contactRoles: many(contactRoles),
   opportunities: many(opportunities),
   opportunityActivities: many(opportunityActivities),
   workspaceMemberships: many(workspaceMemberships),
-  opportunityContacts: many(opportunityContacts),
+  contactRoleAssignments: many(contactRoleAssignments),
+  opportunityContactLinks: many(opportunityContactLinks),
 }));
 
 export const workspaceMembershipsRelations = relations(
@@ -59,8 +63,20 @@ export const contactsRelations = relations(contacts, ({ one, many }) => ({
     fields: [contacts.workspaceId],
     references: [workspaces.id],
   }),
-  opportunityContacts: many(opportunityContacts),
+  contactRoleAssignments: many(contactRoleAssignments),
+  opportunityContactLinks: many(opportunityContactLinks),
 }));
+
+export const contactRolesRelations = relations(
+  contactRoles,
+  ({ one, many }) => ({
+    workspace: one(workspaces, {
+      fields: [contactRoles.workspaceId],
+      references: [workspaces.id],
+    }),
+    contactRoleAssignments: many(contactRoleAssignments),
+  }),
+);
 
 export const opportunitiesRelations = relations(
   opportunities,
@@ -70,7 +86,7 @@ export const opportunitiesRelations = relations(
       references: [workspaces.id],
     }),
     opportunityActivities: many(opportunityActivities),
-    opportunityContacts: many(opportunityContacts),
+    opportunityContactLinks: many(opportunityContactLinks),
   }),
 );
 
@@ -83,7 +99,7 @@ export const opportunityActivitiesRelations = relations(
     }),
     workspaceMembership: one(workspaceMemberships, {
       fields: [opportunityActivities.workspaceId],
-      references: [workspaceMemberships.userId],
+      references: [workspaceMemberships.workspaceId],
     }),
     opportunity: one(opportunities, {
       fields: [opportunityActivities.workspaceId],
@@ -96,19 +112,37 @@ export const usersRelations = relations(users, ({ many }) => ({
   workspaceMemberships: many(workspaceMemberships),
 }));
 
-export const opportunityContactsRelations = relations(
-  opportunityContacts,
+export const contactRoleAssignmentsRelations = relations(
+  contactRoleAssignments,
   ({ one }) => ({
     workspace: one(workspaces, {
-      fields: [opportunityContacts.workspaceId],
+      fields: [contactRoleAssignments.workspaceId],
       references: [workspaces.id],
     }),
     contact: one(contacts, {
-      fields: [opportunityContacts.workspaceId],
+      fields: [contactRoleAssignments.workspaceId],
+      references: [contacts.id],
+    }),
+    contactRole: one(contactRoles, {
+      fields: [contactRoleAssignments.workspaceId],
+      references: [contactRoles.id],
+    }),
+  }),
+);
+
+export const opportunityContactLinksRelations = relations(
+  opportunityContactLinks,
+  ({ one }) => ({
+    workspace: one(workspaces, {
+      fields: [opportunityContactLinks.workspaceId],
+      references: [workspaces.id],
+    }),
+    contact: one(contacts, {
+      fields: [opportunityContactLinks.workspaceId],
       references: [contacts.id],
     }),
     opportunity: one(opportunities, {
-      fields: [opportunityContacts.workspaceId],
+      fields: [opportunityContactLinks.workspaceId],
       references: [opportunities.id],
     }),
   }),

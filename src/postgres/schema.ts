@@ -1,5 +1,7 @@
 /**
- * Postgres schema
+ * Postgres Drizzle ORM schema
+ *
+ * Instructions: .cursor/rules/drizzle.mdc
  *
  * NOTE: It is important to make shared field helpers function as they are
  * mutated by the ORM (particularly the inferred field name).
@@ -18,7 +20,6 @@
  * ```
  */
 import {
-  boolean,
   check,
   date,
   numeric,
@@ -27,7 +28,6 @@ import {
   primaryKey,
   foreignKey,
   uniqueIndex,
-  index,
   text,
   timestamp,
   jsonb,
@@ -74,9 +74,15 @@ export type WorkspaceMemberRole =
  */
 export const users = pgTable("users", {
   ...baseSchema,
+  /**
+   * User email address copied from Clerk's primary email
+   *
+   * Intentionally not unique in this table because Clerk enforces uniqueness
+   * and emails can change. Cached here for display and convenience.
+   */
   email: text().notNull(),
+  /** Stable unique user identifier from Clerk */
   clerkUserId: text().notNull().unique(),
-  isSuperuser: boolean().notNull().default(false),
 });
 
 export type UserSelect = typeof users.$inferSelect;
@@ -95,6 +101,8 @@ export type WorkspaceInsert = typeof workspaces.$inferInsert;
 
 /**
  * Workspace memberships junction table
+ *
+ * Enables many-to-many relationships between workspaces and users
  */
 export const workspaceMemberships = pgTable(
   "workspace_memberships",
@@ -121,9 +129,7 @@ export type WorkspaceMembershipInsert =
   typeof workspaceMemberships.$inferInsert;
 
 /**
- * Contacts table
- *
- * AKA: People
+ * Contacts table (AKA people)
  */
 export const contacts = pgTable(
   "contacts",
@@ -142,12 +148,84 @@ export const contacts = pgTable(
 
     // FK support: Unique constraint to support composite foreign keys from
     // other tables
-    unique().on(t.id, t.workspaceId),
+    unique().on(t.workspaceId, t.id),
   ],
 );
 
 export type ContactSelect = typeof contacts.$inferSelect;
 export type ContactInsert = typeof contacts.$inferInsert;
+
+/**
+ * Contact roles table
+ *
+ * Configurable roles that can be assigned to contacts within a workspace
+ */
+export const contactRoles = pgTable(
+  "contact_roles",
+  {
+    ...baseSchema,
+    workspaceId: text()
+      .references(() => workspaces.id, { onDelete: "cascade" })
+      .notNull(),
+    // Ex: "inner_circle", "peer", "etc."
+    key: text().notNull(),
+    // Ex: "Inner circle", "Peer"
+    name: text().notNull(),
+    // Qualifier for the role (who can have this role assigned to them), used
+    // for display
+    qualifier: text().notNull(),
+  },
+  (t) => [
+    // Enforce: Role name is unique per workspace
+    unique().on(t.workspaceId, t.key),
+
+    // FK support: Unique constraint to support composite foreign keys from
+    // other tables
+    unique().on(t.workspaceId, t.id),
+  ],
+);
+
+export type ContactRoleSelect = typeof contactRoles.$inferSelect;
+export type ContactRoleInsert = typeof contactRoles.$inferInsert;
+
+/**
+ * Contact role assignments junction table
+ *
+ * Enables many-to-many relationships between contacts and contact roles
+ */
+export const contactRoleAssignments = pgTable(
+  "contact_role_assignments",
+  {
+    workspaceId: text()
+      .references(() => workspaces.id, { onDelete: "cascade" })
+      .notNull(),
+    contactId: text().notNull(),
+    contactRoleId: text().notNull(),
+    createdAt: timestampField(),
+    updatedAt: timestampField(),
+  },
+  (t) => [
+    // Enforce: a contact can only have a specific role once within a workspace
+    primaryKey({ columns: [t.workspaceId, t.contactId, t.contactRoleId] }),
+
+    // FK constraint: Contact must belong to this workspace
+    foreignKey({
+      columns: [t.workspaceId, t.contactId],
+      foreignColumns: [contacts.workspaceId, contacts.id],
+    }).onDelete("cascade"),
+
+    // FK constraint: Role must belong to this workspace
+    foreignKey({
+      columns: [t.workspaceId, t.contactRoleId],
+      foreignColumns: [contactRoles.workspaceId, contactRoles.id],
+    }).onDelete("cascade"),
+  ],
+);
+
+export type ContactRoleAssignmentSelect =
+  typeof contactRoleAssignments.$inferSelect;
+export type ContactRoleAssignmentInsert =
+  typeof contactRoleAssignments.$inferInsert;
 
 /**
  * Contact activities table
@@ -167,17 +245,18 @@ export const contactActivities = pgTable(
         // A touch with the contact (call, email, etc.), used for contact's last
         // touch date.
         | "user:touch"
-        // A user note about the contact
+        // A user note about the contact, does not update the contact's last
+        // touch date
         | "user:note"
         // System activities so users can see who created/updated contacts
-        | "system:contact_created" // body=name, linkedin
-        | "system:contact_updated" // body=new name, new linkedin
+        | "system:created" // body=name, linkedin
+        | "system:updated" // body=new name, new linkedin
       >()
       .notNull(),
     // Human-readable description of the activity, used for all kinds
     body: text().notNull(),
     // Only for kind:'system:*'
-    details: jsonb().$type<{ name?: string; linkedin?: string }>(),
+    details: jsonb().$type<{ name: string; linkedin: string | null }>(),
   },
   (t) => [
     // FK constraint: Actor must belong to this workspace
@@ -194,10 +273,6 @@ export const contactActivities = pgTable(
       columns: [t.workspaceId, t.contactId],
       foreignColumns: [contacts.workspaceId, contacts.id],
     }).onDelete("cascade"),
-
-    // Performance indexes for composite FKs
-    index().on(t.workspaceId, t.createdById),
-    index().on(t.workspaceId, t.contactId),
 
     // Check constraint: details required for system:* kinds, and must be NULL
     // for user:* kinds
@@ -217,9 +292,7 @@ export const opportunityStatus = pgEnum("opportunity_status", [
 export type OpportunityStatus = (typeof opportunityStatus.enumValues)[number];
 
 /**
- * Opportunities table
- *
- * AKA: Deals, Threads
+ * Opportunities table (AKA deals, threads)
  */
 export const opportunities = pgTable(
   "opportunities",
@@ -234,17 +307,17 @@ export const opportunities = pgTable(
   (t) => [
     // FK support: Unique constraint to support composite foreign keys from
     // other tables
-    unique().on(t.id, t.workspaceId),
+    unique().on(t.workspaceId, t.id),
   ],
 );
 
 /**
- * Opportunity contacts junction table
+ * Opportunity contact links junction table
  *
  * Enables many-to-many relationships between opportunities and contacts
  */
-export const opportunityContacts = pgTable(
-  "opportunity_contacts",
+export const opportunityContactLinks = pgTable(
+  "opportunity_contact_links",
   {
     workspaceId: text()
       .references(() => workspaces.id, { onDelete: "cascade" })
@@ -257,8 +330,8 @@ export const opportunityContacts = pgTable(
     // closedAt: timestamp({ mode: "string" }),
   },
   (t) => [
-    // Enforce: a contact can only be linked to an opportunity once
-    primaryKey({ columns: [t.opportunityId, t.contactId] }),
+    // Enforce: a contact can only be linked to an opportunity once within a workspace
+    primaryKey({ columns: [t.workspaceId, t.opportunityId, t.contactId] }),
 
     // FK constraint: Contact must belong to this workspace
     foreignKey({
@@ -271,15 +344,13 @@ export const opportunityContacts = pgTable(
       columns: [t.workspaceId, t.opportunityId],
       foreignColumns: [opportunities.workspaceId, opportunities.id],
     }).onDelete("cascade"),
-
-    // Performance indexes for composite FKs
-    index().on(t.workspaceId, t.contactId),
-    index().on(t.workspaceId, t.opportunityId),
   ],
 );
 
-export type OpportunityContactSelect = typeof opportunityContacts.$inferSelect;
-export type OpportunityContactInsert = typeof opportunityContacts.$inferInsert;
+export type OpportunityContactLinkSelect =
+  typeof opportunityContactLinks.$inferSelect;
+export type OpportunityContactLinkInsert =
+  typeof opportunityContactLinks.$inferInsert;
 
 /**
  * Opportunity activities table
@@ -301,8 +372,8 @@ export const opportunityActivities = pgTable(
         // Next activity to do to advance the opportunity, has a due date
         | "user:next_step"
         // System activities so users can see who created/updated opportunities
-        | "system:opportunity_created" // body=name, status
-        | "system:opportunity_updated" // body=new name, new status
+        | "system:created" // body=name, status
+        | "system:updated" // body=new name, new status
       >()
       .notNull(),
     // Human-readable description of the activity, used for all kinds
@@ -329,10 +400,6 @@ export const opportunityActivities = pgTable(
       columns: [t.workspaceId, t.opportunityId],
       foreignColumns: [opportunities.workspaceId, opportunities.id],
     }).onDelete("cascade"),
-
-    // Performance indexes for composite FKs
-    index().on(t.workspaceId, t.opportunityId),
-    index().on(t.workspaceId, t.createdById),
 
     // Enforce: at most one open next step per opportunity
     uniqueIndex()
@@ -361,3 +428,8 @@ export const opportunityActivities = pgTable(
     ),
   ],
 );
+
+export type OpportunityActivitySelect =
+  typeof opportunityActivities.$inferSelect;
+export type OpportunityActivityInsert =
+  typeof opportunityActivities.$inferInsert;

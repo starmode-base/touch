@@ -1,0 +1,1 @@
+ALTER TABLE "contact_roles" ADD COLUMN "qualifier" text NOT NULL;

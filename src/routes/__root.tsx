@@ -1,5 +1,5 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+// import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import appCss from "~/styles/app.css?url";
 import metadata from "../../metadata.json";
 import { inject } from "@vercel/analytics";
@@ -8,13 +8,11 @@ import {
   SignedIn,
   SignedOut,
   SignInButton,
-  SignOutButton,
   SignUpButton,
-  UserButton,
 } from "@clerk/tanstack-react-start";
 import { createServerFn } from "@tanstack/react-start";
 import { syncViewer } from "~/middleware/auth-viewer";
-import { Button, LinkButton } from "~/components/atoms";
+import { Button } from "~/components/atoms";
 
 const authStateFn = createServerFn({ method: "GET" }).handler(() => {
   return syncViewer();
@@ -22,11 +20,10 @@ const authStateFn = createServerFn({ method: "GET" }).handler(() => {
 
 export const Route = createRootRoute({
   beforeLoad: async () => ({
+    // Ensure the viewer is synced from Clerk to the database. This also makes
+    // the viewer available as context in the loader of descendant routes.
     viewer: await authStateFn(),
   }),
-  loader: ({ context }) => {
-    return context.viewer;
-  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -57,7 +54,7 @@ function RootDocument(props: React.PropsWithChildren) {
         </head>
         <body>
           <RootLayout>{props.children}</RootLayout>
-          <TanStackRouterDevtools position="bottom-right" />
+          {/* <TanStackRouterDevtools position="bottom-left" /> */}
           <Scripts />
         </body>
       </html>
@@ -70,26 +67,9 @@ function Providers(props: React.PropsWithChildren) {
 }
 
 function RootLayout(props: React.PropsWithChildren) {
-  const viewer = Route.useLoaderData();
-
   return (
-    <main className="flex h-dvh flex-col">
-      <SignedIn>
-        <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-2">
-            <LinkButton to="/">Home</LinkButton>
-            <LinkButton to="/demo">Demo</LinkButton>
-            <div>You are signed in as: {viewer?.email}</div>
-          </div>
-          <div className="flex items-center gap-2">
-            <UserButton />
-            <SignOutButton>
-              <Button>Sign out</Button>
-            </SignOutButton>
-          </div>
-        </div>
-        {props.children}
-      </SignedIn>
+    <main className="bg-pattern-lines flex h-dvh flex-col bg-slate-50">
+      <SignedIn>{props.children}</SignedIn>
       <SignedOut>
         <div className="m-auto flex flex-col gap-4 rounded border border-slate-100 bg-white p-8">
           <div className="text-center text-4xl font-extrabold">

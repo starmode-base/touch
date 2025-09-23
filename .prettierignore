@@ -9,3 +9,6 @@ src/postgres/migrations
 # Evals
 src/statement-parser/evals
 src/statement-parser/test-data
+
+# Chrome
+chrome/*.js
