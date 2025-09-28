@@ -5,10 +5,12 @@
       "name": "touch",
       "dependencies": {
         "@clerk/tanstack-react-start": "^0.25.0",
+        "@electric-sql/client": "^1.0.10",
         "@heroicons/react": "^2.2.0",
         "@neondatabase/serverless": "^1.0.1",
         "@tailwindcss/vite": "^4.1.13",
         "@tanstack/electric-db-collection": "^0.1.25",
+        "@tanstack/query-core": "^5.90.2",
         "@tanstack/query-db-collection": "^0.2.22",
         "@tanstack/react-db": "^0.1.23",
         "@tanstack/react-router": "~1.131.50",

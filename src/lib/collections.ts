@@ -8,7 +8,7 @@
  * https://github.com/TanStack/db/tree/main/examples/react
  */
 import { QueryClient } from "@tanstack/query-core";
-import { createCollection } from "@tanstack/db";
+import { createCollection } from "@tanstack/react-db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { selectWorkspaceSchema } from "~/postgres/validation";
 import { electricCollectionOptions } from "@tanstack/electric-db-collection";
