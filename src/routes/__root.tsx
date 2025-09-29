@@ -79,9 +79,11 @@ function RootLayout(props: React.PropsWithChildren) {
           <div className="max-w-xs text-center">{metadata.description}</div>
           <div className="m-auto flex gap-2">
             <SignInButton mode="modal">
-              <Button>Sign in</Button>
+              <Button>Sign in with email</Button>
             </SignInButton>
-            <SignInWithPasskeyButton />
+            <SignInWithPasskeyButton>
+              Sign in with passkey
+            </SignInWithPasskeyButton>
             <SignUpButton mode="modal">
               <Button>Sign up</Button>
             </SignUpButton>

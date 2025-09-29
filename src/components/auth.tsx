@@ -9,7 +9,7 @@ import { useSignIn } from "@clerk/tanstack-react-start";
 import { useRouter } from "@tanstack/react-router";
 import { Button } from "./atoms";
 
-export function SignInWithPasskeyButton() {
+export function SignInWithPasskeyButton(props: React.PropsWithChildren) {
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
 
@@ -31,7 +31,7 @@ export function SignInWithPasskeyButton() {
 
   return (
     <Button onClick={signInWithPasskey} disabled={!isLoaded}>
-      Sign in with a passkey
+      {props.children}
     </Button>
   );
 }
