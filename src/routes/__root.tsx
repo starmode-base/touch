@@ -13,6 +13,7 @@ import {
 import { createServerFn } from "@tanstack/react-start";
 import { syncViewer } from "~/middleware/auth-viewer";
 import { Button } from "~/components/atoms";
+import { SignInWithPasskeyButton } from "~/components/auth";
 
 const authStateFn = createServerFn({ method: "GET" }).handler(() => {
   return syncViewer();
@@ -80,6 +81,7 @@ function RootLayout(props: React.PropsWithChildren) {
             <SignInButton mode="modal">
               <Button>Sign in</Button>
             </SignInButton>
+            <SignInWithPasskeyButton />
             <SignUpButton mode="modal">
               <Button>Sign up</Button>
             </SignUpButton>
