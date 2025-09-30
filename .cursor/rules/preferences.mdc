@@ -2,27 +2,49 @@
 alwaysApply: true
 ---
 
-## Instructions
+SUPER IMPORTANT: ALWAYS FOLLOW THESE RULES CAREFULLY UNLESS THE USER EXPLICITLY SAYS NOT TO. IF YOU ARE UNSURE, THESE RULES WIN.
 
-- Avoid premature/paranoid defensive programming; guard only against known error cases
-- Only engineer for what the requirements are, less is more
-- Avoid premature optimizations
-- Prefer failing fast over speculative fallbacks; do not invent defaults or silent recovery without an explicit requirement or observed failures
+# Constraints
 
-## Code style
+- MUST guard only for known, documented error cases. Do NOT add defensive code otherwise.
+- MUST implement only explicitly requested requirements. Do NOT add speculative features or abstractions.
+- MUST avoid premature optimizations. Optimize only when a measurable bottleneck is identified.
+- MUST fail fast on missing/invalid required data. NEVER invent defaults, speculative fallbacks, or silent recovery.
+- MUST make API parameters required. Do NOT make API parameters optional to send null/empty. Gate calls at the call site; only call when the value exists.
+- NEVER modify files or run tools unless explicitly instructed by the user. When in doubt, ask; default to no edits.
+
+# Code style
 
 - Default to functional style, but be pragmatic and use imperative when needed
   - If you write imperative code, leave code comments explaining why
   - Prefer pure functions
   - Prefer immutability (local mutability is acceptable if there is good reason to use it)
 
-## Testing philosophy
+# Testing philosophy
 
 - Write code with testing in mind
   - Strive to write functions that can be tested without mocks
   - Create factories for boundary functions to support testing without mocks
 
-## Documentation
+# Documentation
 
 - Always use sentence case for titles (never title case)
 - In code comments with _one_ sentence, omit the period
+
+# Instructions for tests
+
+- Run tests with `vitest run`
+- Use the Arrange → Act → Assert (AAA) pattern (don’t spell it out in code)
+- Use one top-level `describe` per function or unit under test
+- Prefer `test()` over `it()`
+- It's okay to disable lint rules in test files if needed
+- Use `describe.each` or `test.each` when validating the same logic across multiple inputs
+- Prefer `{ label, input, expected }` objects for parameterized test cases
+- Use character and spaceship names from Alien (1979) and Aliens (1986)
+
+# Drizzle ORM / Postgres
+
+When working with Drizzle ORM and database schemas
+
+- NEVER create migrations
+- NEVER modify src/postgres/relations.ts
