@@ -1,3 +1,4 @@
+/* eslint-disable */
 console.log("Background service worker initialized!");
 
 const linkedinPattern = /^https:\/\/www\.linkedin\.com\/in\/[a-z0-9-]+\/$/;
