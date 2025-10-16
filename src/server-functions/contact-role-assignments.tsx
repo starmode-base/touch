@@ -20,7 +20,7 @@ export const createContactRoleAssignmentInputSchema = z.object({
  */
 export const createContactRoleAssignmentSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(createContactRoleAssignmentInputSchema)
+  .inputValidator(createContactRoleAssignmentInputSchema)
   .handler(async ({ data, context }) => {
     context.ensureIsInWorkspace(data.workspaceId);
 
@@ -38,7 +38,7 @@ export const createContactRoleAssignmentSF = createServerFn({ method: "POST" })
  */
 export const deleteContactRoleAssignmentSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(
+  .inputValidator(
     z.object({
       workspaceId: SecureToken,
       contactId: z.string(),
