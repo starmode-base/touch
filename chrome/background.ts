@@ -1,3 +1,4 @@
+/* eslint-disable */
 console.log("Background service worker initialized!");
 
 const linkedinPattern = /^https:\/\/www\.linkedin\.com\/in\/[a-z0-9-]+\/$/;
@@ -135,7 +136,7 @@ chrome.action.onClicked.addListener((tab) => {
       // 3) Post directly via the Touch tab so auth cookies apply
       const [inj] = await chrome.scripting.executeScript({
         target: { tabId: touchTabId },
-        args: [{ name: name, linkedin: linkedin }],
+        args: [{ name, linkedin }],
         func: async (payload) => {
           const extractWorkspaceIdFromPath = (pathname: string) => {
             const [candidate] = pathname.split("/").filter(Boolean);

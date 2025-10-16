@@ -1,12 +1,12 @@
-import { getAuth } from "@clerk/tanstack-react-start/server";
+import { auth } from "@clerk/tanstack-react-start/server";
 import { eq } from "drizzle-orm";
 import { db, schema } from "~/postgres/db";
 
 /**
  * Fetch the clerk user id from the Clerk API
  */
-async function fetchClerkUserId(request: Request) {
-  const session = await getAuth(request);
+async function fetchClerkUserId() {
+  const session = await auth();
 
   return session.userId;
 }
@@ -14,8 +14,8 @@ async function fetchClerkUserId(request: Request) {
 /**
  * Get the viewer from the database
  */
-export async function getViewer(request: Request) {
-  const clerkUserId = await fetchClerkUserId(request);
+export async function getViewer() {
+  const clerkUserId = await fetchClerkUserId();
 
   if (!clerkUserId) {
     return null;

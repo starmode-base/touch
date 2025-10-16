@@ -4,7 +4,7 @@ import { z } from "zod";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { SecureToken } from "~/lib/secure-token";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
-import { invariant } from "@tanstack/react-router";
+import invariant from "tiny-invariant";
 import { generateTxId } from "~/postgres/helpers";
 import { linkedinPatternExact } from "~/lib/linkedin-extractor";
 
@@ -22,7 +22,7 @@ export const createContactInputSchema = z.object({
  */
 export const createContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(createContactInputSchema)
+  .inputValidator(createContactInputSchema)
   .handler(async ({ data, context }) => {
     context.ensureIsInWorkspace(data.workspaceId);
 
@@ -60,7 +60,7 @@ export const createContactSF = createServerFn({ method: "POST" })
  */
 export const updateContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(
+  .inputValidator(
     z.object({
       key: z.object({
         id: SecureToken,
@@ -134,7 +134,7 @@ export const upsertContactInputSchema = z.object({
  */
 export const upsertContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(upsertContactInputSchema)
+  .inputValidator(upsertContactInputSchema)
   .handler(async ({ data, context }) => {
     context.ensureIsInWorkspace(data.workspaceId);
 
@@ -202,7 +202,7 @@ export const upsertContactSF = createServerFn({ method: "POST" })
  */
 export const deleteContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(z.object({ id: SecureToken }))
+  .inputValidator(z.object({ id: SecureToken }))
   .handler(async ({ data, context }) => {
     return db().transaction(async (tx) => {
       const txid = await generateTxId(tx);
