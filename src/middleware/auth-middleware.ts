@@ -1,6 +1,5 @@
-import { getAuth } from "@clerk/tanstack-react-start/server";
+import { auth } from "@clerk/tanstack-react-start/server";
 import { createMiddleware } from "@tanstack/react-start";
-import { getWebRequest } from "@tanstack/react-start/server";
 import { eq } from "drizzle-orm";
 import { db, schema } from "~/postgres/db";
 import type { WorkspaceMemberRole } from "~/postgres/schema";
@@ -8,8 +7,8 @@ import type { WorkspaceMemberRole } from "~/postgres/schema";
 /**
  * Fetch the clerk user id from the Clerk API
  */
-async function fetchClerkUserId(request: Request) {
-  const session = await getAuth(request);
+async function fetchClerkUserId() {
+  const session = await auth();
 
   return session.userId;
 }
@@ -123,7 +122,7 @@ export const ensureViewerMiddleware = createMiddleware({
   type: "function",
 }).server(async ({ next }) => {
   // Get the current clerk user id
-  const clerkUserId = await fetchClerkUserId(getWebRequest());
+  const clerkUserId = await fetchClerkUserId();
 
   if (!clerkUserId) {
     throw new Error("Unauthorized");

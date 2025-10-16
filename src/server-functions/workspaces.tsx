@@ -4,7 +4,7 @@ import { z } from "zod";
 import { desc, eq, inArray } from "drizzle-orm";
 import { SecureToken } from "~/lib/secure-token";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
-import { invariant } from "@tanstack/react-router";
+import invariant from "tiny-invariant";
 import { generateTxId } from "../postgres/helpers";
 
 /**
@@ -19,7 +19,7 @@ export const createWorkspaceInputSchema = z.object({
  */
 export const createWorkspaceSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(z.array(createWorkspaceInputSchema))
+  .inputValidator(z.array(createWorkspaceInputSchema))
   .handler(async ({ data, context }) => {
     // Transaction will roll back the first insert if the second insert fails
     const result = await db().transaction(async (tx) => {
@@ -74,7 +74,7 @@ export const createWorkspaceSF = createServerFn({ method: "POST" })
  */
 export const updateWorkspaceSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(
+  .inputValidator(
     z.array(
       z.object({
         key: z.object({
@@ -112,7 +112,7 @@ export const updateWorkspaceSF = createServerFn({ method: "POST" })
  */
 export const deleteWorkspaceSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(z.array(SecureToken))
+  .inputValidator(z.array(SecureToken))
   .handler(async ({ data, context }) => {
     context.ensureIsInWorkspace(data);
 

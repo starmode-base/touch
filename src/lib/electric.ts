@@ -15,7 +15,7 @@ export const proxyElectricShape = async ({
   /** https://electric-sql.com/docs/guides/shapes#where-clause */
   where: (viewer: Viewer) => string;
 }) => {
-  const viewer = await getViewer(request);
+  const viewer = await getViewer();
 
   if (!viewer) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
