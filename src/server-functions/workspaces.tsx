@@ -135,15 +135,12 @@ export const deleteWorkspaceSF = createServerFn({ method: "POST" })
 export const listWorkspacesSF = createServerFn({ method: "GET" })
   .middleware([ensureViewerMiddleware])
   .handler(async ({ context }) => {
-    // TODO: Move to middleware
-    const workspaceIds = context.viewer.workspaceMemberships.map(
-      (membership) => membership.workspaceId,
-    );
-
     const workspaces = await db()
       .select()
       .from(schema.workspaces)
-      .where(inArray(schema.workspaces.id, workspaceIds))
+      .where(
+        inArray(schema.workspaces.id, context.viewer.workspaceMembershipIds),
+      )
       .orderBy(desc(schema.workspaces.createdAt), desc(schema.workspaces.id));
     return workspaces;
   });

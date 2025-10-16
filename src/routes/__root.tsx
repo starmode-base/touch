@@ -11,7 +11,7 @@ import {
   SignUpButton,
 } from "@clerk/tanstack-react-start";
 import { createServerFn } from "@tanstack/react-start";
-import { syncViewer } from "~/middleware/auth-viewer";
+import { syncViewer } from "~/lib/auth";
 import { Button } from "~/components/atoms";
 import { SignInWithPasskeyButton } from "~/components/auth";
 
