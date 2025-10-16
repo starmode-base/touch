@@ -3,7 +3,7 @@ import { auth } from "@clerk/tanstack-react-start/server";
 /**
  * Fetch the clerk user from the Clerk API
  */
-export const getClerkUser = async (request: Request) => {
+export const getClerkUser = async () => {
   const { sessionClaims, userId: id, isAuthenticated } = await auth();
 
   const email = sessionClaims?.email;

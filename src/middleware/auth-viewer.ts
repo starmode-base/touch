@@ -1,4 +1,3 @@
-import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "drizzle-orm";
 import { db, schema } from "~/postgres/db";
 import { getClerkUser } from "~/auth/clerk";
@@ -27,7 +26,7 @@ export async function syncViewer() {
   console.debug("syncViewer");
 
   // Get the current clerk user
-  const clerkUser = await getClerkUser(getRequest());
+  const clerkUser = await getClerkUser();
 
   if (!clerkUser) {
     return null;
