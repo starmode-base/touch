@@ -18,18 +18,22 @@ export default defineConfig([
    * Ignore files
    */
   {
-    ignores: [".nitro/*", ".output/*", ".tanstack/*", "chrome/*"],
+    ignores: [".nitro/*", ".output/*", ".tanstack/*"],
   },
 
   /**
    * ESLint
    *
    * https://eslint.org/docs/latest/rules
+   * https://eslint.org/blog/2025/03/flat-config-extends-define-config-global-ignores/
    */
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
     plugins: { js: eslint },
     extends: ["js/recommended"],
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node },
+    },
     rules: {
       /** https://eslint.org/docs/latest/rules/eqeqeq */
       eqeqeq: "error",
@@ -45,14 +49,19 @@ export default defineConfig([
   },
 
   /**
-   * TypeScript
+   * TypeScript - Strict & stylistic presets
    *
    * https://typescript-eslint.io/getting-started/typed-linting/
+   *
+   * https://typescript-eslint.io/users/configs#strict-type-checked
+   * https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/eslintrc/strict-type-checked.ts
+   * https://typescript-eslint.io/users/configs#stylistic-type-checked
+   * https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/eslintrc/stylistic-type-checked.ts
    */
+  tseslint.configs.strictTypeChecked,
+  tseslint.configs.stylisticTypeChecked,
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
     languageOptions: {
-      globals: { ...globals.browser, ...globals.node },
       parserOptions: {
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
@@ -61,23 +70,7 @@ export default defineConfig([
   },
 
   /**
-   * TypeScript
-   *
-   * https://typescript-eslint.io/users/configs#strict-type-checked
-   * https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/eslintrc/strict-type-checked.ts
-   */
-  tseslint.configs.strictTypeChecked,
-
-  /**
-   * TypeScript
-   *
-   * https://typescript-eslint.io/users/configs#stylistic-type-checked
-   * https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/eslintrc/stylistic-type-checked.ts
-   */
-  tseslint.configs.stylisticTypeChecked,
-
-  /**
-   * TypeScript
+   * TypeScript - Custom rule overrides
    *
    * https://typescript-eslint.io/rules/
    */
@@ -136,10 +129,31 @@ export default defineConfig([
   /**
    * React Hooks
    *
+   * https://react.dev/reference/eslint-plugin-react-hooks
    * https://www.npmjs.com/package/eslint-plugin-react-hooks
    * https://github.com/facebook/react/tree/main/packages/eslint-plugin-react-hooks
    */
-  reactHooks.configs["recommended-latest"],
+  reactHooks.configs.flat["recommended-latest"],
+  {
+    // https://react.dev/reference/eslint-plugin-react-hooks#additional-rules
+    rules: {
+      "react-hooks/component-hook-factories": "error",
+      "react-hooks/config": "error",
+      "react-hooks/error-boundaries": "error",
+      "react-hooks/gating": "error",
+      "react-hooks/globals": "error",
+      "react-hooks/immutability": "error",
+      "react-hooks/incompatible-library": "error",
+      "react-hooks/preserve-manual-memoization": "error",
+      "react-hooks/purity": "error",
+      "react-hooks/refs": "error",
+      "react-hooks/set-state-in-effect": "error",
+      "react-hooks/set-state-in-render": "error",
+      "react-hooks/static-components": "error",
+      "react-hooks/unsupported-syntax": "error",
+      "react-hooks/use-memo": "error",
+    },
+  },
 
   /**
    * TanStack Router
@@ -149,7 +163,7 @@ export default defineConfig([
   ...pluginRouter.configs["flat/recommended"],
 
   /**
-   * Test files
+   * Test files - Disable rules incompatible with testing utilities
    *
    * Allow expect.any() unsafe assignment of an `any` value
    * https://vitest.dev/api/expect.html#expect-any
