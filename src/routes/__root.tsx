@@ -37,7 +37,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: `${metadata.browserIcon}?x7k9m2p4` },
+      { rel: "icon", href: metadata.browserIcon },
     ],
   }),
   shellComponent: RootDocument,

@@ -1,8 +1,8 @@
 {
   "name": "Touch",
   "description": "A nano CRM for independent consultants and founders who value fewer, stronger relationships",
-  "browserIcon": "/icon.svg",
-  "shareCardImage": "/open-graph.png",
+  "browserIcon": "/icon.svg?wWxKe7hi",
+  "shareCardImage": "/open-graph.png?wWxKe7hi",
   "dev": {
     "port": 3012
   }
