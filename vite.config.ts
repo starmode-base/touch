@@ -11,7 +11,7 @@ export default defineConfig({
     port: metadata.dev.port,
   },
   plugins: [
-    tsConfigPaths({ projects: ["./tsconfig.json"] }),
+    tsConfigPaths(),
     tanstackStart(),
     viteReact(),
     tailwindcss(),
