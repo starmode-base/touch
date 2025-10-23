@@ -63,7 +63,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.0",
     "globals": "^16.4.0",
-    "neon-testing": "^2.1.4",
+    "neon-testing": "^2.2.0",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.7.1",
     "sharp": "^0.34.4",
