@@ -1,8 +1,6 @@
 import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from "@electric-sql/client";
 import { ensureEnv } from "~/lib/env";
-import { getViewer } from "~/lib/auth";
-
-type Viewer = NonNullable<Awaited<ReturnType<typeof getViewer>>>;
+import { syncViewer, type Viewer } from "~/lib/auth";
 
 export const proxyElectricShape = async ({
   request,
@@ -15,7 +13,7 @@ export const proxyElectricShape = async ({
   /** https://electric-sql.com/docs/guides/shapes#where-clause */
   where: (viewer: Viewer) => string;
 }) => {
-  const viewer = await getViewer();
+  const viewer = await syncViewer();
 
   if (!viewer) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {

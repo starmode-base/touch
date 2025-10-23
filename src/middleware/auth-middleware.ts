@@ -1,31 +1,6 @@
-import { auth } from "@clerk/tanstack-react-start/server";
 import { createMiddleware } from "@tanstack/react-start";
-import { eq } from "drizzle-orm";
-import { db, schema } from "~/postgres/db";
+import { syncViewer } from "~/lib/auth";
 import type { WorkspaceMemberRole } from "~/postgres/schema";
-
-/**
- * Fetch the clerk user id from the Clerk API
- */
-async function fetchClerkUserId() {
-  const session = await auth();
-
-  return session.userId;
-}
-
-/**
- * Get the viewer from the database
- */
-async function selectViewer(clerkUserId: string) {
-  const viewer = await db().query.users.findFirst({
-    where: eq(schema.users.clerkUserId, clerkUserId),
-    with: {
-      workspaceMemberships: true,
-    },
-  });
-
-  return viewer ?? null;
-}
 
 export function buildWorkspaceGuards(
   workspaceMemberships: {
@@ -122,13 +97,7 @@ export const ensureViewerMiddleware = createMiddleware({
   type: "function",
 }).server(async ({ next }) => {
   // Get the current clerk user id
-  const clerkUserId = await fetchClerkUserId();
-
-  if (!clerkUserId) {
-    throw new Error("Unauthorized");
-  }
-
-  const viewer = await selectViewer(clerkUserId);
+  const viewer = await syncViewer();
 
   if (!viewer) {
     throw new Error("Unauthorized");
@@ -136,12 +105,7 @@ export const ensureViewerMiddleware = createMiddleware({
 
   return next({
     context: {
-      viewer: {
-        ...viewer,
-        workspaceMembershipIds: viewer.workspaceMemberships.map(
-          (membership) => membership.workspaceId,
-        ),
-      },
+      viewer,
       ...buildWorkspaceGuards(viewer.workspaceMemberships),
     },
   });

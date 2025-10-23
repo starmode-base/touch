@@ -10,20 +10,15 @@ import {
   SignInButton,
   SignUpButton,
 } from "@clerk/tanstack-react-start";
-import { createServerFn } from "@tanstack/react-start";
-import { syncViewer } from "~/middleware/auth-viewer";
+import { syncViewerSF } from "~/server-functions/sync-viewer";
 import { Button } from "~/components/atoms";
 import { SignInWithPasskeyButton } from "~/components/auth";
-
-const authStateFn = createServerFn({ method: "GET" }).handler(() => {
-  return syncViewer();
-});
 
 export const Route = createRootRoute({
   beforeLoad: async () => ({
     // Ensure the viewer is synced from Clerk to the database. This also makes
     // the viewer available as context in the loader of descendant routes.
-    viewer: await authStateFn(),
+    viewer: await syncViewerSF(),
   }),
   head: () => ({
     meta: [
@@ -37,7 +32,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: `${metadata.browserIcon}?x7k9m2p4` },
+      { rel: "icon", href: metadata.browserIcon },
     ],
   }),
   shellComponent: RootDocument,

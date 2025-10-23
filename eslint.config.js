@@ -18,7 +18,13 @@ export default defineConfig([
    * Ignore files
    */
   {
-    ignores: [".nitro/*", ".output/*", ".tanstack/*"],
+    ignores: [
+      ".nitro/*",
+      ".output/*",
+      ".tanstack/*",
+      "dist/*",
+      "**/*.{js,mjs,cjs,jsx}",
+    ],
   },
 
   /**
@@ -28,7 +34,7 @@ export default defineConfig([
    * https://eslint.org/blog/2025/03/flat-config-extends-define-config-global-ignores/
    */
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    files: ["**/*.{ts,tsx}"],
     plugins: { js: eslint },
     extends: ["js/recommended"],
     languageOptions: {
@@ -67,14 +73,12 @@ export default defineConfig([
         tsconfigRootDir: import.meta.dirname,
       },
     },
-  },
 
-  /**
-   * TypeScript - Custom rule overrides
-   *
-   * https://typescript-eslint.io/rules/
-   */
-  {
+    /**
+     * TypeScript - Custom rule overrides
+     *
+     * https://typescript-eslint.io/rules/
+     */
     rules: {
       /** https://typescript-eslint.io/rules/no-misused-promises/ */
       "@typescript-eslint/no-misused-promises": [

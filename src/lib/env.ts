@@ -71,10 +71,14 @@ type VercelEnv = (typeof vercelEnvs)[number];
  * This function normalizes the environment variables to be the same across all
  * of these contexts.
  */
-function createEnsureEnv<const T extends readonly string[]>(appEnvs: T) {
+function createEnsureEnv<const T extends readonly string[]>(config: {
+  appEnvs: T;
+  defaults?: Partial<Record<VercelEnv | T[number], string>>;
+}) {
   type AppEnv = T[number];
   type AnyEnv = VercelEnv | AppEnv;
 
+  const { appEnvs, defaults } = config;
   const allowed = new Set([...vercelEnvs, ...appEnvs]);
 
   return (name: AnyEnv): string => {
@@ -92,6 +96,11 @@ function createEnsureEnv<const T extends readonly string[]>(appEnvs: T) {
 
     const env = candidates.find((e) => typeof e === "string");
 
+    // Use default if provided
+    if (!env && defaults && name in defaults) {
+      return defaults[name as keyof typeof defaults] ?? "";
+    }
+
     if (!env) {
       throw new Error(`Environment variable "${name}" is not defined`);
     }
@@ -100,8 +109,19 @@ function createEnsureEnv<const T extends readonly string[]>(appEnvs: T) {
   };
 }
 
-export const ensureEnv = createEnsureEnv([
-  "DATABASE_URL",
-  "ELECTRIC_SOURCE_ID",
-  "ELECTRIC_SOURCE_SECRET",
-]);
+export const ensureEnv = createEnsureEnv({
+  appEnvs: [
+    "DATABASE_URL",
+    "NEON_API_KEY",
+    "NEON_PROJECT_ID",
+    "ELECTRIC_SOURCE_ID",
+    "ELECTRIC_SOURCE_SECRET",
+  ],
+  defaults: {
+    VERCEL_ENV: "development",
+  },
+});
+
+export const isProduction = () => ensureEnv("VERCEL_ENV") === "production";
+export const isPreview = () => ensureEnv("VERCEL_ENV") === "preview";
+export const isDevelopment = () => ensureEnv("VERCEL_ENV") === "development";

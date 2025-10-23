@@ -10,5 +10,6 @@ export function getRouter() {
     defaultNotFoundComponent: () => <NotFound />,
     scrollRestoration: true,
   });
+
   return router;
 }
