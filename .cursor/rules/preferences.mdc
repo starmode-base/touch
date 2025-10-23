@@ -16,7 +16,7 @@ SUPER IMPORTANT: ALWAYS FOLLOW THESE RULES CAREFULLY UNLESS THE USER EXPLICITLY 
 
 # Code style
 
-- WRITE functional style code (immutable, pure functions).
+- Write functional style code (immutable, pure functions).
 - Use imperative style (for-loops, local mutation, classes) ONLY when necessary.
 - For all imperative code, write comments explaining why it is chosen over functional style.
 - NEVER export symbols that aren't imported anywhere.
@@ -28,13 +28,13 @@ SUPER IMPORTANT: ALWAYS FOLLOW THESE RULES CAREFULLY UNLESS THE USER EXPLICITLY 
 
 # Testing
 
-CRITICALLY IMPORTANT: Write tests based on expected behavior/requirements, NOT the current implementation. A failing test reveals a bug in the code, not the test.
+CRITICALLY IMPORTANT: Write tests based on expected behavior/requirements, NOT the current implementation. A failing test reveals bugs in the code, which is a good thing.
 
 - Run tests with `vitest run`.
 - Use the Arrange → Act → Assert (AAA) pattern (don't spell it out in code).
 - Use one top-level `describe` per function or unit under test.
 - Use `test()` instead of `it()`.
-- Test names should follow subject-based pattern: start with who/what, then state the expected behavior (e.g., "unauthenticated user is rejected", "administrator can update organization").
+- Test names should follow a subject-based pattern: start with who/what, then state the expected behavior (e.g., "unauthenticated user is rejected", "administrator can update organization").
 - Order tests within each describe block from negative (expected failures) to positive (happy path).
 - It's okay to disable lint rules in test files if needed.
 - Use `describe.each` or `test.each` when validating the same logic across multiple inputs.
