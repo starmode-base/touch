@@ -5,10 +5,11 @@
 /.nitro/
 /.output/
 /.tanstack/
+/dist/
 
 # Environment
-/.env
 .vercel
+/.env
 
 # Misc
 .DS_Store
