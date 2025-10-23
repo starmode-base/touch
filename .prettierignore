@@ -12,5 +12,3 @@ src/statement-parser/test-data
 
 # Chrome
 chrome/*.js
-
-vercel.json
