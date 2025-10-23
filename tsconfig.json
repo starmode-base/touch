@@ -1,5 +1,12 @@
 {
-  "exclude": ["node_modules", "dist", ".nitro", ".output", ".tanstack"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".nitro",
+    ".output",
+    ".tanstack",
+    "chrome"
+  ],
   "compilerOptions": {
     "strict": true,
     "esModuleInterop": true,
