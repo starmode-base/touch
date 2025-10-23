@@ -42,7 +42,6 @@ test("Drizzle ORM WebSocket database operations", async () => {
       updatedAt: expect.any(String),
       email: "ellen.ripley@example.com",
       clerkUserId: "qSX0fLb39fQz8GqRvk9D",
-      isSuperuser: expect.any(Boolean) as boolean,
     },
   ]);
 });
