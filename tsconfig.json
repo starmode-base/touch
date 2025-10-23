@@ -3,6 +3,7 @@
     "src",
     "scripts",
     "vite.config.ts",
+    "vitest.clerk.setup.ts",
     "drizzle.config.ts",
     "eslint.config.js"
   ],
