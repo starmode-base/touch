@@ -168,7 +168,9 @@ function Home() {
               setCreateError("");
               setCreateResult("");
               try {
-                const cred = await createPrfPasskey();
+                const cred = await createPrfPasskey({
+                  rpId: location.origin,
+                });
                 setCreateResult(
                   `Created PRF passkey. PRF enabled: ${cred.prfEnabled ? "true" : "false"}. rawId: ${toHex(cred.rawId).slice(0, 32)}…`,
                 );
@@ -187,6 +189,7 @@ function Home() {
                 const kekSalt = generateKekSalt();
                 const { kek, prfOutput } = await deriveKekWithWebAuthn({
                   kekSalt,
+                  origin: location.origin,
                 });
                 setPrfResult(
                   `KEK (32B hex): ${toHex(kek)}\nPRF (32B hex): ${toHex(prfOutput)}`,
