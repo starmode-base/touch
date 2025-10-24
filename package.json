@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@clerk/tanstack-react-start": "^0.26.4",
-    "@electric-sql/client": "^1.0.14",
+    "@electric-sql/client": "^1.1.0",
     "@heroicons/react": "^2.2.0",
     "@neondatabase/serverless": "^1.0.2",
     "@tailwindcss/vite": "^4.1.16",
@@ -36,9 +36,9 @@
     "@tanstack/query-core": "^5.90.5",
     "@tanstack/query-db-collection": "^0.2.35",
     "@tanstack/react-db": "^0.1.35",
-    "@tanstack/react-router": "^1.133.25",
-    "@tanstack/react-router-devtools": "^1.133.25",
-    "@tanstack/react-start": "^1.133.26",
+    "@tanstack/react-router": "^1.133.27",
+    "@tanstack/react-router-devtools": "^1.133.27",
+    "@tanstack/react-start": "^1.133.27",
     "@vercel/analytics": "^1.5.0",
     "drizzle-orm": "^0.44.7",
     "drizzle-zod": "^0.8.3",
@@ -57,7 +57,7 @@
     "@types/node": "^24.9.1",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "@vitejs/plugin-react": "^5.0.4",
+    "@vitejs/plugin-react": "^5.1.0",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.5",
     "eslint": "^9.38.0",
@@ -72,6 +72,6 @@
     "typescript-eslint": "^8.46.2",
     "vite": "^7.1.12",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.2"
+    "vitest": "^4.0.3"
   }
 }
