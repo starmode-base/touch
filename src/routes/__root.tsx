@@ -12,7 +12,8 @@ import {
 } from "@clerk/tanstack-react-start";
 import { syncViewerSF } from "~/server-functions/sync-viewer";
 import { Button } from "~/components/atoms";
-import { SignInWithPasskeyButton } from "~/components/auth";
+import { E2EEProvider } from "~/lib/e2ee-context";
+import { E2EEGate } from "~/components/e2ee-gate";
 
 export const Route = createRootRoute({
   beforeLoad: async () => ({
@@ -59,13 +60,19 @@ function RootDocument(props: React.PropsWithChildren) {
 }
 
 function Providers(props: React.PropsWithChildren) {
-  return <ClerkProvider>{props.children}</ClerkProvider>;
+  return (
+    <ClerkProvider>
+      <E2EEProvider>{props.children}</E2EEProvider>
+    </ClerkProvider>
+  );
 }
 
 function RootLayout(props: React.PropsWithChildren) {
   return (
     <main className="bg-pattern-lines flex h-dvh flex-col bg-slate-50">
-      <SignedIn>{props.children}</SignedIn>
+      <SignedIn>
+        <E2EEGate>{props.children}</E2EEGate>
+      </SignedIn>
       <SignedOut>
         <div className="m-auto flex flex-col gap-4 rounded border border-slate-100 bg-white p-8">
           <div className="text-center text-4xl font-extrabold">
@@ -74,11 +81,8 @@ function RootLayout(props: React.PropsWithChildren) {
           <div className="max-w-xs text-center">{metadata.description}</div>
           <div className="m-auto flex gap-2">
             <SignInButton mode="modal">
-              <Button>Sign in with email</Button>
+              <Button>Sign in</Button>
             </SignInButton>
-            <SignInWithPasskeyButton>
-              Sign in with passkey
-            </SignInWithPasskeyButton>
             <SignUpButton mode="modal">
               <Button>Sign up</Button>
             </SignUpButton>

@@ -5,6 +5,36 @@
  * https://w3c.github.io/webauthn/#prf-extension
  */
 
+/**
+ * Base64url encoding utilities
+ */
+function base64urlEncode(buffer: ArrayBuffer | Uint8Array): string {
+  const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+
+  let binary = "";
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+}
+
+function base64urlDecode(base64url: string): Uint8Array {
+  const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(
+    base64.length + ((4 - (base64.length % 4)) % 4),
+    "=",
+  );
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
+}
+
 interface KekDerivationOptions {
   /** Per-user random salt stored server-side (16-64 bytes recommended) */
   kekSalt: Uint8Array;
@@ -53,6 +83,10 @@ function toUint8(arrayBuffer: ArrayBuffer): Uint8Array {
 
 /**
  * Create a PRF-enabled resident credential for E2EE
+ *
+ * Returns credential details including the public key for future authentication
+ * (Option 2 migration), though the public key is not used yet in Option 1 where
+ * Clerk handles authentication.
  */
 export async function createPrfPasskey(options: {
   /** Relying Party ID (required, typically the domain) */
@@ -115,9 +149,17 @@ export async function createPrfPasskey(options: {
     throw new Error("expected AuthenticatorAttestationResponse");
   }
 
+  // Extract public key (for future authentication in Option 2)
+  const publicKeyBytes = credential.response.getPublicKey();
+  if (!publicKeyBytes) {
+    throw new Error("public key not available in credential response");
+  }
+
   return {
-    rawId: toUint8(credential.rawId),
+    credentialId: base64urlEncode(credential.rawId),
+    publicKey: base64urlEncode(publicKeyBytes),
     transports: credential.response.getTransports(),
+    algorithm: -7, // ES256
   };
 }
 
@@ -223,4 +265,97 @@ export async function deriveKekWithWebAuthn(
 
 export function toHex(u8: Uint8Array) {
   return Array.from(u8, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Generate a random 32-byte DEK (Data Encryption Key)
+ */
+export function generateDek(): Uint8Array {
+  const dek = new Uint8Array(32);
+  crypto.getRandomValues(dek);
+  return dek;
+}
+
+/**
+ * Wrap (encrypt) a DEK using a KEK with AES-GCM
+ *
+ * Returns base64url-encoded wrapped DEK (includes nonce + ciphertext + auth tag)
+ */
+export async function wrapDekWithKek(
+  dek: Uint8Array,
+  kek: Uint8Array,
+): Promise<string> {
+  if (dek.byteLength !== 32) {
+    throw new Error("dek must be 32 bytes");
+  }
+
+  if (kek.byteLength !== 32) {
+    throw new Error("kek must be 32 bytes");
+  }
+
+  // Generate random 12-byte nonce for AES-GCM
+  const nonce = new Uint8Array(12);
+  crypto.getRandomValues(nonce);
+
+  // Import KEK for AES-GCM
+  const kekKey = await crypto.subtle.importKey(
+    "raw",
+    ensureArrayBuffer(kek),
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"],
+  );
+
+  // Encrypt DEK with KEK
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: ensureArrayBuffer(nonce) },
+    kekKey,
+    ensureArrayBuffer(dek),
+  );
+
+  // Concatenate nonce + ciphertext for storage
+  const wrapped = new Uint8Array(nonce.byteLength + ciphertext.byteLength);
+  wrapped.set(nonce, 0);
+  wrapped.set(new Uint8Array(ciphertext), nonce.byteLength);
+
+  return base64urlEncode(wrapped);
+}
+
+/**
+ * Unwrap (decrypt) a DEK using a KEK with AES-GCM
+ *
+ * Takes base64url-encoded wrapped DEK and returns the raw DEK bytes
+ */
+export async function unwrapDekWithKek(
+  wrappedDekBase64url: string,
+  kek: Uint8Array,
+): Promise<Uint8Array> {
+  if (kek.byteLength !== 32) {
+    throw new Error("kek must be 32 bytes");
+  }
+
+  // Decode wrapped DEK
+  const wrapped = base64urlDecode(wrappedDekBase64url);
+
+  // Extract nonce (first 12 bytes) and ciphertext (rest)
+  const nonce = wrapped.slice(0, 12);
+  const ciphertext = wrapped.slice(12);
+
+  // Import KEK for AES-GCM
+  const kekKey = await crypto.subtle.importKey(
+    "raw",
+    ensureArrayBuffer(kek),
+    { name: "AES-GCM" },
+    false,
+    ["decrypt"],
+  );
+
+  // Decrypt ciphertext to get DEK
+  const dekBuffer = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: ensureArrayBuffer(nonce) },
+    kekKey,
+    ensureArrayBuffer(ciphertext),
+  );
+
+  return new Uint8Array(dekBuffer);
 }

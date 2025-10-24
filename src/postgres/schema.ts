@@ -89,6 +89,35 @@ export type UserSelect = typeof users.$inferSelect;
 export type UserInsert = typeof users.$inferInsert;
 
 /**
+ * User passkeys table for E2EE
+ *
+ * Stores PRF-enabled passkeys used for deriving encryption keys.
+ * Public keys are stored for future authentication use (Option 2) but not used
+ * yet in Option 1 where Clerk handles authentication.
+ */
+export const passkeys = pgTable("passkeys", {
+  ...baseSchema,
+  userId: text()
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  /** WebAuthn credential ID (base64url-encoded, globally unique) */
+  credentialId: text().notNull().unique(),
+  /** Base64url-encoded public key (for future authentication) */
+  publicKey: text().notNull(),
+  /** Base64url-encoded DEK wrapped by this passkey's KEK */
+  wrappedDek: text().notNull(),
+  /** Base64url-encoded salt for deriving KEK from PRF output */
+  kekSalt: text().notNull(),
+  /** Transports for UX optimization (e.g., ["internal", "hybrid"]) */
+  transports: jsonb().$type<string[]>().notNull(),
+  /** Algorithm used (e.g., -7 for ES256) */
+  algorithm: text().notNull(),
+});
+
+export type PasskeySelect = typeof passkeys.$inferSelect;
+export type PasskeyInsert = typeof passkeys.$inferInsert;
+
+/**
  * Workspaces table
  */
 export const workspaces = pgTable("workspaces", {

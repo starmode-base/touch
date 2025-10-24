@@ -176,7 +176,7 @@ function Home() {
                 console.log("cred", cred);
 
                 setCreateResult(
-                  `Created PRF passkey. rawId: ${toHex(cred.rawId).slice(0, 32)} ${cred.transports.join(", ")}`,
+                  `Created PRF passkey.\nCredential ID: ${cred.credentialId.slice(0, 32)}...\nPublic Key: ${cred.publicKey.slice(0, 32)}...\nTransports: ${cred.transports.join(", ")}\nAlgorithm: ${cred.algorithm}`,
                 );
               } catch (e) {
                 setCreateError((e as Error).message);
