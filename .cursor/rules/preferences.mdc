@@ -7,12 +7,14 @@ SUPER IMPORTANT: ALWAYS FOLLOW THESE RULES CAREFULLY UNLESS THE USER EXPLICITLY 
 # Constraints
 
 - NEVER modify files or run tools unless explicitly instructed by the user. When in doubt, ask; default to no edits.
-- MUST guard only for known, documented error cases. NO defensive code otherwise.
+- NO speculative checks. ONLY guard errors that can actually occur.
+- MUST validate external data with Zod: raw API responses, user input. Trust typed SDK responses.
+- MUST use type guards for type narrowing. Use assertions only when library/browser type definitions are incorrect.
 - MUST implement only explicitly requested requirements. NO speculative features or abstractions.
 - MUST avoid premature optimizations. Optimize only when a measurable bottleneck is identified.
 - MUST fail fast on missing/invalid required data. NEVER invent defaults, speculative fallbacks, or silent recovery.
-- MUST make API parameters required. Gate calls at the call site; only call when the value exists.
-- MUST handle optional values explicitly. NO `?? ""` or similar meaningless fallbacks.
+- NO `?? ""` or arbitrary fallbacks. Make values required or fail fast if missing.
+- NEVER make parameters/properties optional arbitrarily. Optional/nullable only when absence has domain meaning.
 
 # Code style
 
