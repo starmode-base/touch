@@ -167,12 +167,16 @@ function Home() {
             onClick={async () => {
               setCreateError("");
               setCreateResult("");
+
               try {
                 const cred = await createPrfPasskey({
-                  rpId: location.origin,
+                  rpId: location.hostname,
                 });
+
+                console.log("cred", cred);
+
                 setCreateResult(
-                  `Created PRF passkey. PRF enabled: ${cred.prfEnabled ? "true" : "false"}. rawId: ${toHex(cred.rawId).slice(0, 32)}…`,
+                  `Created PRF passkey. rawId: ${toHex(cred.rawId).slice(0, 32)} ${cred.transports.join(", ")}`,
                 );
               } catch (e) {
                 setCreateError((e as Error).message);

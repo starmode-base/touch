@@ -1,17 +1,9 @@
-// WebAuthn PRF extension types (not yet in standard TypeScript definitions)
-interface PrfExtensionResults {
-  prf?: {
-    enabled?: boolean;
-    results?: {
-      first?: ArrayBuffer;
-      second?: ArrayBuffer;
-    };
-  };
-}
-
-interface AuthenticatorAttestationResponseWithTransports {
-  getTransports?: () => AuthenticatorTransport[];
-}
+/**
+ * Documentation:
+ *
+ * https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API/WebAuthn_extensions#prf
+ * https://w3c.github.io/webauthn/#prf-extension
+ */
 
 interface KekDerivationOptions {
   /** Per-user random salt stored server-side (16-64 bytes recommended) */
@@ -41,8 +33,8 @@ export function generateKekSalt(byteLength = 16): Uint8Array {
   return salt;
 }
 
-function asArrayBufferView(view: Uint8Array): Uint8Array<ArrayBuffer> {
-  if (view.buffer instanceof SharedArrayBuffer) {
+function ensureArrayBuffer(view: Uint8Array): Uint8Array<ArrayBuffer> {
+  if (!(view.buffer instanceof ArrayBuffer)) {
     throw new Error("SharedArrayBuffer not supported for crypto operations");
   }
 
@@ -50,7 +42,7 @@ function asArrayBufferView(view: Uint8Array): Uint8Array<ArrayBuffer> {
 }
 
 async function sha256(data: Uint8Array): Promise<Uint8Array> {
-  const digest = await crypto.subtle.digest("SHA-256", asArrayBufferView(data));
+  const digest = await crypto.subtle.digest("SHA-256", ensureArrayBuffer(data));
 
   return new Uint8Array(digest);
 }
@@ -59,26 +51,16 @@ function toUint8(arrayBuffer: ArrayBuffer): Uint8Array {
   return new Uint8Array(arrayBuffer);
 }
 
-interface CreatePrfPasskeyOptions {
+/**
+ * Create a PRF-enabled resident credential for E2EE
+ */
+export async function createPrfPasskey(options: {
   /** Relying Party ID (required, typically the domain) */
   rpId: string;
   rpName?: string;
   userName?: string;
   userDisplayName?: string;
-}
-
-interface CreatedPrfCredential {
-  rawId: Uint8Array;
-  prfEnabled: boolean;
-  transports?: AuthenticatorTransport[];
-}
-
-/**
- * Create a PRF-enabled resident credential for E2EE
- */
-export async function createPrfPasskey(
-  options: CreatePrfPasskeyOptions,
-): Promise<CreatedPrfCredential> {
+}) {
   requireBrowser("create prf passkey requires a browser environment");
 
   if (!options.rpId) {
@@ -86,7 +68,7 @@ export async function createPrfPasskey(
   }
 
   const rpName = options.rpName ?? "Touch";
-  const userName = options.userName ?? "e2ee";
+  const userName = options.userName ?? "e2ee-" + new Date().toISOString();
   const userDisplayName = options.userDisplayName ?? "E2EE key";
 
   const userId = new Uint8Array(32);
@@ -98,46 +80,45 @@ export async function createPrfPasskey(
   const prfSeed = new Uint8Array(32);
   crypto.getRandomValues(prfSeed);
 
-  const publicKey: PublicKeyCredentialCreationOptions = {
-    challenge,
-    rp: { name: rpName, id: options.rpId },
-    user: { id: userId, name: userName, displayName: userDisplayName },
-    pubKeyCredParams: [{ type: "public-key", alg: -7 }],
-    authenticatorSelection: {
-      residentKey: "required",
-      userVerification: "required",
-    },
-    // PRF extension not in standard WebAuthn types, requires any
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    extensions: {
-      prf: {
-        enable: true,
-        eval: { first: prfSeed },
+  const credential = await navigator.credentials.create({
+    publicKey: {
+      challenge,
+      rp: {
+        name: rpName,
+        id: options.rpId,
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any,
+      user: {
+        id: userId,
+        name: userName,
+        displayName: userDisplayName,
+      },
+      pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+      authenticatorSelection: {
+        residentKey: "required",
+        userVerification: "required",
+      },
+      extensions: {
+        prf: {
+          eval: {
+            first: prfSeed,
+          },
+        },
+      },
+    },
+  });
+
+  if (!(credential instanceof PublicKeyCredential)) {
+    throw new Error("expected PublicKeyCredential");
+  }
+
+  if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
+    throw new Error("expected AuthenticatorAttestationResponse");
+  }
+
+  return {
+    rawId: toUint8(credential.rawId),
+    transports: credential.response.getTransports(),
   };
-
-  const credential = (await navigator.credentials.create({
-    publicKey,
-  })) as PublicKeyCredential | null;
-  if (!credential) {
-    throw new Error(
-      "failed to create prf-enabled credential: user cancelled or no authenticator available",
-    );
-  }
-
-  const ext = credential.getClientExtensionResults() as PrfExtensionResults;
-  const prfEnabled = ext.prf?.enabled === true;
-
-  let transports: AuthenticatorTransport[] | undefined;
-  const response =
-    credential.response as AuthenticatorAttestationResponseWithTransports;
-  if (typeof response.getTransports === "function") {
-    transports = response.getTransports();
-  }
-
-  return { rawId: toUint8(credential.rawId), prfEnabled, transports };
 }
 
 async function getWebAuthnPrf(firstInput: Uint8Array): Promise<Uint8Array> {
@@ -149,28 +130,22 @@ async function getWebAuthnPrf(firstInput: Uint8Array): Promise<Uint8Array> {
   const publicKey: PublicKeyCredentialRequestOptions = {
     challenge,
     userVerification: "required",
-    // PRF extension not in standard WebAuthn types, requires any
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     extensions: {
       prf: {
-        eval: { first: firstInput },
+        eval: {
+          first: ensureArrayBuffer(firstInput),
+        },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any,
+    },
   };
 
-  const credential = (await navigator.credentials.get({
-    publicKey,
-  })) as PublicKeyCredential | null;
+  const credential = await navigator.credentials.get({ publicKey });
 
-  if (!credential) {
-    throw new Error(
-      "webauthn prf failed: no credential returned (user cancelled or no matching credential)",
-    );
+  if (!(credential instanceof PublicKeyCredential)) {
+    throw new Error("expected PublicKeyCredential");
   }
 
-  const ext = credential.getClientExtensionResults() as PrfExtensionResults;
-  const first = ext.prf?.results?.first;
+  const first = credential.getClientExtensionResults().prf?.results?.first;
 
   if (!(first instanceof ArrayBuffer)) {
     throw new Error(
@@ -189,7 +164,7 @@ async function hkdfExtractAndExpand(
 ): Promise<Uint8Array> {
   const baseKey = await crypto.subtle.importKey(
     "raw",
-    asArrayBufferView(ikm),
+    ensureArrayBuffer(ikm),
     "HKDF",
     false,
     ["deriveBits"],
@@ -198,8 +173,8 @@ async function hkdfExtractAndExpand(
     {
       name: "HKDF",
       hash: "SHA-256",
-      salt: asArrayBufferView(salt),
-      info: asArrayBufferView(info),
+      salt: ensureArrayBuffer(salt),
+      info: ensureArrayBuffer(info),
     },
     baseKey,
     lengthBits,
