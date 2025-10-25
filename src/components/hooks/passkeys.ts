@@ -222,6 +222,7 @@ export function usePasskeys(): UsePasskeysReturn {
     enroll,
     addPasskey,
     unlock,
+    /** Lock operation (clear KEK cache + wipe DEK from memory) */
     lock,
 
     // Status

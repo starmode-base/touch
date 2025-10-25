@@ -1,6 +1,9 @@
 import { Button } from "./atoms";
 import { usePasskeys } from "./hooks/passkeys";
 
+/**
+ * E2eeEnrollment component that allows the user to enroll in E2EE
+ */
 export function E2eeEnrollment() {
   const { enroll, isEnrolling, enrollError, enrollSuccess } = usePasskeys();
 
@@ -24,6 +27,10 @@ export function E2eeEnrollment() {
   );
 }
 
+/**
+ * E2eeAddPasskey component that allows the user to add another passkey to their
+ * E2EE setup
+ */
 export function E2eeAddPasskey() {
   const { addPasskey, isAdding, addError, addSuccess } = usePasskeys();
 
