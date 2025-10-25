@@ -1,6 +1,6 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect, useCallback } from "react";
-import { useE2EE } from "./e2ee";
+import { useE2ee } from "./e2ee";
 import { getUserPasskeysSF, storePasskeySF } from "~/server-functions/e2ee";
 import {
   enrollPasskey,
@@ -47,7 +47,7 @@ interface UsePasskeysReturn {
 }
 
 export function usePasskeys(): UsePasskeysReturn {
-  const { isDekUnlocked, setDek, unsetDek, dek } = useE2EE();
+  const { isDekUnlocked, setDek, unsetDek, dek } = useE2ee();
   const getUserPasskeys = useServerFn(getUserPasskeysSF);
   const storePasskey = useServerFn(storePasskeySF);
 

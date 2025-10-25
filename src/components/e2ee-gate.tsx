@@ -1,7 +1,7 @@
-import { useE2EE } from "./hooks/e2ee";
+import { useE2ee } from "./hooks/e2ee";
 import { usePasskeys } from "./hooks/passkeys";
-import { E2EEEnrollment } from "./e2ee-enrollment";
-import { E2EEUnlock } from "./e2ee-unlock";
+import { E2eeEnrollment } from "./e2ee-enrollment";
+import { E2eeUnlock } from "./e2ee-unlock";
 
 /**
  * E2EEGate component that orchestrates the E2EE flow
@@ -10,8 +10,8 @@ import { E2EEUnlock } from "./e2ee-unlock";
  * - If user has passkeys but DEK is locked: Try silent unlock (cached KEK), fallback to unlock screen
  * - If DEK is unlocked: Show the app
  */
-export function E2EEGate(props: React.PropsWithChildren) {
-  const { isDekUnlocked } = useE2EE();
+export function E2eeGate(props: React.PropsWithChildren) {
+  const { isDekUnlocked } = useE2ee();
   const { hasPasskeys, isCheckingPasskeys, triedAutoUnlock } = usePasskeys();
 
   // Loading state
@@ -27,7 +27,7 @@ export function E2EEGate(props: React.PropsWithChildren) {
   if (!hasPasskeys) {
     return (
       <div className="m-auto max-w-md">
-        <E2EEEnrollment />
+        <E2eeEnrollment />
       </div>
     );
   }
@@ -46,7 +46,7 @@ export function E2EEGate(props: React.PropsWithChildren) {
     // Auto-unlock failed or no cached KEK, show manual unlock
     return (
       <div className="m-auto max-w-md">
-        <E2EEUnlock />
+        <E2eeUnlock />
       </div>
     );
   }

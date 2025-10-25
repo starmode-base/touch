@@ -12,8 +12,8 @@ import {
 } from "@clerk/tanstack-react-start";
 import { syncViewerSF } from "~/server-functions/sync-viewer";
 import { Button } from "~/components/atoms";
-import { E2EEProvider } from "~/components/hooks/e2ee";
-import { E2EEGate } from "~/components/e2ee-gate";
+import { E2eeProvider } from "~/components/hooks/e2ee";
+import { E2eeGate } from "~/components/e2ee-gate";
 
 export const Route = createRootRoute({
   beforeLoad: async () => ({
@@ -62,7 +62,7 @@ function RootDocument(props: React.PropsWithChildren) {
 function Providers(props: React.PropsWithChildren) {
   return (
     <ClerkProvider>
-      <E2EEProvider>{props.children}</E2EEProvider>
+      <E2eeProvider>{props.children}</E2eeProvider>
     </ClerkProvider>
   );
 }
@@ -71,7 +71,7 @@ function RootLayout(props: React.PropsWithChildren) {
   return (
     <main className="bg-pattern-lines flex h-dvh flex-col bg-slate-50">
       <SignedIn>
-        <E2EEGate>{props.children}</E2EEGate>
+        <E2eeGate>{props.children}</E2eeGate>
       </SignedIn>
       <SignedOut>
         <div className="m-auto flex flex-col gap-4 rounded border border-slate-100 bg-white p-8">

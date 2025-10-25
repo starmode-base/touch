@@ -1,7 +1,7 @@
 import { Button } from "./atoms";
 import { usePasskeys } from "./hooks/passkeys";
 
-export function E2EEUnlock() {
+export function E2eeUnlock() {
   const { unlock, isUnlocking, unlockError } = usePasskeys();
 
   return (

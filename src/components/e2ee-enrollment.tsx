@@ -1,7 +1,7 @@
 import { Button } from "./atoms";
 import { usePasskeys } from "./hooks/passkeys";
 
-export function E2EEEnrollment() {
+export function E2eeEnrollment() {
   const { enroll, isEnrolling, enrollError, enrollSuccess } = usePasskeys();
 
   return (
@@ -24,7 +24,7 @@ export function E2EEEnrollment() {
   );
 }
 
-export function E2EEAddPasskey() {
+export function E2eeAddPasskey() {
   const { addPasskey, isAdding, addError, addSuccess } = usePasskeys();
 
   return (

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
-interface E2EEContext {
+interface E2eeContext {
   /** Whether the DEK is unlocked and available in memory */
   isDekUnlocked: boolean;
   /** The DEK (only available when unlocked) */
@@ -11,9 +11,9 @@ interface E2EEContext {
   unsetDek: () => void;
 }
 
-const E2EEContext = createContext<E2EEContext | null>(null);
+const E2eeContext = createContext<E2eeContext | null>(null);
 
-export function E2EEProvider(props: React.PropsWithChildren) {
+export function E2eeProvider(props: React.PropsWithChildren) {
   const [dek, setDekState] = useState<Uint8Array | null>(null);
 
   // Wipe DEK on tab close or page unload
@@ -48,7 +48,7 @@ export function E2EEProvider(props: React.PropsWithChildren) {
     setDekState(null);
   };
 
-  const value: E2EEContext = {
+  const value: E2eeContext = {
     isDekUnlocked: dek !== null,
     dek,
     setDek,
@@ -56,12 +56,12 @@ export function E2EEProvider(props: React.PropsWithChildren) {
   };
 
   return (
-    <E2EEContext.Provider value={value}>{props.children}</E2EEContext.Provider>
+    <E2eeContext.Provider value={value}>{props.children}</E2eeContext.Provider>
   );
 }
 
-export function useE2EE() {
-  const context = useContext(E2EEContext);
+export function useE2ee() {
+  const context = useContext(E2eeContext);
 
   if (!context) {
     throw new Error("useE2EE must be used within E2EEProvider");

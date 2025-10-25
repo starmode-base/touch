@@ -22,6 +22,7 @@ SUPER IMPORTANT: ALWAYS FOLLOW THESE RULES CAREFULLY UNLESS THE USER EXPLICITLY 
 - Use imperative style (for-loops, local mutation, classes) ONLY when necessary.
 - For all imperative code, write comments explaining why it is chosen over functional style.
 - NEVER export symbols that aren't imported anywhere.
+- Treat acronyms as words in camelCase/PascalCase (`useE2ee`, not `useE2EE`).
 
 # Testability
 
