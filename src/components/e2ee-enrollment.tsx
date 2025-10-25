@@ -8,6 +8,7 @@ import {
   generateKekSalt,
   wrapDekWithKek,
   toHex,
+  storeCachedKek,
 } from "~/lib/e2ee";
 import { useE2EE } from "~/lib/e2ee-context";
 import { storePasskeySF } from "~/server-functions/e2ee";
@@ -59,7 +60,10 @@ export function E2EEEnrollment() {
         },
       });
 
-      // Step 7: Unlock the DEK in memory for this session
+      // Step 7: Cache KEK for future reloads in this session
+      storeCachedKek(kek, passkeyResult.credentialId, toHex(kekSalt));
+
+      // Step 8: Unlock the DEK in memory for this session
       unlock(dek);
 
       setSuccess("Encryption enabled successfully!");
@@ -135,6 +139,9 @@ export function E2EEAddPasskey() {
           algorithm: passkeyResult.algorithm.toString(),
         },
       });
+
+      // Step 6: Cache the new KEK (in case user uses this passkey next time)
+      storeCachedKek(kek, passkeyResult.credentialId, toHex(kekSalt));
 
       setSuccess("Additional passkey added successfully!");
     } catch (e) {

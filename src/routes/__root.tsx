@@ -16,11 +16,14 @@ import { E2EEProvider } from "~/lib/e2ee-context";
 import { E2EEGate } from "~/components/e2ee-gate";
 
 export const Route = createRootRoute({
-  beforeLoad: async () => ({
-    // Ensure the viewer is synced from Clerk to the database. This also makes
-    // the viewer available as context in the loader of descendant routes.
-    viewer: await syncViewerSF(),
-  }),
+  beforeLoad: async () => {
+    console.log("__root.tsx beforeLoad");
+    return {
+      // Ensure the viewer is synced from Clerk to the database. This also makes
+      // the viewer available as context in the loader of descendant routes.
+      viewer: await syncViewerSF(),
+    };
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },

@@ -1,4 +1,3 @@
-import { SignOutButton, UserButton } from "@clerk/tanstack-react-start";
 import { useLiveQuery } from "@tanstack/react-db";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
@@ -9,6 +8,7 @@ import {
   createWorkspaceInputSchema,
   listWorkspacesSF,
 } from "~/server-functions/workspaces";
+import { AppHeader } from "~/components/app-header";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -28,18 +28,10 @@ function Home() {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white p-4">
-        <div className="flex items-center gap-2">
-          <LinkButton to="/">Home</LinkButton>
-          <LinkButton to="/demo">Demo</LinkButton>
-        </div>
-        <div className="flex items-center gap-2">
-          <UserButton />
-          <SignOutButton>
-            <Button>Sign out</Button>
-          </SignOutButton>
-        </div>
-      </div>
+      <AppHeader>
+        <LinkButton to="/">Home</LinkButton>
+        <LinkButton to="/demo">Demo</LinkButton>
+      </AppHeader>
       <div className="grid flex-1 gap-4 p-4">
         <div className="flex flex-col gap-4 rounded border border-slate-200 bg-white p-4">
           <div className="text-lg font-medium">Workspaces</div>

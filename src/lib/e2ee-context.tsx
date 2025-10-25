@@ -40,6 +40,8 @@ export function E2EEProvider(props: React.PropsWithChildren) {
 
   const lock = () => {
     setDek(null);
+    // Clear cached KEK from sessionStorage
+    sessionStorage.removeItem("e2ee_kek");
   };
 
   const value: E2EEContextValue = {

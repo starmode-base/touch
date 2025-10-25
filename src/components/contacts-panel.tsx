@@ -11,9 +11,12 @@ import { createContactInputSchema } from "~/server-functions/contacts";
 import { useState } from "react";
 import { extractLinkedInAndName } from "~/lib/linkedin-extractor";
 import { genSecureToken } from "~/lib/secure-token";
+import { useE2EE } from "~/lib/e2ee-context";
+import { UserButton } from "@clerk/tanstack-react-start";
 
 export function ContactsPanel(props: { workspaceId: string }) {
   const [isValid, setIsValid] = useState(false);
+  const { lock } = useE2EE();
 
   const workspace = useLiveQuery((q) => {
     return q
@@ -22,23 +25,33 @@ export function ContactsPanel(props: { workspaceId: string }) {
   });
   const workspaceName = workspace.data[0]?.name ?? "";
 
+  const handleLock = () => {
+    lock();
+  };
+
   return (
     <div className="flex flex-col">
-      <div className="flex items-center gap-2 px-2 py-1">
-        <Link to="/" className="rounded p-2">
-          <ArrowLeftIcon className="size-5" />
-        </Link>
-        <div className="heading-1">
-          <EditInput
-            type="text"
-            value={workspaceName}
-            displayValue={workspaceName}
-            onUpdate={(value) => {
-              workspacesCollectionQuery.update(props.workspaceId, (draft) => {
-                draft.name = value;
-              });
-            }}
-          />
+      <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-2 py-1">
+        <div className="flex items-center gap-2">
+          <Link to="/" className="rounded p-2">
+            <ArrowLeftIcon className="size-5" />
+          </Link>
+          <div className="heading-1">
+            <EditInput
+              type="text"
+              value={workspaceName}
+              displayValue={workspaceName}
+              onUpdate={(value) => {
+                workspacesCollectionQuery.update(props.workspaceId, (draft) => {
+                  draft.name = value;
+                });
+              }}
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={handleLock}>Lock</Button>
+          <UserButton />
         </div>
       </div>
       <Contacts workspaceId={props.workspaceId} />

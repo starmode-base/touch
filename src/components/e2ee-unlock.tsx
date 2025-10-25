@@ -1,7 +1,11 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Button } from "./atoms";
-import { deriveKekWithWebAuthn, unwrapDekWithKek } from "~/lib/e2ee";
+import {
+  deriveKekWithWebAuthn,
+  unwrapDekWithKek,
+  storeCachedKek,
+} from "~/lib/e2ee";
 import { useE2EE } from "~/lib/e2ee-context";
 import { getUserPasskeysSF } from "~/server-functions/e2ee";
 
@@ -99,7 +103,10 @@ export function E2EEUnlock() {
       // Step 6: Unwrap DEK with KEK
       const dek = await unwrapDekWithKek(matchedPasskey.wrappedDek, kek);
 
-      // Step 7: Store DEK in memory for this session
+      // Step 7: Cache KEK for future reloads in this session
+      storeCachedKek(kek, matchedPasskey.credentialId, matchedPasskey.kekSalt);
+
+      // Step 8: Store DEK in memory for this session
       unlock(dek);
     } catch (e) {
       console.error("Unlock failed:", e);
