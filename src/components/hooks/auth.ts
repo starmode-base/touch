@@ -7,7 +7,7 @@ export function useAuth() {
 
   return {
     /** Sign out the user and lock the E2EE session */
-    async signOut() {
+    signOut: async () => {
       lock();
       await clerk.signOut();
     },
