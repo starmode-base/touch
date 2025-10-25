@@ -11,7 +11,7 @@ import { createContactInputSchema } from "~/server-functions/contacts";
 import { useState } from "react";
 import { extractLinkedInAndName } from "~/lib/linkedin-extractor";
 import { genSecureToken } from "~/lib/secure-token";
-import { useE2EE } from "~/components/e2ee-context";
+import { useE2EE } from "~/components/hooks/e2ee";
 import { UserButton } from "@clerk/tanstack-react-start";
 
 export function ContactsPanel(props: { workspaceId: string }) {

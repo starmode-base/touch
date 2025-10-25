@@ -376,7 +376,7 @@ interface CachedKek {
   kekSalt: string; // hex-encoded
 }
 
-function hexToUint8Array(hex: string): Uint8Array {
+export function hexToUint8Array(hex: string): Uint8Array {
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < hex.length; i += 2) {
     bytes[i / 2] = Number.parseInt(hex.slice(i, i + 2), 16);
@@ -384,7 +384,7 @@ function hexToUint8Array(hex: string): Uint8Array {
   return bytes;
 }
 
-function base64urlToArrayBuffer(base64url: string): ArrayBuffer {
+export function base64urlToArrayBuffer(base64url: string): ArrayBuffer {
   const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
   const padded = base64.padEnd(
     base64.length + ((4 - (base64.length % 4)) % 4),
@@ -400,6 +400,14 @@ function base64urlToArrayBuffer(base64url: string): ArrayBuffer {
   return bytes.buffer;
 }
 
+export function arrayBufferToBase64url(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
 const KEK_STORAGE_KEY = "e2ee_kek";
 
 function getCachedKek(): CachedKek | null {
@@ -411,6 +419,10 @@ function getCachedKek(): CachedKek | null {
   } catch {
     return null;
   }
+}
+
+export function hasCachedKek(): boolean {
+  return getCachedKek() !== null;
 }
 
 export function storeCachedKek(
@@ -527,4 +539,213 @@ export async function attemptAutoUnlock(
 
   console.log("DEK auto-unlocked successfully via WebAuthn, KEK cached");
   return dek;
+}
+
+/**
+ * Prepare allowCredentials array for WebAuthn from stored passkeys
+ */
+export function prepareAllowCredentials(
+  passkeys: StoredPasskey[],
+): PublicKeyCredentialDescriptor[] {
+  return passkeys.map((passkey) => ({
+    id: base64urlToArrayBuffer(passkey.credentialId),
+    type: "public-key" as const,
+    transports: passkey.transports as AuthenticatorTransport[],
+  }));
+}
+
+/**
+ * Find a passkey by credential ID
+ */
+export function findPasskeyByCredentialId(
+  passkeys: StoredPasskey[],
+  credentialId: ArrayBuffer,
+): StoredPasskey | null {
+  const credentialIdBase64url = arrayBufferToBase64url(credentialId);
+  return passkeys.find((p) => p.credentialId === credentialIdBase64url) ?? null;
+}
+
+interface EnrollPasskeyOptions {
+  rpId: string;
+  rpName: string;
+  userDisplayName: string;
+  origin: string;
+}
+
+interface EnrollPasskeyResult {
+  dek: Uint8Array;
+  credentialId: string;
+  publicKey: string;
+  wrappedDek: string;
+  kekSalt: string;
+  transports: string[];
+  algorithm: string;
+  kek: Uint8Array;
+}
+
+/**
+ * Complete passkey enrollment flow
+ *
+ * Creates PRF-enabled passkey, generates DEK, wraps it with KEK
+ */
+export async function enrollPasskey(
+  options: EnrollPasskeyOptions,
+): Promise<EnrollPasskeyResult> {
+  // Step 1: Create PRF-enabled passkey
+  const passkeyResult = await createPrfPasskey({
+    rpId: options.rpId,
+    rpName: options.rpName,
+    userDisplayName: options.userDisplayName,
+  });
+
+  // Step 2: Generate KEK salt
+  const kekSalt = generateKekSalt(32);
+
+  // Step 3: Derive KEK from passkey's PRF output
+  const { kek } = await deriveKekWithWebAuthn({
+    kekSalt,
+    origin: options.origin,
+  });
+
+  // Step 4: Generate random DEK
+  const dek = generateDek();
+
+  // Step 5: Wrap DEK with KEK
+  const wrappedDek = await wrapDekWithKek(dek, kek);
+
+  return {
+    dek,
+    credentialId: passkeyResult.credentialId,
+    publicKey: passkeyResult.publicKey,
+    wrappedDek,
+    kekSalt: toHex(kekSalt),
+    transports: passkeyResult.transports,
+    algorithm: passkeyResult.algorithm.toString(),
+    kek,
+  };
+}
+
+interface AddAdditionalPasskeyOptions {
+  dek: Uint8Array;
+  rpId: string;
+  rpName: string;
+  userDisplayName: string;
+  origin: string;
+}
+
+interface AddAdditionalPasskeyResult {
+  credentialId: string;
+  publicKey: string;
+  wrappedDek: string;
+  kekSalt: string;
+  transports: string[];
+  algorithm: string;
+  kek: Uint8Array;
+}
+
+/**
+ * Add an additional passkey for an existing DEK
+ *
+ * Creates new PRF-enabled passkey and wraps the existing DEK with new KEK
+ */
+export async function addAdditionalPasskey(
+  options: AddAdditionalPasskeyOptions,
+): Promise<AddAdditionalPasskeyResult> {
+  // Step 1: Create new PRF-enabled passkey
+  const passkeyResult = await createPrfPasskey({
+    rpId: options.rpId,
+    rpName: options.rpName,
+    userDisplayName: options.userDisplayName,
+  });
+
+  // Step 2: Generate new KEK salt for this passkey
+  const kekSalt = generateKekSalt(32);
+
+  // Step 3: Derive KEK from new passkey's PRF output
+  const { kek } = await deriveKekWithWebAuthn({
+    kekSalt,
+    origin: options.origin,
+  });
+
+  // Step 4: Wrap existing DEK with new KEK
+  const wrappedDek = await wrapDekWithKek(options.dek, kek);
+
+  return {
+    credentialId: passkeyResult.credentialId,
+    publicKey: passkeyResult.publicKey,
+    wrappedDek,
+    kekSalt: toHex(kekSalt),
+    transports: passkeyResult.transports,
+    algorithm: passkeyResult.algorithm.toString(),
+    kek,
+  };
+}
+
+interface UnlockWithPasskeyOptions {
+  passkeys: StoredPasskey[];
+  origin: string;
+}
+
+interface UnlockWithPasskeyResult {
+  dek: Uint8Array;
+  credentialId: string;
+  kekSalt: string;
+  kek: Uint8Array;
+}
+
+/**
+ * Unlock DEK using WebAuthn passkey authentication
+ */
+export async function unlockWithPasskey(
+  options: UnlockWithPasskeyOptions,
+): Promise<UnlockWithPasskeyResult> {
+  if (options.passkeys.length === 0) {
+    throw new Error("No passkeys found. Please enroll a passkey first.");
+  }
+
+  // Step 1: Prepare allowCredentials for WebAuthn
+  const allowCredentials = prepareAllowCredentials(options.passkeys);
+
+  // Step 2: Trigger WebAuthn authentication to identify which passkey
+  const challenge = new Uint8Array(32);
+  crypto.getRandomValues(challenge);
+
+  const assertion = await navigator.credentials.get({
+    publicKey: {
+      challenge,
+      allowCredentials,
+      userVerification: "required",
+    },
+  });
+
+  if (!(assertion instanceof PublicKeyCredential)) {
+    throw new Error("expected PublicKeyCredential");
+  }
+
+  // Step 3: Find matching passkey by credential ID
+  const matchedPasskey = findPasskeyByCredentialId(
+    options.passkeys,
+    assertion.rawId,
+  );
+
+  if (!matchedPasskey) {
+    throw new Error("Passkey not found in stored passkeys");
+  }
+
+  // Step 4: Derive KEK using the matched passkey's salt
+  const kekSalt = hexToUint8Array(matchedPasskey.kekSalt);
+  const { kek } = await deriveKekWithWebAuthn({
+    kekSalt,
+    origin: options.origin,
+  });
+
+  // Step 5: Unwrap DEK with KEK
+  const dek = await unwrapDekWithKek(matchedPasskey.wrappedDek, kek);
+
+  return {
+    dek,
+    credentialId: matchedPasskey.credentialId,
+    kekSalt: matchedPasskey.kekSalt,
+    kek,
+  };
 }

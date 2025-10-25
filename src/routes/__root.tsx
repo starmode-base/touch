@@ -12,7 +12,7 @@ import {
 } from "@clerk/tanstack-react-start";
 import { syncViewerSF } from "~/server-functions/sync-viewer";
 import { Button } from "~/components/atoms";
-import { E2EEProvider } from "~/components/e2ee-context";
+import { E2EEProvider } from "~/components/hooks/e2ee";
 import { E2EEGate } from "~/components/e2ee-gate";
 
 export const Route = createRootRoute({
