@@ -51,7 +51,13 @@ export function ContactsPanel(props: { workspaceId: string }) {
         </div>
         <div className="flex items-center gap-2">
           <Button onClick={handleLock}>Lock</Button>
-          <UserButton />
+          <UserButton
+            appearance={{
+              elements: {
+                userButtonPopoverActionButton__signOut: { display: "none" },
+              },
+            }}
+          />
         </div>
       </div>
       <Contacts workspaceId={props.workspaceId} />

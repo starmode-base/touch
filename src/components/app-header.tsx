@@ -12,7 +12,13 @@ export function AppHeader(props: { children?: React.ReactNode }) {
       <div className="flex items-center gap-2">{props.children}</div>
       <div className="flex items-center gap-2">
         <Button onClick={lock}>Lock</Button>
-        <UserButton />
+        <UserButton
+          appearance={{
+            elements: {
+              userButtonPopoverActionButton__signOut: { display: "none" },
+            },
+          }}
+        />
         <Button onClick={signOut}>Sign out</Button>
       </div>
     </div>
