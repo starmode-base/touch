@@ -1,6 +1,6 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { useE2EE } from "~/lib/e2ee-context";
+import { useE2EE } from "~/components/e2ee-context";
 import { getUserPasskeysSF } from "~/server-functions/e2ee";
 import { E2EEEnrollment } from "./e2ee-enrollment";
 import { E2EEUnlock } from "./e2ee-unlock";

@@ -6,7 +6,7 @@ import {
   unwrapDekWithKek,
   storeCachedKek,
 } from "~/lib/e2ee";
-import { useE2EE } from "~/lib/e2ee-context";
+import { useE2EE } from "~/components/e2ee-context";
 import { getUserPasskeysSF } from "~/server-functions/e2ee";
 
 function hexToUint8Array(hex: string): Uint8Array {

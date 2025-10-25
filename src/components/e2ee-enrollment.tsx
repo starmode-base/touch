@@ -10,7 +10,7 @@ import {
   toHex,
   storeCachedKek,
 } from "~/lib/e2ee";
-import { useE2EE } from "~/lib/e2ee-context";
+import { useE2EE } from "~/components/e2ee-context";
 import { storePasskeySF } from "~/server-functions/e2ee";
 
 export function E2EEEnrollment() {

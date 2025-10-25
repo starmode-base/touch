@@ -1,6 +1,6 @@
 import { UserButton, useClerk } from "@clerk/tanstack-react-start";
 import { Button } from "~/components/atoms";
-import { useE2EE } from "~/lib/e2ee-context";
+import { useE2EE } from "~/components/e2ee-context";
 
 export function AppHeader(props: { children?: React.ReactNode }) {
   const { lock } = useE2EE();
