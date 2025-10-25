@@ -11,12 +11,12 @@ import { createContactInputSchema } from "~/server-functions/contacts";
 import { useState } from "react";
 import { extractLinkedInAndName } from "~/lib/linkedin-extractor";
 import { genSecureToken } from "~/lib/secure-token";
-import { useE2EE } from "~/components/hooks/e2ee";
+import { usePasskeys } from "~/components/hooks/passkeys";
 import { UserButton } from "@clerk/tanstack-react-start";
 
 export function ContactsPanel(props: { workspaceId: string }) {
   const [isValid, setIsValid] = useState(false);
-  const { lock } = useE2EE();
+  const { lock } = usePasskeys();
 
   const workspace = useLiveQuery((q) => {
     return q

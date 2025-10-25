@@ -1,25 +1,25 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
-interface E2EEContextValue {
+interface E2EEContext {
   /** Whether the DEK is unlocked and available in memory */
   isDekUnlocked: boolean;
   /** The DEK (only available when unlocked) */
   dek: Uint8Array | null;
-  /** Unlock the DEK by storing it in memory */
-  unlock: (dek: Uint8Array) => void;
-  /** Lock (wipe) the DEK from memory */
-  lock: () => void;
+  /** Store the DEK in memory */
+  setDek: (dek: Uint8Array) => void;
+  /** Wipe the DEK from memory */
+  unsetDek: () => void;
 }
 
-const E2EEContext = createContext<E2EEContextValue | null>(null);
+const E2EEContext = createContext<E2EEContext | null>(null);
 
 export function E2EEProvider(props: React.PropsWithChildren) {
-  const [dek, setDek] = useState<Uint8Array | null>(null);
+  const [dek, setDekState] = useState<Uint8Array | null>(null);
 
   // Wipe DEK on tab close or page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      setDek(null);
+      setDekState(null);
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -27,28 +27,32 @@ export function E2EEProvider(props: React.PropsWithChildren) {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       // Wipe DEK on unmount
-      setDek(null);
+      setDekState(null);
     };
   }, []);
 
-  const unlock = (dekBytes: Uint8Array) => {
+  /**
+   * Store the DEK in memory
+   */
+  const setDek = (dekBytes: Uint8Array) => {
     if (dekBytes.byteLength !== 32) {
       throw new Error("dek must be 32 bytes");
     }
-    setDek(dekBytes);
+    setDekState(dekBytes);
   };
 
-  const lock = () => {
-    setDek(null);
-    // Clear cached KEK from sessionStorage
-    sessionStorage.removeItem("e2ee_kek");
+  /**
+   * Wipe the DEK from memory
+   */
+  const unsetDek = () => {
+    setDekState(null);
   };
 
-  const value: E2EEContextValue = {
+  const value: E2EEContext = {
     isDekUnlocked: dek !== null,
     dek,
-    unlock,
-    lock,
+    setDek,
+    unsetDek,
   };
 
   return (

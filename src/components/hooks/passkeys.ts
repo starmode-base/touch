@@ -9,6 +9,7 @@ import {
   attemptAutoUnlock,
   hasCachedKek,
   storeCachedKek,
+  clearCachedKek,
 } from "~/lib/e2ee";
 
 interface UsePasskeysReturn {
@@ -16,6 +17,7 @@ interface UsePasskeysReturn {
   enroll: () => Promise<void>;
   addPasskey: () => Promise<void>;
   unlock: () => Promise<void>;
+  lock: () => void;
 
   // Status checking
   hasPasskeys: boolean | null;
@@ -45,7 +47,7 @@ interface UsePasskeysReturn {
 }
 
 export function usePasskeys(): UsePasskeysReturn {
-  const { isDekUnlocked, unlock: unlockDek, dek } = useE2EE();
+  const { isDekUnlocked, setDek, unsetDek, dek } = useE2EE();
   const getUserPasskeys = useServerFn(getUserPasskeysSF);
   const storePasskey = useServerFn(storePasskeySF);
 
@@ -93,13 +95,14 @@ export function usePasskeys(): UsePasskeysReturn {
     try {
       const passkeys = await getUserPasskeys();
       const dekBytes = await attemptAutoUnlock(passkeys);
-      unlockDek(dekBytes);
+
+      setDek(dekBytes);
     } catch (error) {
       console.log("Cached KEK unlock failed, showing manual unlock:", error);
     } finally {
       setTriedAutoUnlock(true);
     }
-  }, [getUserPasskeys, unlockDek]);
+  }, [getUserPasskeys, setDek]);
 
   useEffect(() => {
     if (hasPasskeys && !isDekUnlocked && !triedAutoUnlock) {
@@ -133,7 +136,7 @@ export function usePasskeys(): UsePasskeysReturn {
       });
 
       storeCachedKek(result.kek, result.credentialId, result.kekSalt);
-      unlockDek(result.dek);
+      setDek(result.dek);
       setEnrollSuccess("Encryption enabled successfully!");
       await refreshPasskeys();
     } catch (e) {
@@ -142,7 +145,7 @@ export function usePasskeys(): UsePasskeysReturn {
     } finally {
       setIsEnrolling(false);
     }
-  }, [storePasskey, unlockDek, refreshPasskeys]);
+  }, [storePasskey, setDek, refreshPasskeys]);
 
   // Add passkey operation
   const addPasskey = useCallback(async () => {
@@ -199,20 +202,27 @@ export function usePasskeys(): UsePasskeysReturn {
       });
 
       storeCachedKek(result.kek, result.credentialId, result.kekSalt);
-      unlockDek(result.dek);
+      setDek(result.dek);
     } catch (e) {
       console.error("Unlock failed:", e);
       setUnlockError((e as Error).message || "Failed to unlock encryption");
     } finally {
       setIsUnlocking(false);
     }
-  }, [getUserPasskeys, unlockDek]);
+  }, [getUserPasskeys, setDek]);
+
+  // Lock operation (clear KEK cache + wipe DEK from memory)
+  const lock = useCallback(() => {
+    clearCachedKek();
+    unsetDek();
+  }, [unsetDek]);
 
   return {
     // Operations
     enroll,
     addPasskey,
     unlock,
+    lock,
 
     // Status
     hasPasskeys,

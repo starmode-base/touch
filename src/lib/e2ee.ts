@@ -400,6 +400,9 @@ export function base64urlToArrayBuffer(base64url: string): ArrayBuffer {
   return bytes.buffer;
 }
 
+/**
+ * Convert an ArrayBuffer to a base64url string
+ */
 export function arrayBufferToBase64url(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   return btoa(String.fromCharCode(...bytes))
@@ -410,6 +413,9 @@ export function arrayBufferToBase64url(buffer: ArrayBuffer): string {
 
 const KEK_STORAGE_KEY = "e2ee_kek";
 
+/**
+ * Get the cached KEK from sessionStorage
+ */
 function getCachedKek(): CachedKek | null {
   const cached = sessionStorage.getItem(KEK_STORAGE_KEY);
   if (!cached) return null;
@@ -421,10 +427,16 @@ function getCachedKek(): CachedKek | null {
   }
 }
 
+/**
+ * Check if a cached KEK exists
+ */
 export function hasCachedKek(): boolean {
   return getCachedKek() !== null;
 }
 
+/**
+ * Store a cached KEK in sessionStorage
+ */
 export function storeCachedKek(
   kek: Uint8Array,
   credentialId: string,
@@ -438,6 +450,9 @@ export function storeCachedKek(
   sessionStorage.setItem(KEK_STORAGE_KEY, JSON.stringify(cached));
 }
 
+/**
+ * Clear the cached KEK from sessionStorage
+ */
 export function clearCachedKek(): void {
   sessionStorage.removeItem(KEK_STORAGE_KEY);
 }

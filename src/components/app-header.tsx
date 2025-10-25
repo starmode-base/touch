@@ -1,9 +1,9 @@
 import { UserButton, useClerk } from "@clerk/tanstack-react-start";
 import { Button } from "~/components/atoms";
-import { useE2EE } from "~/components/hooks/e2ee";
+import { usePasskeys } from "~/components/hooks/passkeys";
 
 export function AppHeader(props: { children?: React.ReactNode }) {
-  const { lock } = useE2EE();
+  const { lock } = usePasskeys();
   const clerk = useClerk();
 
   const handleSignOut = async () => {
