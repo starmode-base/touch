@@ -8,7 +8,10 @@
  * https://github.com/TanStack/db/tree/main/examples/react
  */
 import { QueryClient } from "@tanstack/query-core";
-import { createCollection } from "@tanstack/react-db";
+import {
+  createCollection,
+  localOnlyCollectionOptions,
+} from "@tanstack/react-db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { selectWorkspaceSchema } from "~/postgres/validation";
 import { electricCollectionOptions } from "@tanstack/electric-db-collection";
@@ -28,6 +31,8 @@ import {
   createContactRoleAssignmentSF,
   deleteContactRoleAssignmentSF,
 } from "~/server-functions/contact-role-assignments";
+import { getGlobalDek, encryptField } from "~/lib/e2ee";
+import { genSecureToken } from "./secure-token";
 
 const queryClient = new QueryClient();
 
@@ -116,13 +121,14 @@ export const workspacesCollectionElectric = createCollection(
 );
 
 /**
- * Contacts collection (Electric)
+ * Encrypted contacts collection (Electric-backed)
  */
-export const contactsCollection = createCollection(
+export const contactsCollectionEncrypted = createCollection(
   electricCollectionOptions({
-    id: "contacts-electric",
+    id: "contacts-encrypted",
     schema: z.object({
       id: z.string(),
+      /** Ciphertext */
       name: z.string(),
       linkedin: z.string().nullable(),
       created_at: z.string(),
@@ -176,6 +182,69 @@ export const contactsCollection = createCollection(
     },
   }),
 );
+
+/**
+ * Decrypted contacts collection (Client-only)
+ *
+ * This is the collection you should query in your components.
+ * It contains decrypted contact data that's kept in sync with the
+ * encrypted collection by the background decryption process.
+ */
+const contactsCollection = createCollection(
+  localOnlyCollectionOptions({
+    id: "contacts-decrypted",
+    schema: z.object({
+      id: z.string(),
+      /** Plaintext */
+      name: z.string(),
+      linkedin: z.string().nullable(),
+      created_at: z.string(),
+      updated_at: z.string(),
+      workspace_id: z.string(),
+    }),
+    getKey: (item) => item.id,
+  }),
+);
+
+export const contactsStore = {
+  /** Queryable collection */
+  collection: contactsCollection,
+
+  /** Insert a new contact */
+  insert: async (data: {
+    workspaceId: string;
+    name: string;
+    linkedin: string | null;
+  }) => {
+    const dek = getGlobalDek();
+    const nameEncrypted = await encryptField(data.name, dek);
+
+    return contactsCollectionEncrypted.insert({
+      id: genSecureToken(),
+      workspace_id: data.workspaceId,
+      name: nameEncrypted,
+      linkedin: data.linkedin,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+  },
+
+  /** Update an existing contact */
+  update: async (id: string, data: { name: string; linkedin?: string }) => {
+    const dek = getGlobalDek();
+    const nameEncrypted = await encryptField(data.name, dek);
+
+    return contactsCollectionEncrypted.update(id, (draft) => {
+      draft.name = nameEncrypted;
+      draft.linkedin = data.linkedin ?? null;
+    });
+  },
+
+  /** Delete an existing contact */
+  delete: (id: string) => {
+    return contactsCollectionEncrypted.delete(id);
+  },
+};
 
 /**
  * Contact roles collection (Electric)

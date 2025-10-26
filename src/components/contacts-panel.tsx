@@ -3,14 +3,10 @@ import { Contacts } from "~/components/contacts";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { Button, EditInput } from "~/components/atoms";
 import { eq, useLiveQuery } from "@tanstack/react-db";
-import {
-  contactsCollection,
-  workspacesCollectionQuery,
-} from "~/lib/collections";
+import { contactsStore, workspacesCollectionQuery } from "~/lib/collections";
 import { createContactInputSchema } from "~/server-functions/contacts";
 import { useState } from "react";
 import { extractLinkedInAndName } from "~/lib/linkedin-extractor";
-import { genSecureToken } from "~/lib/secure-token";
 import { usePasskeys } from "~/components/hooks/passkeys";
 import { UserButton } from "@clerk/tanstack-react-start";
 
@@ -86,13 +82,10 @@ export function ContactsPanel(props: { workspaceId: string }) {
 
           const { name, linkedinUrl } = extractLinkedInAndName(values.name);
 
-          contactsCollection.insert({
-            id: genSecureToken(),
-            workspace_id: values.workspaceId,
+          void contactsStore.insert({
+            workspaceId: values.workspaceId,
             name,
             linkedin: linkedinUrl,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
           });
 
           e.currentTarget.reset();

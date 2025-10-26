@@ -764,3 +764,134 @@ export async function unlockWithPasskey(
     kek,
   };
 }
+
+/**
+ * Global DEK storage (memory-only, per-tab)
+ *
+ * Security: DEK is never persisted to disk or sessionStorage.
+ * Each tab must unlock independently. Closing the tab clears the DEK.
+ */
+let globalDek: Uint8Array | null = null;
+
+/**
+ * Store DEK in memory for the current tab session
+ */
+export function setGlobalDek(dek: Uint8Array): void {
+  if (dek.byteLength !== 32) {
+    throw new Error("DEK must be 32 bytes");
+  }
+  globalDek = dek;
+}
+
+/**
+ * Get the current DEK from memory
+ *
+ * Throws if DEK is not available (user must unlock first)
+ */
+export function getGlobalDek(): Uint8Array {
+  if (!globalDek) {
+    throw new Error("DEK not available. User must unlock E2EE first.");
+  }
+  return globalDek;
+}
+
+/**
+ * Clear the DEK from memory (e.g., on lock)
+ */
+export function clearGlobalDek(): void {
+  globalDek = null;
+}
+
+/**
+ * Check if DEK is available in memory
+ */
+export function hasGlobalDek(): boolean {
+  return globalDek !== null;
+}
+
+/**
+ * Encrypt a field value using AES-256-GCM
+ *
+ * Returns base64url(iv || ciphertext) where:
+ * - iv: 12-byte random nonce
+ * - ciphertext: encrypted data + 16-byte auth tag
+ *
+ * Uses random IV for each encryption, so encrypting the same plaintext twice
+ * produces different ciphertext.
+ */
+export async function encryptField(
+  plaintext: string,
+  dek: Uint8Array,
+): Promise<string> {
+  if (dek.byteLength !== 32) {
+    throw new Error("DEK must be 32 bytes for AES-256-GCM");
+  }
+
+  // Generate random 12-byte IV (nonce) for AES-GCM
+  const iv = new Uint8Array(12);
+  crypto.getRandomValues(iv);
+
+  // Import DEK for AES-GCM encryption
+  const key = await crypto.subtle.importKey(
+    "raw",
+    ensureArrayBuffer(dek),
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"],
+  );
+
+  // Encrypt plaintext
+  const plaintextBytes = new TextEncoder().encode(plaintext);
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: ensureArrayBuffer(iv) },
+    key,
+    ensureArrayBuffer(plaintextBytes),
+  );
+
+  // Concatenate iv + ciphertext for storage
+  const encrypted = new Uint8Array(iv.byteLength + ciphertext.byteLength);
+  encrypted.set(iv, 0);
+  encrypted.set(new Uint8Array(ciphertext), iv.byteLength);
+
+  return base64urlEncode(encrypted);
+}
+
+/**
+ * Decrypt a field value using AES-256-GCM
+ *
+ * Takes base64url(iv || ciphertext) and returns plaintext string
+ */
+export async function decryptField(
+  encrypted: string,
+  dek: Uint8Array,
+): Promise<string> {
+  if (dek.byteLength !== 32) {
+    throw new Error("DEK must be 32 bytes for AES-256-GCM");
+  }
+
+  // Decode base64url
+  const encryptedBytes = base64urlDecode(encrypted);
+
+  // Extract IV (first 12 bytes) and ciphertext (rest)
+  const iv = encryptedBytes.slice(0, 12);
+  const ciphertext = encryptedBytes.slice(12);
+
+  // Import DEK for AES-GCM decryption
+  const key = await crypto.subtle.importKey(
+    "raw",
+    ensureArrayBuffer(dek),
+    { name: "AES-GCM" },
+    false,
+    ["decrypt"],
+  );
+
+  // Decrypt ciphertext
+  const plaintextBuffer = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: ensureArrayBuffer(iv) },
+    key,
+    ensureArrayBuffer(ciphertext),
+  );
+
+  // Decode to string
+  return new TextDecoder().decode(plaintextBuffer);
+}

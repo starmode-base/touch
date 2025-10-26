@@ -2,27 +2,39 @@ import { createServerFn } from "@tanstack/react-start";
 import { db, schema } from "~/postgres/db";
 import { z } from "zod";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { SecureToken } from "~/lib/validators";
+import {
+  ContactName,
+  ContactNameEncrypted,
+  LinkedInUrl,
+  SecureToken,
+} from "~/lib/validators";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import invariant from "tiny-invariant";
 import { generateTxId } from "~/postgres/helpers";
-import { linkedinPatternExact } from "~/lib/linkedin-extractor";
 
 /**
- * Validation schema for creating a contact
+ * Validation schema for creating a contact (for server-side validation)
  */
-export const createContactInputSchema = z.object({
+export const createContactInputSchemaEncrypted = z.object({
   workspaceId: SecureToken,
-  name: z.string().trim().nonempty().max(64),
-  linkedin: z.string().trim().regex(linkedinPatternExact).max(64).nullable(),
+  name: ContactNameEncrypted,
+  linkedin: LinkedInUrl.nullable(),
 });
+
+/**
+ * Validation schema for creating a contact (for client-side form validation)
+ */
+export const createContactInputSchema =
+  createContactInputSchemaEncrypted.extend({
+    name: ContactName,
+  });
 
 /**
  * Create contact
  */
 export const createContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(createContactInputSchema)
+  .inputValidator(createContactInputSchemaEncrypted)
   .handler(async ({ data, context }) => {
     context.ensureIsInWorkspace(data.workspaceId);
 
@@ -66,8 +78,8 @@ export const updateContactSF = createServerFn({ method: "POST" })
         id: SecureToken,
       }),
       fields: z.object({
-        name: createContactInputSchema.shape.name,
-        linkedin: createContactInputSchema.shape.linkedin,
+        name: createContactInputSchemaEncrypted.shape.name,
+        linkedin: createContactInputSchemaEncrypted.shape.linkedin,
       }),
     }),
   )
@@ -118,13 +130,21 @@ export const updateContactSF = createServerFn({ method: "POST" })
   });
 
 /**
- * Validation schema for creating a contact
+ * Validation schema for upserting a contact (for server-side validation)
  */
-export const upsertContactInputSchema = z.object({
+export const upsertContactInputSchemaEncrypted = z.object({
   workspaceId: SecureToken,
-  name: z.string().trim().nonempty().max(64),
-  linkedin: z.string().trim().regex(linkedinPatternExact).max(64),
+  name: ContactNameEncrypted,
+  linkedin: LinkedInUrl,
 });
+
+/**
+ * Validation schema for upserting a contact (for client-side form validation)
+ */
+export const upsertContactInputSchema =
+  upsertContactInputSchemaEncrypted.extend({
+    name: ContactName,
+  });
 
 /**
  * Upsert contact
@@ -134,7 +154,7 @@ export const upsertContactInputSchema = z.object({
  */
 export const upsertContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(upsertContactInputSchema)
+  .inputValidator(upsertContactInputSchemaEncrypted)
   .handler(async ({ data, context }) => {
     context.ensureIsInWorkspace(data.workspaceId);
 

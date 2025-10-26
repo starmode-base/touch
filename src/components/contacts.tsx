@@ -2,10 +2,11 @@ import { eq, useLiveQuery } from "@tanstack/react-db";
 import {
   contactRoleAssignmentsCollection,
   contactRolesCollection,
-  contactsCollection,
+  contactsStore,
 } from "~/lib/collections";
 import { ContactCard } from "~/components/atoms";
 import { useMemo } from "react";
+import { useContactsWithDecryption } from "~/lib/contacts-sync";
 
 export function Contacts(props: { workspaceId: string }) {
   const contactRoles = useLiveQuery((q) => {
@@ -16,9 +17,13 @@ export function Contacts(props: { workspaceId: string }) {
       );
   });
 
+  // Run background decryption sync
+  useContactsWithDecryption();
+
+  // Query decrypted contacts with workspace filter and sorting
   const contacts = useLiveQuery((q) => {
     return q
-      .from({ contact: contactsCollection })
+      .from({ contact: contactsStore.collection })
       .where(({ contact }) => eq(contact.workspace_id, props.workspaceId))
       .orderBy(({ contact }) => contact.created_at, "desc")
       .orderBy(({ contact }) => contact.id, "desc");
@@ -61,12 +66,12 @@ export function Contacts(props: { workspaceId: string }) {
           onDelete={() => {
             const ok = confirm("Are you sure you want to delete this contact?");
             if (!ok) return;
-            contactsCollection.delete(contact.id);
+            contactsStore.delete(contact.id);
           }}
           onUpdate={(args) => {
-            contactsCollection.update(contact.id, (draft) => {
-              draft.name = args.name;
-              draft.linkedin = args.linkedin ?? null;
+            void contactsStore.update(contact.id, {
+              name: args.name,
+              linkedin: args.linkedin,
             });
           }}
           roles={contactRoles.data

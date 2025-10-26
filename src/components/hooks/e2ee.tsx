@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { setGlobalDek, clearGlobalDek } from "~/lib/e2ee";
 
 interface E2eeContext {
   /** Whether the DEK is unlocked and available in memory */
@@ -20,6 +21,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
   useEffect(() => {
     const handleBeforeUnload = () => {
       setDekState(null);
+      clearGlobalDek();
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -28,24 +30,27 @@ export function E2eeProvider(props: React.PropsWithChildren) {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       // Wipe DEK on unmount
       setDekState(null);
+      clearGlobalDek();
     };
   }, []);
 
   /**
-   * Store the DEK in memory
+   * Store the DEK in memory (both React state and global module)
    */
   const setDek = (dekBytes: Uint8Array) => {
     if (dekBytes.byteLength !== 32) {
       throw new Error("dek must be 32 bytes");
     }
     setDekState(dekBytes);
+    setGlobalDek(dekBytes);
   };
 
   /**
-   * Wipe the DEK from memory
+   * Wipe the DEK from memory (both React state and global module)
    */
   const unsetDek = () => {
     setDekState(null);
+    clearGlobalDek();
   };
 
   const value: E2eeContext = {
