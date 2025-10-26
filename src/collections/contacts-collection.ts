@@ -113,8 +113,8 @@ interface EncryptedContact {
 /**
  * Create a hash to track if we've processed this exact contact data
  */
-function createContactHash(contact: EncryptedContact): string {
-  return `${contact.id}:${contact.name}:${contact.updated_at}`;
+function createHash(contact: EncryptedContact): string {
+  return JSON.stringify(contact);
 }
 
 /**
@@ -195,7 +195,7 @@ export function useContactsSync() {
 
       // Process each encrypted contact
       for (const item of encryptedContacts.data) {
-        const hash = createContactHash(item);
+        const hash = createHash(item);
 
         if (processedHashes.current.has(hash)) {
           continue;
@@ -226,6 +226,8 @@ export function useContactsSync() {
 export const contactsStore = {
   /** Queryable collection */
   collection: contactsCollection,
+  /** Encrypted collection - don't use this directly */
+  encryptedCollection: contactsCollectionEncrypted,
 
   /** Insert a new contact */
   insert: async (data: {
