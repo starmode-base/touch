@@ -373,7 +373,6 @@ export interface StoredPasskey {
 interface CachedKek {
   kek: string; // hex-encoded
   credentialId: string;
-  kekSalt: string; // hex-encoded
 }
 
 export function hexToUint8Array(hex: string): Uint8Array {
@@ -437,15 +436,10 @@ export function hasCachedKek(): boolean {
 /**
  * Store a cached KEK in sessionStorage
  */
-export function storeCachedKek(
-  kek: Uint8Array,
-  credentialId: string,
-  kekSalt: string,
-): void {
+export function storeCachedKek(kek: Uint8Array, credentialId: string): void {
   const cached: CachedKek = {
     kek: toHex(kek),
     credentialId,
-    kekSalt,
   };
   sessionStorage.setItem(KEK_STORAGE_KEY, JSON.stringify(cached));
 }
@@ -550,7 +544,7 @@ export async function attemptAutoUnlock(
   const dek = await unwrapDekWithKek(matchedPasskey.wrappedDek, kek);
 
   // Cache KEK for future reloads in this session
-  storeCachedKek(kek, matchedPasskey.credentialId, matchedPasskey.kekSalt);
+  storeCachedKek(kek, matchedPasskey.credentialId);
 
   console.log("DEK auto-unlocked successfully via WebAuthn, KEK cached");
   return dek;

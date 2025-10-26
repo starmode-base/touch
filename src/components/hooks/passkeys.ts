@@ -135,7 +135,7 @@ export function usePasskeys(): UsePasskeysReturn {
         },
       });
 
-      storeCachedKek(result.kek, result.credentialId, result.kekSalt);
+      storeCachedKek(result.kek, result.credentialId);
       setDek(result.dek);
       setEnrollSuccess("Encryption enabled successfully!");
       await refreshPasskeys();
@@ -178,7 +178,7 @@ export function usePasskeys(): UsePasskeysReturn {
         },
       });
 
-      storeCachedKek(result.kek, result.credentialId, result.kekSalt);
+      storeCachedKek(result.kek, result.credentialId);
       setAddSuccess("Additional passkey added successfully!");
       await refreshPasskeys();
     } catch (e) {
@@ -201,7 +201,7 @@ export function usePasskeys(): UsePasskeysReturn {
         origin: location.origin,
       });
 
-      storeCachedKek(result.kek, result.credentialId, result.kekSalt);
+      storeCachedKek(result.kek, result.credentialId);
       setDek(result.dek);
     } catch (e) {
       console.error("Unlock failed:", e);
