@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { proxyElectricShape } from "~/lib/electric";
+import { proxyElectricRequest } from "~/lib/electric";
 
 export const Route = createFileRoute("/api/contacts")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return proxyElectricShape({
+        return proxyElectricRequest({
           request,
           table: "contacts",
           where: (viewer) => {

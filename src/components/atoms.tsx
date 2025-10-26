@@ -87,6 +87,7 @@ export function ContactCard(props: {
   onRoleDelete: (roleId: string) => void;
   workspaceId: string;
   id: string;
+  createdAt: string;
 }) {
   return (
     <div className="grid grid-cols-5 items-center justify-between gap-2 rounded border border-slate-200 bg-white p-2 text-sm whitespace-nowrap">
@@ -151,7 +152,7 @@ export function ContactCard(props: {
       </div>
       <div className="flex items-center justify-center gap-1 text-xs text-slate-800">
         <CalendarIcon className="size-4" />
-        2025-01-01
+        {new Date(props.createdAt).toLocaleDateString()}
       </div>
       <div className="flex items-center gap-1">
         <button

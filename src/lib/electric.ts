@@ -2,11 +2,39 @@ import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from "@electric-sql/client";
 import { ensureEnv } from "~/lib/env";
 import { syncViewer, type Viewer } from "~/lib/auth";
 
-export const proxyElectricShape = async ({
-  request,
-  table,
-  where,
-}: {
+const ELECTRIC_SOURCE_ID = ensureEnv("ELECTRIC_SOURCE_ID");
+const ELECTRIC_SOURCE_SECRET = ensureEnv("ELECTRIC_SOURCE_SECRET");
+
+/**
+ * Prepares the Electric SQL proxy URL from a request URL
+ * Copies over Electric-specific query params and adds auth if configured
+ * @param requestUrl - The incoming request URL
+ * @returns The prepared Electric SQL origin URL
+ */
+function prepareElectricUrl(requestUrl: string): URL {
+  const url = new URL(requestUrl);
+  const electricUrl = "https://api.electric-sql.cloud";
+  const originUrl = new URL("/v1/shape", electricUrl);
+
+  // Copy Electric-specific query params
+  url.searchParams.forEach((value, key) => {
+    if (ELECTRIC_PROTOCOL_QUERY_PARAMS.includes(key)) {
+      originUrl.searchParams.set(key, value);
+    }
+  });
+
+  originUrl.searchParams.set("source_id", ELECTRIC_SOURCE_ID);
+  originUrl.searchParams.set("source_secret", ELECTRIC_SOURCE_SECRET);
+
+  return originUrl;
+}
+
+/**
+ * Proxies a request to Electric SQL and returns the response
+ * @param originUrl - The prepared Electric SQL URL
+ * @returns The proxied response
+ */
+export const proxyElectricRequest = async (args: {
   request: Request;
   /** https://electric-sql.com/docs/guides/shapes#table */
   table: string;
@@ -23,39 +51,23 @@ export const proxyElectricShape = async ({
   }
 
   // Construct the origin URL
-  const originUrl = new URL(`/v1/shape`, `https://api.electric-sql.cloud`);
-
-  // Add the source params
-  originUrl.searchParams.set(`source_id`, ensureEnv("ELECTRIC_SOURCE_ID"));
-  originUrl.searchParams.set(`secret`, ensureEnv("ELECTRIC_SOURCE_SECRET"));
-
-  // Passthrough parameters from electric client
-  const proxyUrl = new URL(request.url);
-  proxyUrl.searchParams.forEach((value, key) => {
-    if (ELECTRIC_PROTOCOL_QUERY_PARAMS.includes(key)) {
-      originUrl.searchParams.set(key, value);
-    }
-  });
+  const originUrl = prepareElectricUrl(args.request.url);
 
   // Table
   // https://electric-sql.com/docs/guides/shapes#table
-  originUrl.searchParams.set("table", table);
+  originUrl.searchParams.set("table", args.table);
 
   // Where
   // https://electric-sql.com/docs/guides/shapes#where-clause
-  originUrl.searchParams.set("where", where(viewer));
+  originUrl.searchParams.set("where", args.where(viewer));
 
   // Proxy the authorised request on to the Electric Cloud.
   const response = await fetch(originUrl);
 
-  // Fetch decompresses the body but doesn't remove the
-  // content-encoding & content-length headers which would
-  // break decoding in the browser.
-  //
-  // See https://github.com/whatwg/fetch/issues/1729
   const headers = new Headers(response.headers);
   headers.delete(`content-encoding`);
   headers.delete(`content-length`);
+  headers.set(`vary`, `cookie`);
 
   return new Response(response.body, {
     status: response.status,

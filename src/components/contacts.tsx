@@ -11,6 +11,9 @@ import { ContactCard } from "~/components/atoms";
 import { useMemo } from "react";
 
 export function Contacts(props: { workspaceId: string }) {
+  // Run background decryption sync
+  useContactsSync();
+
   const contactRoles = useLiveQuery((q) => {
     return q
       .from({ contactRole: contactRolesCollection })
@@ -18,9 +21,6 @@ export function Contacts(props: { workspaceId: string }) {
         eq(contactRole.workspace_id, props.workspaceId),
       );
   });
-
-  // Run background decryption sync
-  useContactsSync();
 
   // Query decrypted contacts with workspace filter and sorting
   const contacts = useLiveQuery((q) => {
@@ -30,6 +30,7 @@ export function Contacts(props: { workspaceId: string }) {
       .orderBy(({ contact }) => contact.created_at, "desc")
       .orderBy(({ contact }) => contact.id, "desc");
   });
+  console.log("contacts", contacts.data);
 
   const roleAssignmentsWithRole = useLiveQuery((q) => {
     return q
@@ -61,6 +62,7 @@ export function Contacts(props: { workspaceId: string }) {
       {contacts.data.map((contact) => (
         <ContactCard
           key={contact.id}
+          createdAt={contact.created_at}
           workspaceId={props.workspaceId}
           id={contact.id}
           name={contact.name}
