@@ -2,8 +2,8 @@ import { eq, useLiveQuery } from "@tanstack/react-db";
 import {
   contactRoleAssignmentsCollection,
   contactRolesCollection,
-  contactsCollection,
 } from "~/lib/collections";
+import { contactsStore } from "~/collections/contacts-collection";
 import { ContactCard } from "~/components/atoms";
 import { useMemo } from "react";
 
@@ -18,7 +18,7 @@ export function Contacts(props: { workspaceId: string }) {
 
   const contacts = useLiveQuery((q) => {
     return q
-      .from({ contact: contactsCollection })
+      .from({ contact: contactsStore.collection })
       .where(({ contact }) => eq(contact.workspace_id, props.workspaceId))
       .orderBy(({ contact }) => contact.created_at, "desc")
       .orderBy(({ contact }) => contact.id, "desc");
@@ -54,6 +54,7 @@ export function Contacts(props: { workspaceId: string }) {
       {contacts.data.map((contact) => (
         <ContactCard
           key={contact.id}
+          createdAt={contact.created_at}
           workspaceId={props.workspaceId}
           id={contact.id}
           name={contact.name}
@@ -61,12 +62,12 @@ export function Contacts(props: { workspaceId: string }) {
           onDelete={() => {
             const ok = confirm("Are you sure you want to delete this contact?");
             if (!ok) return;
-            contactsCollection.delete(contact.id);
+            contactsStore.delete(contact.id);
           }}
           onUpdate={(args) => {
-            contactsCollection.update(contact.id, (draft) => {
-              draft.name = args.name;
-              draft.linkedin = args.linkedin ?? null;
+            void contactsStore.update(contact.id, {
+              name: args.name,
+              linkedin: args.linkedin,
             });
           }}
           roles={contactRoles.data

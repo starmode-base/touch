@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { db, schema } from "~/postgres/db";
 import { z } from "zod";
-import { SecureToken } from "~/lib/secure-token";
+import { SecureToken } from "~/lib/validators";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { generateTxId } from "~/postgres/helpers";
 import { and, eq } from "drizzle-orm";

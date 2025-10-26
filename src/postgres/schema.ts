@@ -85,8 +85,31 @@ export const users = pgTable("users", {
   clerkUserId: text().notNull().unique(),
 });
 
-export type UserSelect = typeof users.$inferSelect;
-export type UserInsert = typeof users.$inferInsert;
+/**
+ * User passkeys table for E2EE
+ *
+ * Stores PRF-enabled passkeys used for deriving encryption keys.
+ * Public keys are stored for future authentication use (Option 2) but not used
+ * yet in Option 1 where Clerk handles authentication.
+ */
+export const passkeys = pgTable("passkeys", {
+  ...baseSchema,
+  userId: text()
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  /** WebAuthn credential ID (base64url-encoded, globally unique) */
+  credentialId: text().notNull().unique(),
+  /** Base64url-encoded public key (for future authentication) */
+  publicKey: text().notNull(),
+  /** Base64url-encoded DEK wrapped by this passkey's KEK */
+  wrappedDek: text().notNull(),
+  /** Base64url-encoded salt for deriving KEK from PRF output */
+  kekSalt: text().notNull(),
+  /** Transports for UX optimization (e.g., ["internal", "hybrid"]) */
+  transports: jsonb().$type<string[]>().notNull(),
+  /** Algorithm used (e.g., -7 for ES256) */
+  algorithm: text().notNull(),
+});
 
 /**
  * Workspaces table
@@ -95,9 +118,6 @@ export const workspaces = pgTable("workspaces", {
   ...baseSchema,
   name: text().notNull(),
 });
-
-export type WorkspaceSelect = typeof workspaces.$inferSelect;
-export type WorkspaceInsert = typeof workspaces.$inferInsert;
 
 /**
  * Workspace memberships junction table
@@ -123,11 +143,6 @@ export const workspaceMemberships = pgTable(
   ],
 );
 
-export type WorkspaceMembershipSelect =
-  typeof workspaceMemberships.$inferSelect;
-export type WorkspaceMembershipInsert =
-  typeof workspaceMemberships.$inferInsert;
-
 /**
  * Contacts table (AKA people)
  */
@@ -151,9 +166,6 @@ export const contacts = pgTable(
     unique().on(t.workspaceId, t.id),
   ],
 );
-
-export type ContactSelect = typeof contacts.$inferSelect;
-export type ContactInsert = typeof contacts.$inferInsert;
 
 /**
  * Contact roles table
@@ -184,9 +196,6 @@ export const contactRoles = pgTable(
     unique().on(t.workspaceId, t.id),
   ],
 );
-
-export type ContactRoleSelect = typeof contactRoles.$inferSelect;
-export type ContactRoleInsert = typeof contactRoles.$inferInsert;
 
 /**
  * Contact role assignments junction table
@@ -221,11 +230,6 @@ export const contactRoleAssignments = pgTable(
     }).onDelete("cascade"),
   ],
 );
-
-export type ContactRoleAssignmentSelect =
-  typeof contactRoleAssignments.$inferSelect;
-export type ContactRoleAssignmentInsert =
-  typeof contactRoleAssignments.$inferInsert;
 
 /**
  * Contact activities table
@@ -289,7 +293,7 @@ export const opportunityStatus = pgEnum("opportunity_status", [
   "won",
   "lost",
 ]);
-export type OpportunityStatus = (typeof opportunityStatus.enumValues)[number];
+type OpportunityStatus = (typeof opportunityStatus.enumValues)[number];
 
 /**
  * Opportunities table (AKA deals, threads)
@@ -346,11 +350,6 @@ export const opportunityContactLinks = pgTable(
     }).onDelete("cascade"),
   ],
 );
-
-export type OpportunityContactLinkSelect =
-  typeof opportunityContactLinks.$inferSelect;
-export type OpportunityContactLinkInsert =
-  typeof opportunityContactLinks.$inferInsert;
 
 /**
  * Opportunity activities table
@@ -428,8 +427,3 @@ export const opportunityActivities = pgTable(
     ),
   ],
 );
-
-export type OpportunityActivitySelect =
-  typeof opportunityActivities.$inferSelect;
-export type OpportunityActivityInsert =
-  typeof opportunityActivities.$inferInsert;

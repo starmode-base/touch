@@ -20,11 +20,6 @@ import {
   updateWorkspaceSF,
 } from "~/server-functions/workspaces";
 import {
-  createContactSF,
-  deleteContactSF,
-  updateContactSF,
-} from "~/server-functions/contacts";
-import {
   createContactRoleAssignmentSF,
   deleteContactRoleAssignmentSF,
 } from "~/server-functions/contact-role-assignments";
@@ -111,68 +106,6 @@ export const workspacesCollectionElectric = createCollection(
       const result = await deleteWorkspaceSF({ data });
 
       return { txid: result.txid };
-    },
-  }),
-);
-
-/**
- * Contacts collection (Electric)
- */
-export const contactsCollection = createCollection(
-  electricCollectionOptions({
-    id: "contacts-electric",
-    schema: z.object({
-      id: z.string(),
-      name: z.string(),
-      linkedin: z.string().nullable(),
-      created_at: z.string(),
-      updated_at: z.string(),
-      workspace_id: z.string(),
-    }),
-    getKey: (item) => item.id,
-    shapeOptions: {
-      url: new URL(`/api/contacts`, window.location.origin).toString(),
-    },
-    onInsert: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => {
-        return {
-          workspaceId: item.modified.workspace_id,
-          name: item.modified.name,
-          linkedin: item.modified.linkedin,
-        };
-      });
-
-      const txid = await Promise.all(
-        data.map((item) => createContactSF({ data: item })),
-      );
-
-      return { txid: txid.map((item) => item.txid) };
-    },
-    onUpdate: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => ({
-        key: {
-          id: item.modified.id,
-        },
-        fields: {
-          name: item.modified.name,
-          linkedin: item.modified.linkedin,
-        },
-      }));
-
-      const txid = await Promise.all(
-        data.map((item) => updateContactSF({ data: item })),
-      );
-
-      return { txid: txid.map((item) => item.txid) };
-    },
-    onDelete: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => item.modified.id);
-
-      const txid = await Promise.all(
-        data.map((item) => deleteContactSF({ data: { id: item } })),
-      );
-
-      return { txid: txid.map((item) => item.txid) };
     },
   }),
 );

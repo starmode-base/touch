@@ -3,7 +3,7 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  upsertContactInputSchema,
+  upsertContactInputSchemaEncrypted,
   upsertContactSF,
 } from "~/server-functions/contacts";
 
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/chrome")({
     handlers: {
       POST: async ({ request }) => {
         const result = await upsertContactSF({
-          data: upsertContactInputSchema.parse(await request.json()),
+          data: upsertContactInputSchemaEncrypted.parse(await request.json()),
         });
 
         return Response.json(result);

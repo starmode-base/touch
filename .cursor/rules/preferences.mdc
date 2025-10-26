@@ -7,12 +7,14 @@ SUPER IMPORTANT: ALWAYS FOLLOW THESE RULES CAREFULLY UNLESS THE USER EXPLICITLY 
 # Constraints
 
 - NEVER modify files or run tools unless explicitly instructed by the user. When in doubt, ask; default to no edits.
-- MUST guard only for known, documented error cases. NO defensive code otherwise.
 - MUST implement only explicitly requested requirements. NO speculative features or abstractions.
 - MUST avoid premature optimizations. Optimize only when a measurable bottleneck is identified.
+- NO speculative checks. ONLY guard errors that can actually occur.
+- MUST validate external data with Zod: raw API responses, user input. Trust typed SDK responses.
+- MUST use runtime checks for type narrowing (instanceof, typeof, in, Array.isArray, Zod). NEVER use type assertions (`as SomeType`) or type predicates (`value is SomeType`) unless explicitly instructed.
 - MUST fail fast on missing/invalid required data. NEVER invent defaults, speculative fallbacks, or silent recovery.
-- MUST make API parameters required. Gate calls at the call site; only call when the value exists.
-- MUST handle optional values explicitly. NO `?? ""` or similar meaningless fallbacks.
+- NO `?? ""` or arbitrary fallbacks. Make values required or fail fast if missing.
+- NEVER make parameters/properties optional arbitrarily. Optional/nullable only when absence has domain meaning.
 
 # Code style
 
@@ -20,6 +22,7 @@ SUPER IMPORTANT: ALWAYS FOLLOW THESE RULES CAREFULLY UNLESS THE USER EXPLICITLY 
 - Use imperative style (for-loops, local mutation, classes) ONLY when necessary.
 - For all imperative code, write comments explaining why it is chosen over functional style.
 - NEVER export symbols that aren't imported anywhere.
+- Treat acronyms as words in camelCase/PascalCase (`useE2ee`, not `useE2EE`).
 
 # Testability
 
@@ -52,3 +55,4 @@ When working with Drizzle ORM and database schemas:
 
 - NEVER create migrations.
 - NEVER modify `src/postgres/relations.ts`.
+- MUST enforce data integrity with database constraints: unique values get unique constraints, required values get NOT NULL. Application code has bugs; database constraints never lie.

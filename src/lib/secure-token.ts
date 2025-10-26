@@ -1,5 +1,4 @@
 import { customAlphabet } from "nanoid";
-import z from "zod";
 
 const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const lowercase = "abcdefghijklmnopqrstuvwxyz";
@@ -15,6 +14,3 @@ const alphanumeric = numbers + lowercase + uppercase;
  * them suitable for use as both unique IDs and secrets.
  */
 export const genSecureToken = customAlphabet(alphanumeric, 20);
-
-export const SecureToken = z.string().regex(/^[0-9A-Za-z]{20}$/);
-export type SecureToken = z.infer<typeof SecureToken>;
