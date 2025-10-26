@@ -3,17 +3,11 @@ import {
   contactRoleAssignmentsCollection,
   contactRolesCollection,
 } from "~/lib/collections";
-import {
-  contactsStore,
-  useContactsSync,
-} from "~/collections/contacts-collection";
+import { contactsStore } from "~/collections/contacts-collection";
 import { ContactCard } from "~/components/atoms";
 import { useMemo } from "react";
 
 export function Contacts(props: { workspaceId: string }) {
-  // Run background decryption sync
-  useContactsSync();
-
   const contactRoles = useLiveQuery((q) => {
     return q
       .from({ contactRole: contactRolesCollection })
