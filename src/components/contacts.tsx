@@ -2,11 +2,13 @@ import { eq, useLiveQuery } from "@tanstack/react-db";
 import {
   contactRoleAssignmentsCollection,
   contactRolesCollection,
-  contactsStore,
 } from "~/lib/collections";
+import {
+  contactsStore,
+  useContactsSync,
+} from "~/collections/contacts-collection";
 import { ContactCard } from "~/components/atoms";
 import { useMemo } from "react";
-import { useContactsWithDecryption } from "~/lib/contacts-sync";
 
 export function Contacts(props: { workspaceId: string }) {
   const contactRoles = useLiveQuery((q) => {
@@ -18,7 +20,7 @@ export function Contacts(props: { workspaceId: string }) {
   });
 
   // Run background decryption sync
-  useContactsWithDecryption();
+  useContactsSync();
 
   // Query decrypted contacts with workspace filter and sorting
   const contacts = useLiveQuery((q) => {
