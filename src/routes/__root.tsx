@@ -10,7 +10,7 @@ import {
   SignInButton,
   SignUpButton,
 } from "@clerk/tanstack-react-start";
-import { syncViewerSF } from "~/server-functions/sync-viewer";
+import { syncViewerSF } from "~/server-functions/viewer";
 import { Button } from "~/components/atoms";
 import { E2eeProvider } from "~/components/hooks/e2ee";
 import { E2eeGate } from "~/components/e2ee-gate";
