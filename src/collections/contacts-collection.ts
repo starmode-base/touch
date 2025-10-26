@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import {
   createCollection,
   localOnlyCollectionOptions,
@@ -18,7 +18,6 @@ import {
   encryptField,
 } from "~/lib/e2ee";
 import { genSecureToken } from "../lib/secure-token";
-import { useE2ee } from "~/components/hooks/e2ee";
 
 /**
  * Encrypted contacts collection (Electric-backed)
@@ -37,7 +36,12 @@ const contactsCollectionEncrypted = createCollection(
     }),
     getKey: (item) => item.id,
     shapeOptions: {
-      url: new URL(`/api/contacts`, window.location.origin).toString(),
+      url: new URL(
+        `/api/contacts`,
+        typeof window !== "undefined"
+          ? window.location.origin
+          : "http://localhost",
+      ).toString(),
     },
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => {
@@ -101,6 +105,11 @@ const contactsCollection = createCollection(
     getKey: (item) => item.id,
   }),
 );
+
+/**
+ * Track which encrypted contacts (by ciphertext hash) we've already processed
+ */
+const processedHashes = new Set<string>();
 
 interface EncryptedContact {
   id: string;
@@ -185,31 +194,11 @@ function removeDeletedContacts(
  *
  * Watches the encrypted Electric collection, decrypts contacts,
  * and keeps the decrypted (client-only) collection in sync.
- *
- * Also handles DEK lock/unlock by clearing decrypted data when locked.
  */
 export function useContactsSync(): void {
-  const { isDekUnlocked } = useE2ee();
-
   const encryptedContacts = useLiveQuery((q) => {
     return q.from({ contact: contactsCollectionEncrypted });
   });
-
-  // Track which encrypted contacts (by ciphertext hash) we've already processed
-  const processedHashes = useRef(new Set<string>());
-
-  // Clear decrypted collection and reset tracking when DEK is locked
-  useEffect(() => {
-    if (!isDekUnlocked) {
-      // Clear all decrypted contacts
-      for (const [id] of contactsCollection.state) {
-        contactsCollection.delete(id);
-      }
-
-      // Reset processed hashes
-      processedHashes.current.clear();
-    }
-  }, [isDekUnlocked]);
 
   // Sync encrypted contacts to decrypted collection
   useEffect(() => {
@@ -229,7 +218,7 @@ export function useContactsSync(): void {
       for (const item of encryptedContacts.data) {
         const hash = createHash(item);
 
-        if (!processedHashes.current.has(hash)) {
+        if (!processedHashes.has(hash)) {
           itemsToProcess.push({ contact: item, hash });
         }
       }
@@ -238,17 +227,13 @@ export function useContactsSync(): void {
       await Promise.all(
         itemsToProcess.map(async ({ contact, hash }) => {
           await syncContact(contact, dek, contactsCollection);
-          processedHashes.current.add(hash);
+          processedHashes.add(hash);
         }),
       );
 
       // Remove contacts that no longer exist in encrypted collection
       const encryptedIds = new Set(encryptedContacts.data.map((c) => c.id));
-      removeDeletedContacts(
-        encryptedIds,
-        contactsCollection,
-        processedHashes.current,
-      );
+      removeDeletedContacts(encryptedIds, contactsCollection, processedHashes);
     }
 
     void sync();
@@ -297,5 +282,15 @@ export const contactsStore = {
   /** Delete an existing contact */
   delete: (id: string) => {
     return contactsCollectionEncrypted.delete(id);
+  },
+
+  /** Clear all decrypted contacts and encrypted collection */
+  clear: async () => {
+    // cleanup() stops sync and clears data
+    await contactsCollection.cleanup();
+    await contactsCollectionEncrypted.cleanup();
+
+    // Reset processed hashes
+    processedHashes.clear();
   },
 };

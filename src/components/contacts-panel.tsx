@@ -22,7 +22,8 @@ export function ContactsPanel(props: { workspaceId: string }) {
   });
   const workspaceName = workspace.data[0]?.name ?? "";
 
-  const handleLock = () => {
+  const handleLock = async () => {
+    await contactsStore.clear();
     lock();
   };
 
