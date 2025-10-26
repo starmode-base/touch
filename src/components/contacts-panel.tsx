@@ -8,12 +8,12 @@ import { contactsStore } from "~/collections/contacts-collection";
 import { createContactInputSchema } from "~/server-functions/contacts";
 import { useState } from "react";
 import { extractLinkedInAndName } from "~/lib/linkedin-extractor";
-import { usePasskeys } from "~/components/hooks/passkeys";
+import { useAuth } from "~/components/hooks/auth";
 import { UserButton } from "@clerk/tanstack-react-start";
 
 export function ContactsPanel(props: { workspaceId: string }) {
   const [isValid, setIsValid] = useState(false);
-  const { lock } = usePasskeys();
+  const auth = useAuth();
 
   const workspace = useLiveQuery((q) => {
     return q
@@ -21,11 +21,6 @@ export function ContactsPanel(props: { workspaceId: string }) {
       .where(({ workspace }) => eq(workspace.id, props.workspaceId));
   });
   const workspaceName = workspace.data[0]?.name ?? "";
-
-  const handleLock = async () => {
-    await contactsStore.clear();
-    lock();
-  };
 
   return (
     <div className="flex flex-col">
@@ -48,7 +43,7 @@ export function ContactsPanel(props: { workspaceId: string }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleLock}>Lock</Button>
+          <Button onClick={auth.lock}>Lock</Button>
           <UserButton
             appearance={{
               elements: {
