@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import { db, schema } from "~/postgres/db";
-import { syncViewer } from "~/lib/auth";
+import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { z } from "zod";
 
 const storePasskeyInputSchema = z.object({
@@ -17,17 +17,13 @@ const storePasskeyInputSchema = z.object({
  * Store a new passkey for the authenticated user
  */
 export const storePasskeySF = createServerFn({ method: "POST" })
+  .middleware([ensureViewerMiddleware])
   .inputValidator(storePasskeyInputSchema)
-  .handler(async ({ data }) => {
-    const viewer = await syncViewer();
-    if (!viewer) {
-      throw new Error("Unauthorized");
-    }
-
+  .handler(async ({ data, context }) => {
     const [passkey] = await db()
       .insert(schema.passkeys)
       .values({
-        userId: viewer.id,
+        userId: context.viewer.id,
         credentialId: data.credentialId,
         publicKey: data.publicKey,
         wrappedDek: data.wrappedDek,
@@ -47,13 +43,9 @@ export const storePasskeySF = createServerFn({ method: "POST" })
 /**
  * Get all passkeys for the authenticated user
  */
-export const getUserPasskeysSF = createServerFn({ method: "GET" }).handler(
-  async () => {
-    const viewer = await syncViewer();
-    if (!viewer) {
-      throw new Error("Unauthorized");
-    }
-
+export const getUserPasskeysSF = createServerFn({ method: "GET" })
+  .middleware([ensureViewerMiddleware])
+  .handler(async ({ context }) => {
     const passkeys = await db()
       .select({
         credentialId: schema.passkeys.credentialId,
@@ -63,9 +55,8 @@ export const getUserPasskeysSF = createServerFn({ method: "GET" }).handler(
         createdAt: schema.passkeys.createdAt,
       })
       .from(schema.passkeys)
-      .where(eq(schema.passkeys.userId, viewer.id))
+      .where(eq(schema.passkeys.userId, context.viewer.id))
       .orderBy(schema.passkeys.createdAt);
 
     return passkeys;
-  },
-);
+  });
