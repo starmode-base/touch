@@ -150,7 +150,9 @@ describe("global DEK management", () => {
 
   test("throws error if setting DEK that is not 32 bytes", () => {
     const shortDek = new Uint8Array(16);
-    expect(() => { setGlobalDek(shortDek); }).toThrow("DEK must be 32 bytes");
+    expect(() => {
+      setGlobalDek(shortDek);
+    }).toThrow("DEK must be 32 bytes");
   });
 
   test("setting new DEK overwrites previous DEK", () => {
@@ -186,4 +188,3 @@ describe("integration: encrypt with global DEK", () => {
     expect(() => getGlobalDek()).toThrow("DEK not available");
   });
 });
-
