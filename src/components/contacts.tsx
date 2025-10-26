@@ -16,16 +16,6 @@ export function Contacts(props: { workspaceId: string }) {
       );
   });
 
-  const encryptedContacts = useLiveQuery((q) => {
-    return q
-      .from({ contact: contactsStore.encryptedCollection })
-      .where(({ contact }) => eq(contact.workspace_id, props.workspaceId))
-      .orderBy(({ contact }) => contact.created_at, "desc")
-      .orderBy(({ contact }) => contact.id, "desc");
-  });
-  console.log("encryptedContacts", encryptedContacts.data);
-
-  // Query decrypted contacts with workspace filter and sorting
   const contacts = useLiveQuery((q) => {
     return q
       .from({ contact: contactsStore.collection })
@@ -33,7 +23,6 @@ export function Contacts(props: { workspaceId: string }) {
       .orderBy(({ contact }) => contact.created_at, "desc")
       .orderBy(({ contact }) => contact.id, "desc");
   });
-  console.log("contacts         ", contacts.data);
 
   const roleAssignmentsWithRole = useLiveQuery((q) => {
     return q
