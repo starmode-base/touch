@@ -17,21 +17,24 @@ import {
 } from "~/lib/e2ee";
 import { genSecureToken } from "../lib/secure-token";
 
+const Contact = z.object({
+  id: z.string(),
+  /** Ciphertext in encrypted collection and plaintext in decrypted collection */
+  name: z.string(),
+  linkedin: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  workspace_id: z.string(),
+});
+type Contact = z.infer<typeof Contact>;
+
 /**
  * Encrypted contacts collection (Electric-backed)
  */
 const contactsCollectionEncrypted = createCollection(
   electricCollectionOptions({
-    // id: "contacts-encrypted",
-    schema: z.object({
-      id: z.string(),
-      /** Ciphertext */
-      name: z.string(),
-      linkedin: z.string().nullable(),
-      created_at: z.string(),
-      updated_at: z.string(),
-      workspace_id: z.string(),
-    }),
+    id: "contacts-encrypted",
+    schema: Contact,
     getKey: (item) => item.id,
     shapeOptions: {
       url: new URL(
@@ -91,35 +94,16 @@ const contactsCollectionEncrypted = createCollection(
  */
 const contactsCollection = createCollection(
   localOnlyCollectionOptions({
-    // id: "contacts-decrypted",
-    schema: z.object({
-      id: z.string(),
-      /** Plaintext */
-      name: z.string(),
-      linkedin: z.string().nullable(),
-      created_at: z.string(),
-      updated_at: z.string(),
-      workspace_id: z.string(),
-    }),
+    id: "contacts-decrypted",
+    schema: Contact,
     getKey: (item) => item.id,
   }),
 );
 
-interface EncryptedContact {
-  id: string;
-  name: string;
-  linkedin: string | null;
-  created_at: string;
-  updated_at: string;
-  workspace_id: string;
-}
-
 /**
  * Decrypt and insert a contact in the decrypted collection
  */
-async function insertDecryptedContact(
-  encrypted: EncryptedContact,
-): Promise<void> {
+async function insertDecryptedContact(encrypted: Contact): Promise<void> {
   if (!hasGlobalDek()) {
     return;
   }
@@ -140,9 +124,7 @@ async function insertDecryptedContact(
 /**
  * Decrypt and update a contact in the decrypted collection
  */
-async function updateDecryptedContact(
-  encrypted: EncryptedContact,
-): Promise<void> {
+async function updateDecryptedContact(encrypted: Contact): Promise<void> {
   if (!hasGlobalDek()) {
     return;
   }
