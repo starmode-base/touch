@@ -222,27 +222,28 @@ export const upsertContactSF = createServerFn({ method: "POST" })
  */
 export const deleteContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(z.object({ id: SecureToken }))
+  .inputValidator(z.object({ ids: SecureToken.array() }))
   .handler(async ({ data, context }) => {
     return db().transaction(async (tx) => {
       const txid = await generateTxId(tx);
 
-      const contactWorkspaceId = await tx.query.contacts
-        .findFirst({
-          where: eq(schema.contacts.id, data.id),
+      const contactWorkspaceIds = await tx.query.contacts
+        .findMany({
+          where: inArray(schema.contacts.id, data.ids),
           columns: {
             workspaceId: true,
           },
         })
-        .then((contact) => contact?.workspaceId);
-      invariant(contactWorkspaceId, "Unauthorized");
+        .then((contacts) => contacts.map((contact) => contact.workspaceId));
 
       // Ensure the user is in the workspace
-      context.ensureIsInWorkspace(contactWorkspaceId);
+      context.ensureIsInWorkspace(contactWorkspaceIds);
 
-      await tx.delete(schema.contacts).where(eq(schema.contacts.id, data.id));
+      await tx
+        .delete(schema.contacts)
+        .where(inArray(schema.contacts.id, data.ids));
 
-      return { txid };
+      return txid;
     });
   });
 

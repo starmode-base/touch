@@ -78,13 +78,11 @@ const contactsCollectionEncrypted = createCollection(
       return { txid: txid.map((item) => item.txid) };
     },
     onDelete: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => item.modified.id);
+      const ids = transaction.mutations.map((item) => item.modified.id);
 
-      const txid = await Promise.all(
-        data.map((item) => deleteContactSF({ data: { id: item } })),
-      );
+      const txid = await deleteContactSF({ data: { ids } });
 
-      return { txid: txid.map((item) => item.txid) };
+      return { txid };
     },
   }),
 );
