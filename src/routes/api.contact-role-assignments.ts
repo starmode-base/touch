@@ -9,9 +9,7 @@ export const Route = createFileRoute("/api/contact-role-assignments")({
           request,
           table: "contact_role_assignments",
           where: (viewer) => {
-            return viewer.workspaceMembershipIds.length
-              ? `workspace_id IN (${viewer.workspaceMembershipIds.map((id) => `'${id}'`).join(",")})`
-              : `FALSE`;
+            return `user_id = '${viewer.id}'`;
           },
         });
       },

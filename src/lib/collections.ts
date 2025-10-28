@@ -7,108 +7,13 @@
  * https://tanstack.com/db/latest/docs/collections/electric-collection
  * https://github.com/TanStack/db/tree/main/examples/react
  */
-import { QueryClient } from "@tanstack/query-core";
 import { createCollection } from "@tanstack/react-db";
-import { queryCollectionOptions } from "@tanstack/query-db-collection";
-import { selectWorkspaceSchema } from "~/postgres/validation";
 import { electricCollectionOptions } from "@tanstack/electric-db-collection";
 import z from "zod";
-import {
-  createWorkspaceSF,
-  deleteWorkspaceSF,
-  listWorkspacesSF,
-  updateWorkspaceSF,
-} from "~/server-functions/workspaces";
 import {
   createContactRoleAssignmentSF,
   deleteContactRoleAssignmentSF,
 } from "~/server-functions/contact-role-assignments";
-
-const queryClient = new QueryClient();
-
-/**
- * Workspaces collection (Query)
- */
-export const workspacesCollectionQuery = createCollection(
-  queryCollectionOptions({
-    id: "workspaces",
-    queryKey: ["workspaces"],
-    queryFn: () => listWorkspacesSF(),
-    queryClient,
-    getKey: (item) => item.id,
-    refetchInterval: 5000,
-    schema: selectWorkspaceSchema,
-    onInsert: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => ({
-        name: item.modified.name,
-      }));
-
-      await createWorkspaceSF({ data });
-    },
-    onUpdate: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => ({
-        key: { id: item.modified.id },
-        fields: { name: item.modified.name },
-      }));
-
-      await updateWorkspaceSF({ data });
-    },
-    onDelete: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => item.modified.id);
-
-      await deleteWorkspaceSF({ data });
-    },
-  }),
-);
-
-/**
- * Workspaces collection (Electric)
- */
-export const workspacesCollectionElectric = createCollection(
-  electricCollectionOptions({
-    id: "workspaces-electric",
-    schema: z.object({
-      id: z.string(),
-      name: z.string(),
-      created_at: z.string(),
-      updated_at: z.string(),
-    }),
-    getKey: (item) => item.id,
-    shapeOptions: {
-      url: new URL(`/api/workspaces`, window.location.origin).toString(),
-    },
-    onInsert: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => ({
-        name: item.modified.name,
-      }));
-
-      const result = await createWorkspaceSF({ data });
-
-      return { txid: result.txid };
-    },
-    onUpdate: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => ({
-        key: {
-          id: item.modified.id,
-        },
-        fields: {
-          name: item.modified.name,
-        },
-      }));
-
-      const result = await updateWorkspaceSF({ data });
-
-      return { txid: result.txid };
-    },
-    onDelete: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => item.modified.id);
-
-      const result = await deleteWorkspaceSF({ data });
-
-      return { txid: result.txid };
-    },
-  }),
-);
 
 /**
  * Contact roles collection (Electric)
@@ -120,7 +25,7 @@ export const contactRolesCollection = createCollection(
       id: z.string(),
       key: z.string(),
       name: z.string(),
-      workspace_id: z.string(),
+      userId: z.string(),
     }),
     getKey: (item) => item.id,
     shapeOptions: {
@@ -136,14 +41,12 @@ export const contactRoleAssignmentsCollection = createCollection(
   electricCollectionOptions({
     id: "contact-role-assignments-electric",
     schema: z.object({
-      workspace_id: z.string(),
       contact_id: z.string(),
       contact_role_id: z.string(),
+      userId: z.string(),
     }),
     getKey: (item) => {
-      return (
-        item.workspace_id + "|" + item.contact_id + "|" + item.contact_role_id
-      );
+      return item.contact_id + "|" + item.contact_role_id;
     },
     shapeOptions: {
       url: new URL(
@@ -153,7 +56,6 @@ export const contactRoleAssignmentsCollection = createCollection(
     },
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
-        workspaceId: item.modified.workspace_id,
         contactId: item.modified.contact_id,
         contactRoleId: item.modified.contact_role_id,
       }));
@@ -166,7 +68,6 @@ export const contactRoleAssignmentsCollection = createCollection(
     },
     onDelete: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
-        workspaceId: item.modified.workspace_id,
         contactId: item.modified.contact_id,
         contactRoleId: item.modified.contact_role_id,
       }));
@@ -190,8 +91,9 @@ export const contactActivitiesCollection = createCollection(
       id: z.string(),
       created_at: z.string(),
       updated_at: z.string(),
-      workspace_id: z.string(),
+      userId: z.string(),
       contact_id: z.string(),
+      // TODO: Remove this field
       created_by_id: z.string(),
       happened_at: z.string(),
       kind: z.string(),

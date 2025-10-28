@@ -6,9 +6,7 @@ const serve = (args: { request: Request }) => {
     request: args.request,
     table: "contacts",
     where: (viewer) => {
-      return viewer.workspaceMembershipIds.length
-        ? `workspace_id IN (${viewer.workspaceMembershipIds.map((id) => `'${id}'`).join(",")})`
-        : `FALSE`;
+      return `user_id = '${viewer.id}'`;
     },
   });
 };

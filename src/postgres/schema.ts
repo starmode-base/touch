@@ -57,19 +57,6 @@ const baseSchema = {
 };
 
 /**
- * Workspace member role enum
- */
-export const workspaceMemberRole = pgEnum("workspace_member_role", [
-  /** Workspace administrator */
-  "administrator",
-  /** Workspace member */
-  "member",
-]);
-
-export type WorkspaceMemberRole =
-  (typeof workspaceMemberRole.enumValues)[number];
-
-/**
  * Users table
  */
 export const users = pgTable("users", {
@@ -112,72 +99,40 @@ export const passkeys = pgTable("passkeys", {
 });
 
 /**
- * Workspaces table
- */
-export const workspaces = pgTable("workspaces", {
-  ...baseSchema,
-  name: text().notNull(),
-});
-
-/**
- * Workspace memberships junction table
- *
- * Enables many-to-many relationships between workspaces and users
- */
-export const workspaceMemberships = pgTable(
-  "workspace_memberships",
-  {
-    workspaceId: text()
-      .references(() => workspaces.id, { onDelete: "cascade" })
-      .notNull(),
-    userId: text()
-      .references(() => users.id, { onDelete: "cascade" })
-      .notNull(),
-    createdAt: timestampField(),
-    updatedAt: timestampField(),
-    role: workspaceMemberRole().notNull(),
-  },
-  (t) => [
-    // Enforce: a user can only be a member of a workspace once
-    primaryKey({ columns: [t.workspaceId, t.userId] }),
-  ],
-);
-
-/**
  * Contacts table (AKA people)
  */
 export const contacts = pgTable(
   "contacts",
   {
     ...baseSchema,
-    workspaceId: text()
-      .references(() => workspaces.id, { onDelete: "cascade" })
+    userId: text()
+      .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     name: text().notNull(),
     linkedin: text(),
   },
   (t) => [
-    // Enforce: LinkedIn is unique per workspace (NULLs allowed; duplicates only
+    // Enforce: LinkedIn is unique per user (NULLs allowed; duplicates only
     // blocked when present)
-    unique().on(t.workspaceId, t.linkedin),
+    unique().on(t.userId, t.linkedin),
 
     // FK support: Unique constraint to support composite foreign keys from
     // other tables
-    unique().on(t.workspaceId, t.id),
+    unique().on(t.userId, t.id),
   ],
 );
 
 /**
  * Contact roles table
  *
- * Configurable roles that can be assigned to contacts within a workspace
+ * Configurable roles that can be assigned to contacts
  */
 export const contactRoles = pgTable(
   "contact_roles",
   {
     ...baseSchema,
-    workspaceId: text()
-      .references(() => workspaces.id, { onDelete: "cascade" })
+    userId: text()
+      .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     // Ex: "inner_circle", "peer", "etc."
     key: text().notNull(),
@@ -188,12 +143,12 @@ export const contactRoles = pgTable(
     qualifier: text().notNull(),
   },
   (t) => [
-    // Enforce: Role name is unique per workspace
-    unique().on(t.workspaceId, t.key),
+    // Enforce: Role name is unique per user
+    unique().on(t.userId, t.key),
 
     // FK support: Unique constraint to support composite foreign keys from
     // other tables
-    unique().on(t.workspaceId, t.id),
+    unique().on(t.userId, t.id),
   ],
 );
 
@@ -205,8 +160,8 @@ export const contactRoles = pgTable(
 export const contactRoleAssignments = pgTable(
   "contact_role_assignments",
   {
-    workspaceId: text()
-      .references(() => workspaces.id, { onDelete: "cascade" })
+    userId: text()
+      .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     contactId: text().notNull(),
     contactRoleId: text().notNull(),
@@ -214,19 +169,19 @@ export const contactRoleAssignments = pgTable(
     updatedAt: timestampField(),
   },
   (t) => [
-    // Enforce: a contact can only have a specific role once within a workspace
-    primaryKey({ columns: [t.workspaceId, t.contactId, t.contactRoleId] }),
+    // Enforce: a contact can only have a specific role once
+    primaryKey({ columns: [t.userId, t.contactId, t.contactRoleId] }),
 
-    // FK constraint: Contact must belong to this workspace
+    // FK constraint: Contact must belong to this user
     foreignKey({
-      columns: [t.workspaceId, t.contactId],
-      foreignColumns: [contacts.workspaceId, contacts.id],
+      columns: [t.userId, t.contactId],
+      foreignColumns: [contacts.userId, contacts.id],
     }).onDelete("cascade"),
 
-    // FK constraint: Role must belong to this workspace
+    // FK constraint: Role must belong to this user
     foreignKey({
-      columns: [t.workspaceId, t.contactRoleId],
-      foreignColumns: [contactRoles.workspaceId, contactRoles.id],
+      columns: [t.userId, t.contactRoleId],
+      foreignColumns: [contactRoles.userId, contactRoles.id],
     }).onDelete("cascade"),
   ],
 );
@@ -238,11 +193,10 @@ export const contactActivities = pgTable(
   "contact_activities",
   {
     ...baseSchema,
-    workspaceId: text()
-      .references(() => workspaces.id, { onDelete: "cascade" })
+    userId: text()
+      .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     contactId: text().notNull(),
-    createdById: text().notNull(),
     happenedAt: date({ mode: "string" }).defaultNow().notNull(),
     kind: text()
       .$type<
@@ -263,19 +217,10 @@ export const contactActivities = pgTable(
     details: jsonb().$type<{ name: string; linkedin: string | null }>(),
   },
   (t) => [
-    // FK constraint: Actor must belong to this workspace
+    // FK constraint: Contact must belong to this user
     foreignKey({
-      columns: [t.workspaceId, t.createdById],
-      foreignColumns: [
-        workspaceMemberships.workspaceId,
-        workspaceMemberships.userId,
-      ],
-    }).onDelete("cascade"),
-
-    // FK constraint: Contact must belong to this workspace
-    foreignKey({
-      columns: [t.workspaceId, t.contactId],
-      foreignColumns: [contacts.workspaceId, contacts.id],
+      columns: [t.userId, t.contactId],
+      foreignColumns: [contacts.userId, contacts.id],
     }).onDelete("cascade"),
 
     // Check constraint: details required for system:* kinds, and must be NULL
@@ -302,8 +247,8 @@ export const opportunities = pgTable(
   "opportunities",
   {
     ...baseSchema,
-    workspaceId: text()
-      .references(() => workspaces.id, { onDelete: "cascade" })
+    userId: text()
+      .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     name: text().notNull(),
     status: opportunityStatus().notNull(),
@@ -311,7 +256,7 @@ export const opportunities = pgTable(
   (t) => [
     // FK support: Unique constraint to support composite foreign keys from
     // other tables
-    unique().on(t.workspaceId, t.id),
+    unique().on(t.userId, t.id),
   ],
 );
 
@@ -323,30 +268,28 @@ export const opportunities = pgTable(
 export const opportunityContactLinks = pgTable(
   "opportunity_contact_links",
   {
-    workspaceId: text()
-      .references(() => workspaces.id, { onDelete: "cascade" })
+    userId: text()
+      .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     opportunityId: text().notNull(),
     contactId: text().notNull(),
     createdAt: timestampField(),
     updatedAt: timestampField(),
-    // Maybe:
-    // closedAt: timestamp({ mode: "string" }),
   },
   (t) => [
-    // Enforce: a contact can only be linked to an opportunity once within a workspace
-    primaryKey({ columns: [t.workspaceId, t.opportunityId, t.contactId] }),
+    // Enforce: a contact can only be linked to an opportunity once
+    primaryKey({ columns: [t.userId, t.opportunityId, t.contactId] }),
 
-    // FK constraint: Contact must belong to this workspace
+    // FK constraint: Contact must belong to this user
     foreignKey({
-      columns: [t.workspaceId, t.contactId],
-      foreignColumns: [contacts.workspaceId, contacts.id],
+      columns: [t.userId, t.contactId],
+      foreignColumns: [contacts.userId, contacts.id],
     }).onDelete("cascade"),
 
-    // FK constraint: Opportunity must belong to this workspace
+    // FK constraint: Opportunity must belong to this user
     foreignKey({
-      columns: [t.workspaceId, t.opportunityId],
-      foreignColumns: [opportunities.workspaceId, opportunities.id],
+      columns: [t.userId, t.opportunityId],
+      foreignColumns: [opportunities.userId, opportunities.id],
     }).onDelete("cascade"),
   ],
 );
@@ -358,11 +301,10 @@ export const opportunityActivities = pgTable(
   "opportunity_activities",
   {
     ...baseSchema,
-    workspaceId: text()
-      .references(() => workspaces.id, { onDelete: "cascade" })
+    userId: text()
+      .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     opportunityId: text().notNull(),
-    createdById: text().notNull(),
     happenedAt: date({ mode: "string" }).defaultNow().notNull(),
     kind: text()
       .$type<
@@ -385,19 +327,10 @@ export const opportunityActivities = pgTable(
     closedAt: timestamp({ mode: "string" }),
   },
   (t) => [
-    // FK constraint: Actor must belong to this workspace
+    // FK constraint: Opportunity must belong to this user
     foreignKey({
-      columns: [t.workspaceId, t.createdById],
-      foreignColumns: [
-        workspaceMemberships.workspaceId,
-        workspaceMemberships.userId,
-      ],
-    }).onDelete("cascade"),
-
-    // FK constraint: Opportunity must belong to this workspace
-    foreignKey({
-      columns: [t.workspaceId, t.opportunityId],
-      foreignColumns: [opportunities.workspaceId, opportunities.id],
+      columns: [t.userId, t.opportunityId],
+      foreignColumns: [opportunities.userId, opportunities.id],
     }).onDelete("cascade"),
 
     // Enforce: at most one open next step per opportunity

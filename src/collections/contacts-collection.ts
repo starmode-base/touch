@@ -24,7 +24,7 @@ const Contact = z.object({
   linkedin: z.string().nullable(),
   created_at: z.string(),
   updated_at: z.string(),
-  workspace_id: z.string(),
+  user_id: z.string(),
 });
 type Contact = z.infer<typeof Contact>;
 
@@ -48,7 +48,7 @@ const contactsCollectionEncrypted = createCollection(
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => {
         return {
-          workspaceId: item.modified.workspace_id,
+          userId: item.modified.user_id,
           name: item.modified.name,
           linkedin: item.modified.linkedin,
         };
@@ -111,7 +111,7 @@ async function insertDecryptedContact(encrypted: Contact): Promise<void> {
     linkedin: encrypted.linkedin,
     created_at: encrypted.created_at,
     updated_at: encrypted.updated_at,
-    workspace_id: encrypted.workspace_id,
+    user_id: encrypted.user_id,
   });
 }
 
@@ -131,7 +131,7 @@ async function updateDecryptedContact(encrypted: Contact): Promise<void> {
     draft.linkedin = encrypted.linkedin;
     draft.created_at = encrypted.created_at;
     draft.updated_at = encrypted.updated_at;
-    draft.workspace_id = encrypted.workspace_id;
+    draft.user_id = encrypted.user_id;
   });
 }
 
@@ -168,7 +168,7 @@ export const contactsStore = {
 
   /** Insert a new contact */
   insert: async (data: {
-    workspaceId: string;
+    userId: string;
     name: string;
     linkedin: string | null;
   }) => {
@@ -177,7 +177,7 @@ export const contactsStore = {
 
     return contactsCollectionEncrypted.insert({
       id: genSecureToken(),
-      workspace_id: data.workspaceId,
+      user_id: data.userId,
       name: nameEncrypted,
       linkedin: data.linkedin,
       created_at: new Date().toISOString(),

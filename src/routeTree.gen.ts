@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiWorkspacesRouteImport } from './routes/api.workspaces'
 import { Route as ApiContactsRouteImport } from './routes/api.contacts'
 import { Route as ApiContactRolesRouteImport } from './routes/api.contact-roles'
 import { Route as ApiContactRoleAssignmentsRouteImport } from './routes/api.contact-role-assignments'
@@ -29,11 +28,6 @@ const DemoRoute = DemoRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiWorkspacesRoute = ApiWorkspacesRouteImport.update({
-  id: '/api/workspaces',
-  path: '/api/workspaces',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiContactsRoute = ApiContactsRouteImport.update({
@@ -88,7 +82,6 @@ export interface FileRoutesByFullPath {
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
   '/api/contact-roles': typeof ApiContactRolesRoute
   '/api/contacts': typeof ApiContactsRoute
-  '/api/workspaces': typeof ApiWorkspacesRoute
   '/$workspace/contacts/$contact': typeof WorkspaceContactsContactRoute
   '/$workspace/contacts/': typeof WorkspaceContactsIndexRoute
 }
@@ -100,7 +93,6 @@ export interface FileRoutesByTo {
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
   '/api/contact-roles': typeof ApiContactRolesRoute
   '/api/contacts': typeof ApiContactsRoute
-  '/api/workspaces': typeof ApiWorkspacesRoute
   '/$workspace/contacts/$contact': typeof WorkspaceContactsContactRoute
   '/$workspace/contacts': typeof WorkspaceContactsIndexRoute
 }
@@ -114,7 +106,6 @@ export interface FileRoutesById {
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
   '/api/contact-roles': typeof ApiContactRolesRoute
   '/api/contacts': typeof ApiContactsRoute
-  '/api/workspaces': typeof ApiWorkspacesRoute
   '/$workspace/contacts/$contact': typeof WorkspaceContactsContactRoute
   '/$workspace/contacts/': typeof WorkspaceContactsIndexRoute
 }
@@ -129,7 +120,6 @@ export interface FileRouteTypes {
     | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
-    | '/api/workspaces'
     | '/$workspace/contacts/$contact'
     | '/$workspace/contacts/'
   fileRoutesByTo: FileRoutesByTo
@@ -141,7 +131,6 @@ export interface FileRouteTypes {
     | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
-    | '/api/workspaces'
     | '/$workspace/contacts/$contact'
     | '/$workspace/contacts'
   id:
@@ -154,7 +143,6 @@ export interface FileRouteTypes {
     | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
-    | '/api/workspaces'
     | '/$workspace/contacts/$contact'
     | '/$workspace/contacts/'
   fileRoutesById: FileRoutesById
@@ -168,7 +156,6 @@ export interface RootRouteChildren {
   ApiContactRoleAssignmentsRoute: typeof ApiContactRoleAssignmentsRoute
   ApiContactRolesRoute: typeof ApiContactRolesRoute
   ApiContactsRoute: typeof ApiContactsRoute
-  ApiWorkspacesRoute: typeof ApiWorkspacesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -185,13 +172,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/workspaces': {
-      id: '/api/workspaces'
-      path: '/api/workspaces'
-      fullPath: '/api/workspaces'
-      preLoaderRoute: typeof ApiWorkspacesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/contacts': {
@@ -275,7 +255,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiContactRoleAssignmentsRoute: ApiContactRoleAssignmentsRoute,
   ApiContactRolesRoute: ApiContactRolesRoute,
   ApiContactsRoute: ApiContactsRoute,
-  ApiWorkspacesRoute: ApiWorkspacesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

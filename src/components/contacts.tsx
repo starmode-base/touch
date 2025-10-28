@@ -7,19 +7,17 @@ import { contactsStore } from "~/collections/contacts-collection";
 import { ContactCard } from "~/components/atoms";
 import { useMemo } from "react";
 
-export function Contacts(props: { workspaceId: string }) {
+export function Contacts(props: { userId: string }) {
   const contactRoles = useLiveQuery((q) => {
     return q
       .from({ contactRole: contactRolesCollection })
-      .where(({ contactRole }) =>
-        eq(contactRole.workspace_id, props.workspaceId),
-      );
+      .where(({ contactRole }) => eq(contactRole.userId, props.userId));
   });
 
   const contacts = useLiveQuery((q) => {
     return q
       .from({ contact: contactsStore.collection })
-      .where(({ contact }) => eq(contact.workspace_id, props.workspaceId))
+      .where(({ contact }) => eq(contact.user_id, props.userId))
       .orderBy(({ contact }) => contact.created_at, "desc")
       .orderBy(({ contact }) => contact.id, "desc");
   });
@@ -27,7 +25,7 @@ export function Contacts(props: { workspaceId: string }) {
   const roleAssignmentsWithRole = useLiveQuery((q) => {
     return q
       .from({ cra: contactRoleAssignmentsCollection })
-      .where(({ cra }) => eq(cra.workspace_id, props.workspaceId))
+      .where(({ cra }) => eq(cra.userId, props.userId))
       .innerJoin({ role: contactRolesCollection }, ({ cra, role }) =>
         eq(cra.contact_role_id, role.id),
       )
@@ -55,7 +53,6 @@ export function Contacts(props: { workspaceId: string }) {
         <ContactCard
           key={contact.id}
           createdAt={contact.created_at}
-          workspaceId={props.workspaceId}
           id={contact.id}
           name={contact.name}
           linkedin={contact.linkedin ?? undefined}
@@ -86,13 +83,13 @@ export function Contacts(props: { workspaceId: string }) {
           activeRoles={activeRolesByContactId.get(contact.id) ?? []}
           onRoleClick={(roleId) => {
             contactRoleAssignmentsCollection.insert({
-              workspace_id: props.workspaceId,
+              userId: props.userId,
               contact_id: contact.id,
               contact_role_id: roleId,
             });
           }}
           onRoleDelete={(roleId) => {
-            const key = props.workspaceId + "|" + contact.id + "|" + roleId;
+            const key = contact.id + "|" + roleId;
             contactRoleAssignmentsCollection.delete(key);
           }}
         />

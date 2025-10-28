@@ -9,9 +9,7 @@ export const Route = createFileRoute("/api/contact-activities")({
           request,
           table: "contact_activities",
           where: (viewer) => {
-            return viewer.workspaceMembershipIds.length
-              ? `workspace_id IN (${viewer.workspaceMembershipIds.map((id) => `'${id}'`).join(",")})`
-              : `FALSE`;
+            return `user_id = '${viewer.id}'`;
           },
         });
       },

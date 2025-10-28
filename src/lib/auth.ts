@@ -9,11 +9,6 @@ import { memoizeAsync } from "./memoize";
 export interface Viewer {
   id: string;
   email: string;
-  workspaceMemberships: {
-    workspaceId: string;
-    role: "administrator" | "member";
-  }[];
-  workspaceMembershipIds: string[];
 }
 
 /**
@@ -47,14 +42,6 @@ async function getViewer(userId: string): Promise<Viewer | null> {
       id: true,
       email: true,
     },
-    with: {
-      workspaceMemberships: {
-        columns: {
-          workspaceId: true,
-          role: true,
-        },
-      },
-    },
   });
 
   if (!userWithMemberships) {
@@ -64,10 +51,6 @@ async function getViewer(userId: string): Promise<Viewer | null> {
   const viewer = {
     id: userWithMemberships.id,
     email: userWithMemberships.email,
-    workspaceMemberships: userWithMemberships.workspaceMemberships,
-    workspaceMembershipIds: userWithMemberships.workspaceMemberships.map(
-      (membership) => membership.workspaceId,
-    ),
   };
 
   return viewer;
