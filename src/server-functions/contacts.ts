@@ -34,36 +34,41 @@ export const createContactInputSchema =
  */
 export const createContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(createContactInputSchemaEncrypted)
+  .inputValidator(z.array(createContactInputSchemaEncrypted))
   .handler(async ({ data, context }) => {
-    context.ensureIsInWorkspace(data.workspaceId);
+    context.ensureIsInWorkspace(data.map((item) => item.workspaceId));
 
     return db().transaction(async (tx) => {
       const txid = await generateTxId(tx);
 
-      // Create contact
-      const [contact] = await tx
-        .insert(schema.contacts)
-        .values(data)
-        .returning();
-      invariant(contact, "Failed to create contact");
+      // Create each contact in the same transaction
+      await Promise.all(
+        data.map(async (item) => {
+          // Create contact
+          const [contact] = await tx
+            .insert(schema.contacts)
+            .values(item)
+            .returning();
+          invariant(contact, "Failed to create contact");
 
-      const changes = {
-        name: data.name,
-        linkedin: data.linkedin,
-      };
+          const changes = {
+            name: item.name,
+            linkedin: item.linkedin,
+          };
 
-      // Create contact activity
-      await tx.insert(schema.contactActivities).values({
-        workspaceId: data.workspaceId,
-        contactId: contact.id,
-        createdById: context.viewer.id,
-        kind: "system:created",
-        body: JSON.stringify(changes),
-        details: changes,
-      });
+          // Create contact activity
+          await tx.insert(schema.contactActivities).values({
+            workspaceId: item.workspaceId,
+            contactId: contact.id,
+            createdById: context.viewer.id,
+            kind: "system:created",
+            body: JSON.stringify(changes),
+            details: changes,
+          });
+        }),
+      );
 
-      return { txid };
+      return txid;
     });
   });
 
@@ -73,60 +78,80 @@ export const createContactSF = createServerFn({ method: "POST" })
 export const updateContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
   .inputValidator(
-    z.object({
-      key: z.object({
-        id: SecureToken,
+    z.array(
+      z.object({
+        key: z.object({
+          id: SecureToken,
+        }),
+        fields: z.object({
+          name: createContactInputSchemaEncrypted.shape.name,
+          linkedin: createContactInputSchemaEncrypted.shape.linkedin,
+        }),
       }),
-      fields: z.object({
-        name: createContactInputSchemaEncrypted.shape.name,
-        linkedin: createContactInputSchemaEncrypted.shape.linkedin,
-      }),
-    }),
+    ),
   )
   .handler(async ({ data, context }) => {
-    const result = await db().transaction(async (tx) => {
+    return db().transaction(async (tx) => {
       const txid = await generateTxId(tx);
 
-      const contactWorkspaceId = await tx.query.contacts
-        .findFirst({
-          where: eq(schema.contacts.id, data.key.id),
+      // Get all workspace IDs for authorization check
+      const contactIds = data.map((item) => item.key.id);
+      const contactWorkspaceIds = await tx.query.contacts
+        .findMany({
+          where: inArray(schema.contacts.id, contactIds),
           columns: {
+            id: true,
             workspaceId: true,
           },
         })
-        .then((contact) => contact?.workspaceId);
-      invariant(contactWorkspaceId, "Unauthorized");
+        .then((contacts) => {
+          const workspaceMap = new Map(
+            contacts.map((c) => [c.id, c.workspaceId]),
+          );
+          return {
+            workspaceMap,
+            workspaceIds: contacts.map((c) => c.workspaceId),
+          };
+        });
 
-      // Ensure the user is in the workspace
-      context.ensureIsInWorkspace(contactWorkspaceId);
+      // Ensure the user is in all workspaces
+      context.ensureIsInWorkspace(contactWorkspaceIds.workspaceIds);
 
-      // Update contact
-      const [contact] = await tx
-        .update(schema.contacts)
-        .set(data.fields)
-        .where(eq(schema.contacts.id, data.key.id))
-        .returning();
-      invariant(contact, "Failed to update contact");
+      // Update each contact in the same transaction
+      await Promise.all(
+        data.map(async (item) => {
+          const contactWorkspaceId = contactWorkspaceIds.workspaceMap.get(
+            item.key.id,
+          );
+          invariant(contactWorkspaceId, "Contact not found");
 
-      const changes = {
-        name: data.fields.name,
-        linkedin: data.fields.linkedin,
-      };
+          // Update contact
+          const [contact] = await tx
+            .update(schema.contacts)
+            .set(item.fields)
+            .where(eq(schema.contacts.id, item.key.id))
+            .returning();
+          invariant(contact, "Failed to update contact");
 
-      // Create contact activity
-      await tx.insert(schema.contactActivities).values({
-        workspaceId: contactWorkspaceId,
-        contactId: contact.id,
-        createdById: context.viewer.id,
-        kind: "system:updated",
-        body: JSON.stringify(changes),
-        details: changes,
-      });
+          const changes = {
+            name: item.fields.name,
+            linkedin: item.fields.linkedin,
+          };
 
-      return { txid };
+          // Create contact activity
+          await tx.insert(schema.contactActivities).values({
+            workspaceId: contactWorkspaceId,
+            contactId: contact.id,
+            createdById: context.viewer.id,
+            kind: "system:updated",
+            body: JSON.stringify(changes),
+            details: changes,
+          });
+        }),
+      );
+
+      return txid;
     });
-
-    return result;
   });
 
 /**
@@ -222,27 +247,28 @@ export const upsertContactSF = createServerFn({ method: "POST" })
  */
 export const deleteContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(z.object({ id: SecureToken }))
+  .inputValidator(z.object({ ids: SecureToken.array() }))
   .handler(async ({ data, context }) => {
     return db().transaction(async (tx) => {
       const txid = await generateTxId(tx);
 
-      const contactWorkspaceId = await tx.query.contacts
-        .findFirst({
-          where: eq(schema.contacts.id, data.id),
+      const contactWorkspaceIds = await tx.query.contacts
+        .findMany({
+          where: inArray(schema.contacts.id, data.ids),
           columns: {
             workspaceId: true,
           },
         })
-        .then((contact) => contact?.workspaceId);
-      invariant(contactWorkspaceId, "Unauthorized");
+        .then((contacts) => contacts.map((contact) => contact.workspaceId));
 
       // Ensure the user is in the workspace
-      context.ensureIsInWorkspace(contactWorkspaceId);
+      context.ensureIsInWorkspace(contactWorkspaceIds);
 
-      await tx.delete(schema.contacts).where(eq(schema.contacts.id, data.id));
+      await tx
+        .delete(schema.contacts)
+        .where(inArray(schema.contacts.id, data.ids));
 
-      return { txid };
+      return txid;
     });
   });
 
