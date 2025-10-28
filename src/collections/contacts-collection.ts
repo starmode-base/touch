@@ -54,11 +54,9 @@ const contactsCollectionEncrypted = createCollection(
         };
       });
 
-      const txid = await Promise.all(
-        data.map((item) => createContactSF({ data: item })),
-      );
+      const txid = await createContactSF({ data });
 
-      return { txid: txid.map((item) => item.txid) };
+      return { txid };
     },
     onUpdate: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
@@ -71,11 +69,9 @@ const contactsCollectionEncrypted = createCollection(
         },
       }));
 
-      const txid = await Promise.all(
-        data.map((item) => updateContactSF({ data: item })),
-      );
+      const txid = await updateContactSF({ data });
 
-      return { txid: txid.map((item) => item.txid) };
+      return { txid };
     },
     onDelete: async ({ transaction }) => {
       const ids = transaction.mutations.map((item) => item.modified.id);
