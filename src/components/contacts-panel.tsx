@@ -1,6 +1,4 @@
-import { Link } from "@tanstack/react-router";
 import { Contacts } from "~/components/contacts";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { Button } from "~/components/atoms";
 import { contactsStore } from "~/collections/contacts-collection";
 import { createContactInputSchema } from "~/server-functions/contacts";
@@ -17,11 +15,6 @@ export function ContactsPanel(props: { userId: string }) {
     <div className="flex flex-col">
       <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-2 py-1">
         <div className="flex items-center gap-2">
-          <Link to="/" className="rounded p-2">
-            <ArrowLeftIcon className="size-5" />
-          </Link>
-        </div>
-        <div className="flex items-center gap-2">
           <Button onClick={auth.lock}>Lock</Button>
           <UserButton
             appearance={{
@@ -30,6 +23,7 @@ export function ContactsPanel(props: { userId: string }) {
               },
             }}
           />
+          <Button onClick={auth.signOut}>Sign out</Button>
         </div>
       </div>
       <Contacts userId={props.userId} />

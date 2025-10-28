@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { contactActivitiesCollection } from "~/lib/collections";
 import { eq, useLiveQuery } from "@tanstack/react-db";
 
-export const Route = createFileRoute("/$workspace/contacts/$contact")({
+export const Route = createFileRoute("/contacts/$contact")({
   ssr: false,
   component: RouteComponent,
 });

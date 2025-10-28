@@ -160,10 +160,7 @@ export function ContactCard(props: {
         >
           <TrashIcon className="size-4" />
         </button>
-        <Link
-          to="/$workspace/contacts/$contact"
-          params={{ workspace: "props.workspaceId", contact: props.id }}
-        >
+        <Link to="/contacts/$contact" params={{ contact: props.id }}>
           <PencilIcon className="size-4" />
         </Link>
       </div>
