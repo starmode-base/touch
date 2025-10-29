@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "touch-chrome-extension",
+      "name": "touch-chrome",
       "devDependencies": {
         "@types/chrome": "^0.1.27",
         "typescript": "^5.9.3",
