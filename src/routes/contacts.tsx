@@ -1,18 +1,26 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { SplitScreen } from "~/components/split-screen";
 import { ContactsPanel } from "~/components/contacts-panel";
+import invariant from "tiny-invariant";
 
-export const Route = createFileRoute("/$workspace/contacts")({
+export const Route = createFileRoute("/contacts")({
   ssr: false,
   component: RouteComponent,
+  loader: ({ context }) => {
+    invariant(context.viewer, "Viewer not found");
+
+    return {
+      viewer: context.viewer,
+    };
+  },
 });
 
 function RouteComponent() {
-  const params = Route.useParams();
+  const { viewer } = Route.useLoaderData();
 
   return (
     <SplitScreen>
-      <ContactsPanel workspaceId={params.workspace} />
+      <ContactsPanel userId={viewer.id} />
       <Outlet />
     </SplitScreen>
   );

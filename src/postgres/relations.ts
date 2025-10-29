@@ -1,13 +1,12 @@
 import { relations } from "drizzle-orm/relations";
 import {
-  workspaces,
+  users,
   contactActivities,
-  workspaceMemberships,
   contacts,
   contactRoles,
   opportunities,
   opportunityActivities,
-  users,
+  passkeys,
   contactRoleAssignments,
   opportunityContactLinks,
 } from "./schema";
@@ -15,53 +14,33 @@ import {
 export const contactActivitiesRelations = relations(
   contactActivities,
   ({ one }) => ({
-    workspace: one(workspaces, {
-      fields: [contactActivities.workspaceId],
-      references: [workspaces.id],
-    }),
-    workspaceMembership: one(workspaceMemberships, {
-      fields: [contactActivities.workspaceId],
-      references: [workspaceMemberships.workspaceId],
+    user: one(users, {
+      fields: [contactActivities.userId],
+      references: [users.id],
     }),
     contact: one(contacts, {
-      fields: [contactActivities.workspaceId],
+      fields: [contactActivities.userId],
       references: [contacts.id],
     }),
   }),
 );
 
-export const workspacesRelations = relations(workspaces, ({ many }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
   contactActivities: many(contactActivities),
   contacts: many(contacts),
   contactRoles: many(contactRoles),
   opportunities: many(opportunities),
   opportunityActivities: many(opportunityActivities),
-  workspaceMemberships: many(workspaceMemberships),
+  passkeys: many(passkeys),
   contactRoleAssignments: many(contactRoleAssignments),
   opportunityContactLinks: many(opportunityContactLinks),
 }));
 
-export const workspaceMembershipsRelations = relations(
-  workspaceMemberships,
-  ({ one, many }) => ({
-    contactActivities: many(contactActivities),
-    opportunityActivities: many(opportunityActivities),
-    workspace: one(workspaces, {
-      fields: [workspaceMemberships.workspaceId],
-      references: [workspaces.id],
-    }),
-    user: one(users, {
-      fields: [workspaceMemberships.userId],
-      references: [users.id],
-    }),
-  }),
-);
-
 export const contactsRelations = relations(contacts, ({ one, many }) => ({
   contactActivities: many(contactActivities),
-  workspace: one(workspaces, {
-    fields: [contacts.workspaceId],
-    references: [workspaces.id],
+  user: one(users, {
+    fields: [contacts.userId],
+    references: [users.id],
   }),
   contactRoleAssignments: many(contactRoleAssignments),
   opportunityContactLinks: many(opportunityContactLinks),
@@ -70,9 +49,9 @@ export const contactsRelations = relations(contacts, ({ one, many }) => ({
 export const contactRolesRelations = relations(
   contactRoles,
   ({ one, many }) => ({
-    workspace: one(workspaces, {
-      fields: [contactRoles.workspaceId],
-      references: [workspaces.id],
+    user: one(users, {
+      fields: [contactRoles.userId],
+      references: [users.id],
     }),
     contactRoleAssignments: many(contactRoleAssignments),
   }),
@@ -81,9 +60,9 @@ export const contactRolesRelations = relations(
 export const opportunitiesRelations = relations(
   opportunities,
   ({ one, many }) => ({
-    workspace: one(workspaces, {
-      fields: [opportunities.workspaceId],
-      references: [workspaces.id],
+    user: one(users, {
+      fields: [opportunities.userId],
+      references: [users.id],
     }),
     opportunityActivities: many(opportunityActivities),
     opportunityContactLinks: many(opportunityContactLinks),
@@ -93,38 +72,37 @@ export const opportunitiesRelations = relations(
 export const opportunityActivitiesRelations = relations(
   opportunityActivities,
   ({ one }) => ({
-    workspace: one(workspaces, {
-      fields: [opportunityActivities.workspaceId],
-      references: [workspaces.id],
-    }),
-    workspaceMembership: one(workspaceMemberships, {
-      fields: [opportunityActivities.workspaceId],
-      references: [workspaceMemberships.workspaceId],
+    user: one(users, {
+      fields: [opportunityActivities.userId],
+      references: [users.id],
     }),
     opportunity: one(opportunities, {
-      fields: [opportunityActivities.workspaceId],
+      fields: [opportunityActivities.userId],
       references: [opportunities.id],
     }),
   }),
 );
 
-export const usersRelations = relations(users, ({ many }) => ({
-  workspaceMemberships: many(workspaceMemberships),
+export const passkeysRelations = relations(passkeys, ({ one }) => ({
+  user: one(users, {
+    fields: [passkeys.userId],
+    references: [users.id],
+  }),
 }));
 
 export const contactRoleAssignmentsRelations = relations(
   contactRoleAssignments,
   ({ one }) => ({
-    workspace: one(workspaces, {
-      fields: [contactRoleAssignments.workspaceId],
-      references: [workspaces.id],
+    user: one(users, {
+      fields: [contactRoleAssignments.userId],
+      references: [users.id],
     }),
     contact: one(contacts, {
-      fields: [contactRoleAssignments.workspaceId],
+      fields: [contactRoleAssignments.userId],
       references: [contacts.id],
     }),
     contactRole: one(contactRoles, {
-      fields: [contactRoleAssignments.workspaceId],
+      fields: [contactRoleAssignments.userId],
       references: [contactRoles.id],
     }),
   }),
@@ -133,16 +111,16 @@ export const contactRoleAssignmentsRelations = relations(
 export const opportunityContactLinksRelations = relations(
   opportunityContactLinks,
   ({ one }) => ({
-    workspace: one(workspaces, {
-      fields: [opportunityContactLinks.workspaceId],
-      references: [workspaces.id],
+    user: one(users, {
+      fields: [opportunityContactLinks.userId],
+      references: [users.id],
     }),
     contact: one(contacts, {
-      fields: [opportunityContactLinks.workspaceId],
+      fields: [opportunityContactLinks.userId],
       references: [contacts.id],
     }),
     opportunity: one(opportunities, {
-      fields: [opportunityContactLinks.workspaceId],
+      fields: [opportunityContactLinks.userId],
       references: [opportunities.id],
     }),
   }),

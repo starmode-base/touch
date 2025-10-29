@@ -10,20 +10,6 @@ import { schema } from "./db";
 import type { z } from "zod";
 
 /**
- * Workspaces
- */
-export const selectWorkspaceSchema = createSelectSchema(schema.workspaces);
-export const insertWorkspaceSchema = createInsertSchema(schema.workspaces);
-export const updateWorkspaceSchema = createUpdateSchema(schema.workspaces);
-
-export type SelectWorkspace = z.infer<typeof selectWorkspaceSchema>;
-export type InsertWorkspace = z.infer<typeof insertWorkspaceSchema>;
-export type UpdateWorkspace = z.infer<typeof updateWorkspaceSchema>;
-
-export type WorkspaceSelect = typeof schema.workspaces.$inferSelect;
-export type WorkspaceInsert = typeof schema.workspaces.$inferInsert;
-
-/**
  * Contacts
  */
 export const selectContactSchema = createSelectSchema(schema.contacts);

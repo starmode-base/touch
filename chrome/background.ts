@@ -138,24 +138,6 @@ chrome.action.onClicked.addListener((tab) => {
         target: { tabId: touchTabId },
         args: [{ name, linkedin }],
         func: async (payload) => {
-          const extractWorkspaceIdFromPath = (pathname: string) => {
-            const [candidate] = pathname.split("/").filter(Boolean);
-
-            if (!candidate) return null;
-
-            if (!/^[0-9A-Za-z]{20}$/.test(candidate)) return null;
-
-            return candidate;
-          };
-
-          const workspaceId = extractWorkspaceIdFromPath(
-            window.location.pathname,
-          );
-
-          if (!workspaceId) {
-            return { ok: false as const, error: "No workspace selected" };
-          }
-
           try {
             const url = new URL("/api/chrome", window.location.origin);
             const res = await fetch(url.toString(), {
@@ -163,7 +145,6 @@ chrome.action.onClicked.addListener((tab) => {
               headers: { "content-type": "application/json" },
               credentials: "include",
               body: JSON.stringify({
-                workspaceId,
                 name: payload.name,
                 linkedin: payload.linkedin,
               }),

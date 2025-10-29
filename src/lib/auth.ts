@@ -9,11 +9,6 @@ import { memoizeAsync } from "./memoize";
 export interface Viewer {
   id: string;
   email: string;
-  workspaceMemberships: {
-    workspaceId: string;
-    role: "administrator" | "member";
-  }[];
-  workspaceMembershipIds: string[];
 }
 
 /**
@@ -38,36 +33,24 @@ const getClerkUser = async () => {
 };
 
 /**
- * Get the viewer (the current user) with memberships
+ * Get the viewer (the current user)
  */
 async function getViewer(userId: string): Promise<Viewer | null> {
-  const userWithMemberships = await db().query.users.findFirst({
+  const user = await db().query.users.findFirst({
     where: eq(schema.users.id, userId),
     columns: {
       id: true,
       email: true,
     },
-    with: {
-      workspaceMemberships: {
-        columns: {
-          workspaceId: true,
-          role: true,
-        },
-      },
-    },
   });
 
-  if (!userWithMemberships) {
+  if (!user) {
     return null;
   }
 
   const viewer = {
-    id: userWithMemberships.id,
-    email: userWithMemberships.email,
-    workspaceMemberships: userWithMemberships.workspaceMemberships,
-    workspaceMembershipIds: userWithMemberships.workspaceMemberships.map(
-      (membership) => membership.workspaceId,
-    ),
+    id: user.id,
+    email: user.email,
   };
 
   return viewer;
@@ -123,7 +106,7 @@ const upsertViewerMemoized = memoizeAsync(
 /**
  * Sync the Clerk user (email address) with the database and return the viewer
  *
- * Returns the viewer object with memberships, or null if the user is not signed in
+ * Returns the viewer object, or null if the user is not signed in
  */
 export async function syncViewer(): Promise<Viewer | null> {
   const clerkUser = await getClerkUser();
@@ -141,8 +124,7 @@ export async function syncViewer(): Promise<Viewer | null> {
 /**
  * Clear a specific user's viewer cache
  *
- * IMPORTANT: Call this after operations that change organization memberships or
- * superuser status - eg. fields retuned by syncViewer().
+ * IMPORTANT: Call this after operations that change fields returned by syncViewer().
  */
 export function clearViewerCache(userId: string) {
   getViewerMemoized.clear(userId);

@@ -10,20 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DemoRouteImport } from './routes/demo'
+import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiWorkspacesRouteImport } from './routes/api.workspaces'
+import { Route as ContactsIndexRouteImport } from './routes/contacts.index'
+import { Route as ContactsContactRouteImport } from './routes/contacts.$contact'
 import { Route as ApiContactsRouteImport } from './routes/api.contacts'
 import { Route as ApiContactRolesRouteImport } from './routes/api.contact-roles'
 import { Route as ApiContactRoleAssignmentsRouteImport } from './routes/api.contact-role-assignments'
 import { Route as ApiContactActivitiesRouteImport } from './routes/api.contact-activities'
 import { Route as ApiChromeRouteImport } from './routes/api.chrome'
-import { Route as WorkspaceContactsRouteImport } from './routes/$workspace.contacts'
-import { Route as WorkspaceContactsIndexRouteImport } from './routes/$workspace.contacts.index'
-import { Route as WorkspaceContactsContactRouteImport } from './routes/$workspace.contacts.$contact'
 
 const DemoRoute = DemoRouteImport.update({
   id: '/demo',
   path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactsRoute = ContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -31,10 +35,15 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiWorkspacesRoute = ApiWorkspacesRouteImport.update({
-  id: '/api/workspaces',
-  path: '/api/workspaces',
-  getParentRoute: () => rootRouteImport,
+const ContactsIndexRoute = ContactsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ContactsRoute,
+} as any)
+const ContactsContactRoute = ContactsContactRouteImport.update({
+  id: '/$contact',
+  path: '/$contact',
+  getParentRoute: () => ContactsRoute,
 } as any)
 const ApiContactsRoute = ApiContactsRouteImport.update({
   id: '/api/contacts',
@@ -62,35 +71,18 @@ const ApiChromeRoute = ApiChromeRouteImport.update({
   path: '/api/chrome',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WorkspaceContactsRoute = WorkspaceContactsRouteImport.update({
-  id: '/$workspace/contacts',
-  path: '/$workspace/contacts',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const WorkspaceContactsIndexRoute = WorkspaceContactsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => WorkspaceContactsRoute,
-} as any)
-const WorkspaceContactsContactRoute =
-  WorkspaceContactsContactRouteImport.update({
-    id: '/$contact',
-    path: '/$contact',
-    getParentRoute: () => WorkspaceContactsRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/contacts': typeof ContactsRouteWithChildren
   '/demo': typeof DemoRoute
-  '/$workspace/contacts': typeof WorkspaceContactsRouteWithChildren
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
   '/api/contact-roles': typeof ApiContactRolesRoute
   '/api/contacts': typeof ApiContactsRoute
-  '/api/workspaces': typeof ApiWorkspacesRoute
-  '/$workspace/contacts/$contact': typeof WorkspaceContactsContactRoute
-  '/$workspace/contacts/': typeof WorkspaceContactsIndexRoute
+  '/contacts/$contact': typeof ContactsContactRoute
+  '/contacts/': typeof ContactsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -100,38 +92,35 @@ export interface FileRoutesByTo {
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
   '/api/contact-roles': typeof ApiContactRolesRoute
   '/api/contacts': typeof ApiContactsRoute
-  '/api/workspaces': typeof ApiWorkspacesRoute
-  '/$workspace/contacts/$contact': typeof WorkspaceContactsContactRoute
-  '/$workspace/contacts': typeof WorkspaceContactsIndexRoute
+  '/contacts/$contact': typeof ContactsContactRoute
+  '/contacts': typeof ContactsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/contacts': typeof ContactsRouteWithChildren
   '/demo': typeof DemoRoute
-  '/$workspace/contacts': typeof WorkspaceContactsRouteWithChildren
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
   '/api/contact-roles': typeof ApiContactRolesRoute
   '/api/contacts': typeof ApiContactsRoute
-  '/api/workspaces': typeof ApiWorkspacesRoute
-  '/$workspace/contacts/$contact': typeof WorkspaceContactsContactRoute
-  '/$workspace/contacts/': typeof WorkspaceContactsIndexRoute
+  '/contacts/$contact': typeof ContactsContactRoute
+  '/contacts/': typeof ContactsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/contacts'
     | '/demo'
-    | '/$workspace/contacts'
     | '/api/chrome'
     | '/api/contact-activities'
     | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
-    | '/api/workspaces'
-    | '/$workspace/contacts/$contact'
-    | '/$workspace/contacts/'
+    | '/contacts/$contact'
+    | '/contacts/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -141,34 +130,31 @@ export interface FileRouteTypes {
     | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
-    | '/api/workspaces'
-    | '/$workspace/contacts/$contact'
-    | '/$workspace/contacts'
+    | '/contacts/$contact'
+    | '/contacts'
   id:
     | '__root__'
     | '/'
+    | '/contacts'
     | '/demo'
-    | '/$workspace/contacts'
     | '/api/chrome'
     | '/api/contact-activities'
     | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
-    | '/api/workspaces'
-    | '/$workspace/contacts/$contact'
-    | '/$workspace/contacts/'
+    | '/contacts/$contact'
+    | '/contacts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ContactsRoute: typeof ContactsRouteWithChildren
   DemoRoute: typeof DemoRoute
-  WorkspaceContactsRoute: typeof WorkspaceContactsRouteWithChildren
   ApiChromeRoute: typeof ApiChromeRoute
   ApiContactActivitiesRoute: typeof ApiContactActivitiesRoute
   ApiContactRoleAssignmentsRoute: typeof ApiContactRoleAssignmentsRoute
   ApiContactRolesRoute: typeof ApiContactRolesRoute
   ApiContactsRoute: typeof ApiContactsRoute
-  ApiWorkspacesRoute: typeof ApiWorkspacesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -180,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contacts': {
+      id: '/contacts'
+      path: '/contacts'
+      fullPath: '/contacts'
+      preLoaderRoute: typeof ContactsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -187,12 +180,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/workspaces': {
-      id: '/api/workspaces'
-      path: '/api/workspaces'
-      fullPath: '/api/workspaces'
-      preLoaderRoute: typeof ApiWorkspacesRouteImport
-      parentRoute: typeof rootRouteImport
+    '/contacts/': {
+      id: '/contacts/'
+      path: '/'
+      fullPath: '/contacts/'
+      preLoaderRoute: typeof ContactsIndexRouteImport
+      parentRoute: typeof ContactsRoute
+    }
+    '/contacts/$contact': {
+      id: '/contacts/$contact'
+      path: '/$contact'
+      fullPath: '/contacts/$contact'
+      preLoaderRoute: typeof ContactsContactRouteImport
+      parentRoute: typeof ContactsRoute
     }
     '/api/contacts': {
       id: '/api/contacts'
@@ -229,53 +229,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChromeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$workspace/contacts': {
-      id: '/$workspace/contacts'
-      path: '/$workspace/contacts'
-      fullPath: '/$workspace/contacts'
-      preLoaderRoute: typeof WorkspaceContactsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$workspace/contacts/': {
-      id: '/$workspace/contacts/'
-      path: '/'
-      fullPath: '/$workspace/contacts/'
-      preLoaderRoute: typeof WorkspaceContactsIndexRouteImport
-      parentRoute: typeof WorkspaceContactsRoute
-    }
-    '/$workspace/contacts/$contact': {
-      id: '/$workspace/contacts/$contact'
-      path: '/$contact'
-      fullPath: '/$workspace/contacts/$contact'
-      preLoaderRoute: typeof WorkspaceContactsContactRouteImport
-      parentRoute: typeof WorkspaceContactsRoute
-    }
   }
 }
 
-interface WorkspaceContactsRouteChildren {
-  WorkspaceContactsContactRoute: typeof WorkspaceContactsContactRoute
-  WorkspaceContactsIndexRoute: typeof WorkspaceContactsIndexRoute
+interface ContactsRouteChildren {
+  ContactsContactRoute: typeof ContactsContactRoute
+  ContactsIndexRoute: typeof ContactsIndexRoute
 }
 
-const WorkspaceContactsRouteChildren: WorkspaceContactsRouteChildren = {
-  WorkspaceContactsContactRoute: WorkspaceContactsContactRoute,
-  WorkspaceContactsIndexRoute: WorkspaceContactsIndexRoute,
+const ContactsRouteChildren: ContactsRouteChildren = {
+  ContactsContactRoute: ContactsContactRoute,
+  ContactsIndexRoute: ContactsIndexRoute,
 }
 
-const WorkspaceContactsRouteWithChildren =
-  WorkspaceContactsRoute._addFileChildren(WorkspaceContactsRouteChildren)
+const ContactsRouteWithChildren = ContactsRoute._addFileChildren(
+  ContactsRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ContactsRoute: ContactsRouteWithChildren,
   DemoRoute: DemoRoute,
-  WorkspaceContactsRoute: WorkspaceContactsRouteWithChildren,
   ApiChromeRoute: ApiChromeRoute,
   ApiContactActivitiesRoute: ApiContactActivitiesRoute,
   ApiContactRoleAssignmentsRoute: ApiContactRoleAssignmentsRoute,
   ApiContactRolesRoute: ApiContactRolesRoute,
   ApiContactsRoute: ApiContactsRoute,
-  ApiWorkspacesRoute: ApiWorkspacesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

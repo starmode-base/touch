@@ -85,7 +85,6 @@ export function ContactCard(props: {
   activeRoles: { id: string; name: string }[];
   onRoleClick: (roleId: string) => void;
   onRoleDelete: (roleId: string) => void;
-  workspaceId: string;
   id: string;
   createdAt: string;
 }) {
@@ -161,10 +160,7 @@ export function ContactCard(props: {
         >
           <TrashIcon className="size-4" />
         </button>
-        <Link
-          to="/$workspace/contacts/$contact"
-          params={{ workspace: props.workspaceId, contact: props.id }}
-        >
+        <Link to="/contacts/$contact" params={{ contact: props.id }}>
           <PencilIcon className="size-4" />
         </Link>
       </div>
