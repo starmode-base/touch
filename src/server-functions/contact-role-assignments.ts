@@ -27,8 +27,9 @@ export const createContactRoleAssignmentSF = createServerFn({ method: "POST" })
       await tx
         .insert(schema.contactRoleAssignments)
         .values({
-          ...data,
-          userId: context.viewer.id,
+          contact_id: data.contactId,
+          contact_role_id: data.contactRoleId,
+          user_id: context.viewer.id,
         })
         .returning();
 
@@ -53,9 +54,9 @@ export const deleteContactRoleAssignmentSF = createServerFn({ method: "POST" })
       await tx.delete(schema.contactRoleAssignments).where(
         and(
           // TODO: Consider adding a surrogate primary key to the table
-          eq(schema.contactRoleAssignments.userId, context.viewer.id),
-          eq(schema.contactRoleAssignments.contactId, data.contactId),
-          eq(schema.contactRoleAssignments.contactRoleId, data.contactRoleId),
+          eq(schema.contactRoleAssignments.user_id, context.viewer.id),
+          eq(schema.contactRoleAssignments.contact_id, data.contactId),
+          eq(schema.contactRoleAssignments.contact_role_id, data.contactRoleId),
         ),
       );
       return { txid };

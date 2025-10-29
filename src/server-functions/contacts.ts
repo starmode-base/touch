@@ -46,7 +46,7 @@ export const createContactSF = createServerFn({ method: "POST" })
             .insert(schema.contacts)
             .values({
               ...item,
-              userId: context.viewer.id,
+              user_id: context.viewer.id,
             })
             .returning();
           invariant(contact, "Failed to create contact");
@@ -58,8 +58,8 @@ export const createContactSF = createServerFn({ method: "POST" })
 
           // Create contact activity
           await tx.insert(schema.contactActivities).values({
-            userId: context.viewer.id,
-            contactId: contact.id,
+            user_id: context.viewer.id,
+            contact_id: contact.id,
             kind: "system:created",
             body: JSON.stringify(changes),
             details: changes,
@@ -103,7 +103,7 @@ export const updateContactSF = createServerFn({ method: "POST" })
             .where(
               and(
                 eq(schema.contacts.id, item.key.id),
-                eq(schema.contacts.userId, context.viewer.id),
+                eq(schema.contacts.user_id, context.viewer.id),
               ),
             )
             .returning();
@@ -116,8 +116,8 @@ export const updateContactSF = createServerFn({ method: "POST" })
 
           // Create contact activity
           await tx.insert(schema.contactActivities).values({
-            userId: context.viewer.id,
-            contactId: contact.id,
+            user_id: context.viewer.id,
+            contact_id: contact.id,
             kind: "system:updated",
             body: JSON.stringify(changes),
             details: changes,
@@ -161,18 +161,18 @@ export const upsertContactSF = createServerFn({ method: "POST" })
         .insert(schema.contacts)
         .values({
           ...data,
-          userId: context.viewer.id,
+          user_id: context.viewer.id,
         })
         .onConflictDoNothing({
-          target: [schema.contacts.userId, schema.contacts.linkedin],
+          target: [schema.contacts.user_id, schema.contacts.linkedin],
         })
         .returning({ id: schema.contacts.id });
 
       if (created) {
         const details = { name: data.name, linkedin: data.linkedin };
         await tx.insert(schema.contactActivities).values({
-          userId: context.viewer.id,
-          contactId: created.id,
+          user_id: context.viewer.id,
+          contact_id: created.id,
           kind: "system:created",
           body: JSON.stringify(details),
           details,
@@ -186,11 +186,11 @@ export const upsertContactSF = createServerFn({ method: "POST" })
         .update(schema.contacts)
         .set({
           name: data.name,
-          updatedAt: sql`now()`,
+          updated_at: sql`now()`,
         })
         .where(
           and(
-            eq(schema.contacts.userId, context.viewer.id),
+            eq(schema.contacts.user_id, context.viewer.id),
             eq(schema.contacts.linkedin, data.linkedin),
             sql`${schema.contacts.name} IS DISTINCT FROM ${data.name}`,
           ),
@@ -200,8 +200,8 @@ export const upsertContactSF = createServerFn({ method: "POST" })
       if (updated) {
         const details = { name: data.name, linkedin: data.linkedin };
         await tx.insert(schema.contactActivities).values({
-          userId: context.viewer.id,
-          contactId: updated.id,
+          user_id: context.viewer.id,
+          contact_id: updated.id,
           kind: "system:updated",
           body: JSON.stringify(details),
           details,
@@ -229,7 +229,7 @@ export const deleteContactSF = createServerFn({ method: "POST" })
         .delete(schema.contacts)
         .where(
           and(
-            eq(schema.contacts.userId, context.viewer.id),
+            eq(schema.contacts.user_id, context.viewer.id),
             inArray(schema.contacts.id, data.ids),
           ),
         );
@@ -242,6 +242,6 @@ export const listContactsSF = createServerFn({ method: "GET" })
   .middleware([ensureViewerMiddleware])
   .handler(async ({ context }) => {
     return db().query.contacts.findMany({
-      where: eq(schema.contacts.userId, context.viewer.id),
+      where: eq(schema.contacts.user_id, context.viewer.id),
     });
   });

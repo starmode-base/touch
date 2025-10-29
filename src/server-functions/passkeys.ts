@@ -23,11 +23,11 @@ export const storePasskeySF = createServerFn({ method: "POST" })
     const [passkey] = await db()
       .insert(schema.passkeys)
       .values({
-        userId: context.viewer.id,
-        credentialId: data.credentialId,
-        publicKey: data.publicKey,
-        wrappedDek: data.wrappedDek,
-        kekSalt: data.kekSalt,
+        user_id: context.viewer.id,
+        credential_id: data.credentialId,
+        public_key: data.publicKey,
+        wrapped_dek: data.wrappedDek,
+        kek_salt: data.kekSalt,
         transports: data.transports,
         algorithm: data.algorithm,
       })
@@ -48,15 +48,15 @@ export const getUserPasskeysSF = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const passkeys = await db()
       .select({
-        credentialId: schema.passkeys.credentialId,
-        wrappedDek: schema.passkeys.wrappedDek,
-        kekSalt: schema.passkeys.kekSalt,
+        credentialId: schema.passkeys.credential_id,
+        wrappedDek: schema.passkeys.wrapped_dek,
+        kekSalt: schema.passkeys.kek_salt,
         transports: schema.passkeys.transports,
-        createdAt: schema.passkeys.createdAt,
+        createdAt: schema.passkeys.created_at,
       })
       .from(schema.passkeys)
-      .where(eq(schema.passkeys.userId, context.viewer.id))
-      .orderBy(schema.passkeys.createdAt);
+      .where(eq(schema.passkeys.user_id, context.viewer.id))
+      .orderBy(schema.passkeys.created_at);
 
     return passkeys;
   });

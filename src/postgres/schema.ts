@@ -52,8 +52,8 @@ export const decimal2Field = () =>
 /** Base schema for most tables */
 const baseSchema = {
   id: primaryKeyField(),
-  createdAt: timestampField(),
-  updatedAt: timestampField(),
+  created_at: timestampField(),
+  updated_at: timestampField(),
 };
 
 /**
@@ -69,7 +69,7 @@ export const users = pgTable("users", {
    */
   email: text().notNull(),
   /** Stable unique user identifier from Clerk */
-  clerkUserId: text().notNull().unique(),
+  clerk_user_id: text().notNull().unique(),
 });
 
 /**
@@ -81,17 +81,17 @@ export const users = pgTable("users", {
  */
 export const passkeys = pgTable("passkeys", {
   ...baseSchema,
-  userId: text()
+  user_id: text()
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   /** WebAuthn credential ID (base64url-encoded, globally unique) */
-  credentialId: text().notNull().unique(),
+  credential_id: text().notNull().unique(),
   /** Base64url-encoded public key (for future authentication) */
-  publicKey: text().notNull(),
+  public_key: text().notNull(),
   /** Base64url-encoded DEK wrapped by this passkey's KEK */
-  wrappedDek: text().notNull(),
+  wrapped_dek: text().notNull(),
   /** Base64url-encoded salt for deriving KEK from PRF output */
-  kekSalt: text().notNull(),
+  kek_salt: text().notNull(),
   /** Transports for UX optimization (e.g., ["internal", "hybrid"]) */
   transports: jsonb().$type<string[]>().notNull(),
   /** Algorithm used (e.g., -7 for ES256) */
@@ -105,7 +105,7 @@ export const contacts = pgTable(
   "contacts",
   {
     ...baseSchema,
-    userId: text()
+    user_id: text()
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     name: text().notNull(),
@@ -114,11 +114,11 @@ export const contacts = pgTable(
   (t) => [
     // Enforce: LinkedIn is unique per user (NULLs allowed; duplicates only
     // blocked when present)
-    unique().on(t.userId, t.linkedin),
+    unique().on(t.user_id, t.linkedin),
 
     // FK support: Unique constraint to support composite foreign keys from
     // other tables
-    unique().on(t.userId, t.id),
+    unique().on(t.user_id, t.id),
   ],
 );
 
@@ -131,7 +131,7 @@ export const contactRoles = pgTable(
   "contact_roles",
   {
     ...baseSchema,
-    userId: text()
+    user_id: text()
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     // Ex: "inner_circle", "peer", "etc."
@@ -144,11 +144,11 @@ export const contactRoles = pgTable(
   },
   (t) => [
     // Enforce: Role name is unique per user
-    unique().on(t.userId, t.key),
+    unique().on(t.user_id, t.key),
 
     // FK support: Unique constraint to support composite foreign keys from
     // other tables
-    unique().on(t.userId, t.id),
+    unique().on(t.user_id, t.id),
   ],
 );
 
@@ -160,28 +160,28 @@ export const contactRoles = pgTable(
 export const contactRoleAssignments = pgTable(
   "contact_role_assignments",
   {
-    userId: text()
+    user_id: text()
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
-    contactId: text().notNull(),
-    contactRoleId: text().notNull(),
-    createdAt: timestampField(),
-    updatedAt: timestampField(),
+    contact_id: text().notNull(),
+    contact_role_id: text().notNull(),
+    created_at: timestampField(),
+    updated_at: timestampField(),
   },
   (t) => [
     // Enforce: a contact can only have a specific role once
-    primaryKey({ columns: [t.userId, t.contactId, t.contactRoleId] }),
+    primaryKey({ columns: [t.user_id, t.contact_id, t.contact_role_id] }),
 
     // FK constraint: Contact must belong to this user
     foreignKey({
-      columns: [t.userId, t.contactId],
-      foreignColumns: [contacts.userId, contacts.id],
+      columns: [t.user_id, t.contact_id],
+      foreignColumns: [contacts.user_id, contacts.id],
     }).onDelete("cascade"),
 
     // FK constraint: Role must belong to this user
     foreignKey({
-      columns: [t.userId, t.contactRoleId],
-      foreignColumns: [contactRoles.userId, contactRoles.id],
+      columns: [t.user_id, t.contact_role_id],
+      foreignColumns: [contactRoles.user_id, contactRoles.id],
     }).onDelete("cascade"),
   ],
 );
@@ -193,11 +193,11 @@ export const contactActivities = pgTable(
   "contact_activities",
   {
     ...baseSchema,
-    userId: text()
+    user_id: text()
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
-    contactId: text().notNull(),
-    happenedAt: date({ mode: "string" }).defaultNow().notNull(),
+    contact_id: text().notNull(),
+    happened_at: date({ mode: "string" }).defaultNow().notNull(),
     kind: text()
       .$type<
         // A touch with the contact (call, email, etc.), used for contact's last
@@ -219,8 +219,8 @@ export const contactActivities = pgTable(
   (t) => [
     // FK constraint: Contact must belong to this user
     foreignKey({
-      columns: [t.userId, t.contactId],
-      foreignColumns: [contacts.userId, contacts.id],
+      columns: [t.user_id, t.contact_id],
+      foreignColumns: [contacts.user_id, contacts.id],
     }).onDelete("cascade"),
 
     // Check constraint: details required for system:* kinds, and must be NULL
@@ -247,7 +247,7 @@ export const opportunities = pgTable(
   "opportunities",
   {
     ...baseSchema,
-    userId: text()
+    user_id: text()
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     name: text().notNull(),
@@ -256,7 +256,7 @@ export const opportunities = pgTable(
   (t) => [
     // FK support: Unique constraint to support composite foreign keys from
     // other tables
-    unique().on(t.userId, t.id),
+    unique().on(t.user_id, t.id),
   ],
 );
 
@@ -268,28 +268,28 @@ export const opportunities = pgTable(
 export const opportunityContactLinks = pgTable(
   "opportunity_contact_links",
   {
-    userId: text()
+    user_id: text()
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
-    opportunityId: text().notNull(),
-    contactId: text().notNull(),
-    createdAt: timestampField(),
-    updatedAt: timestampField(),
+    opportunity_id: text().notNull(),
+    contact_id: text().notNull(),
+    created_at: timestampField(),
+    updated_at: timestampField(),
   },
   (t) => [
     // Enforce: a contact can only be linked to an opportunity once
-    primaryKey({ columns: [t.userId, t.opportunityId, t.contactId] }),
+    primaryKey({ columns: [t.user_id, t.opportunity_id, t.contact_id] }),
 
     // FK constraint: Contact must belong to this user
     foreignKey({
-      columns: [t.userId, t.contactId],
-      foreignColumns: [contacts.userId, contacts.id],
+      columns: [t.user_id, t.contact_id],
+      foreignColumns: [contacts.user_id, contacts.id],
     }).onDelete("cascade"),
 
     // FK constraint: Opportunity must belong to this user
     foreignKey({
-      columns: [t.userId, t.opportunityId],
-      foreignColumns: [opportunities.userId, opportunities.id],
+      columns: [t.user_id, t.opportunity_id],
+      foreignColumns: [opportunities.user_id, opportunities.id],
     }).onDelete("cascade"),
   ],
 );
@@ -301,11 +301,11 @@ export const opportunityActivities = pgTable(
   "opportunity_activities",
   {
     ...baseSchema,
-    userId: text()
+    user_id: text()
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
-    opportunityId: text().notNull(),
-    happenedAt: date({ mode: "string" }).defaultNow().notNull(),
+    opportunity_id: text().notNull(),
+    happened_at: date({ mode: "string" }).defaultNow().notNull(),
     kind: text()
       .$type<
         // A user note about the opportunity
@@ -322,34 +322,34 @@ export const opportunityActivities = pgTable(
     // Only for kind:'system:*'
     details: jsonb().$type<{ name?: string; status?: OpportunityStatus }>(),
     // Only for kind='user:next_step': when the next step is due
-    dueAt: date({ mode: "string" }),
+    due_at: date({ mode: "string" }),
     // Only for kind='user:next_step': when the next step was closed
-    closedAt: timestamp({ mode: "string" }),
+    closed_at: timestamp({ mode: "string" }),
   },
   (t) => [
     // FK constraint: Opportunity must belong to this user
     foreignKey({
-      columns: [t.userId, t.opportunityId],
-      foreignColumns: [opportunities.userId, opportunities.id],
+      columns: [t.user_id, t.opportunity_id],
+      foreignColumns: [opportunities.user_id, opportunities.id],
     }).onDelete("cascade"),
 
     // Enforce: at most one open next step per opportunity
     uniqueIndex()
-      .on(t.opportunityId)
-      .where(sql`${t.kind} = 'user:next_step' AND ${t.closedAt} IS NULL`),
+      .on(t.opportunity_id)
+      .where(sql`${t.kind} = 'user:next_step' AND ${t.closed_at} IS NULL`),
 
     // Check constraint: dueAt _must_ be set when kind is 'user:next_step', and
     // must be null for all other kinds
     check(
       "due_at_only_for_next_step",
-      sql`(${t.kind} = 'user:next_step' AND ${t.dueAt} IS NOT NULL) OR (${t.kind} != 'user:next_step' AND ${t.dueAt} IS NULL)`,
+      sql`(${t.kind} = 'user:next_step' AND ${t.due_at} IS NOT NULL) OR (${t.kind} != 'user:next_step' AND ${t.due_at} IS NULL)`,
     ),
 
     // Check constraint: closedAt _may_ only be set for 'user:next_step', and it
     // must be null for all other kinds
     check(
       "closed_at_only_for_next_step",
-      sql`(${t.kind} = 'user:next_step') OR (${t.closedAt} IS NULL)`,
+      sql`(${t.kind} = 'user:next_step') OR (${t.closed_at} IS NULL)`,
     ),
 
     // Check constraint: details required for system:* kinds, and must be NULL

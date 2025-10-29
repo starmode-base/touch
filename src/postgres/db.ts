@@ -6,7 +6,6 @@ import { ensureEnv } from "~/lib/env";
 
 const db = lazySingleton(() => {
   return drizzle(ensureEnv("DATABASE_URL"), {
-    casing: "snake_case",
     schema: { ...schema, ...relations },
   });
 });

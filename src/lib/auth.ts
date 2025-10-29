@@ -69,15 +69,15 @@ async function upsertViewer(clerkUser: {
   const [user] = await db()
     .insert(schema.users)
     .values({
-      clerkUserId: clerkUser.id,
+      clerk_user_id: clerkUser.id,
       email: clerkUser.email,
     })
     .onConflictDoUpdate({
-      target: [schema.users.clerkUserId],
+      target: [schema.users.clerk_user_id],
       set: {
         email: clerkUser.email,
         // Only update the updatedAt field if the email is different
-        updatedAt: sql`case when excluded.email is distinct from ${schema.users.email} then now() else ${schema.users.updatedAt} end`,
+        updated_at: sql`case when excluded.email is distinct from ${schema.users.email} then now() else ${schema.users.updated_at} end`,
       },
     })
     .returning({ id: schema.users.id });
