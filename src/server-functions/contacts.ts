@@ -100,7 +100,12 @@ export const updateContactSF = createServerFn({ method: "POST" })
           const [contact] = await tx
             .update(schema.contacts)
             .set(item.fields)
-            .where(eq(schema.contacts.id, item.key.id))
+            .where(
+              and(
+                eq(schema.contacts.id, item.key.id),
+                eq(schema.contacts.userId, context.viewer.id),
+              ),
+            )
             .returning();
           invariant(contact, "Failed to update contact");
 

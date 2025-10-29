@@ -4,13 +4,14 @@ import { z } from "zod";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { generateTxId } from "~/postgres/helpers";
 import { and, eq } from "drizzle-orm";
+import { SecureToken } from "~/lib/validators";
 
 /**
  * Validation schema for creating a contact role assignment
  */
 export const createContactRoleAssignmentInputSchema = z.object({
-  contactId: z.string(),
-  contactRoleId: z.string(),
+  contactId: SecureToken,
+  contactRoleId: SecureToken,
 });
 
 /**
@@ -42,8 +43,8 @@ export const deleteContactRoleAssignmentSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
   .inputValidator(
     z.object({
-      contactId: z.string(),
-      contactRoleId: z.string(),
+      contactId: SecureToken,
+      contactRoleId: SecureToken,
     }),
   )
   .handler(async ({ data, context }) => {

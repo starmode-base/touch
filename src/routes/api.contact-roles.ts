@@ -9,6 +9,7 @@ export const Route = createFileRoute("/api/contact-roles")({
           request,
           table: "contact_roles",
           where: (viewer) => {
+            // Safe: viewer.id is alphanumeric-only token from gen_secure_token()
             return `user_id = '${viewer.id}'`;
           },
         });

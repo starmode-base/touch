@@ -6,6 +6,7 @@ const serve = (args: { request: Request }) => {
     request: args.request,
     table: "contacts",
     where: (viewer) => {
+      // Safe: viewer.id is alphanumeric-only token from gen_secure_token()
       return `user_id = '${viewer.id}'`;
     },
   });
