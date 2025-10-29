@@ -35,7 +35,6 @@ export function ContactsPanel(props: { userId: string }) {
           const ok = createContactInputSchema.safeParse({
             name: fd.get("name"),
             linkedin: null,
-            userId: props.userId,
           }).success;
 
           setIsValid(e.currentTarget.checkValidity() && ok);
@@ -47,7 +46,6 @@ export function ContactsPanel(props: { userId: string }) {
           const values = createContactInputSchema.parse({
             name: fd.get("name"),
             linkedin: null,
-            userId: props.userId,
           });
 
           const { name, linkedinUrl } = extractLinkedInAndName(values.name);
