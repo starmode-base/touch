@@ -25,7 +25,7 @@ export const contactRolesCollection = createCollection(
       id: z.string(),
       key: z.string(),
       name: z.string(),
-      userId: z.string(),
+      user_id: z.string(),
     }),
     getKey: (item) => item.id,
     shapeOptions: {
@@ -43,7 +43,7 @@ export const contactRoleAssignmentsCollection = createCollection(
     schema: z.object({
       contact_id: z.string(),
       contact_role_id: z.string(),
-      userId: z.string(),
+      user_id: z.string(),
     }),
     getKey: (item) => {
       return item.contact_id + "|" + item.contact_role_id;
@@ -91,7 +91,7 @@ export const contactActivitiesCollection = createCollection(
       id: z.string(),
       created_at: z.string(),
       updated_at: z.string(),
-      userId: z.string(),
+      user_id: z.string(),
       contact_id: z.string(),
       happened_at: z.string(),
       kind: z.string(),

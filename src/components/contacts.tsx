@@ -11,7 +11,7 @@ export function Contacts(props: { userId: string }) {
   const contactRoles = useLiveQuery((q) => {
     return q
       .from({ contactRole: contactRolesCollection })
-      .where(({ contactRole }) => eq(contactRole.userId, props.userId));
+      .where(({ contactRole }) => eq(contactRole.user_id, props.userId));
   });
 
   const contacts = useLiveQuery((q) => {
@@ -25,7 +25,7 @@ export function Contacts(props: { userId: string }) {
   const roleAssignmentsWithRole = useLiveQuery((q) => {
     return q
       .from({ cra: contactRoleAssignmentsCollection })
-      .where(({ cra }) => eq(cra.userId, props.userId))
+      .where(({ cra }) => eq(cra.user_id, props.userId))
       .innerJoin({ role: contactRolesCollection }, ({ cra, role }) =>
         eq(cra.contact_role_id, role.id),
       )
@@ -83,7 +83,7 @@ export function Contacts(props: { userId: string }) {
           activeRoles={activeRolesByContactId.get(contact.id) ?? []}
           onRoleClick={(roleId) => {
             contactRoleAssignmentsCollection.insert({
-              userId: props.userId,
+              user_id: props.userId,
               contact_id: contact.id,
               contact_role_id: roleId,
             });
