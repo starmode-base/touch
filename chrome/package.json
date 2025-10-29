@@ -7,7 +7,7 @@
     "typecheck": "tsc"
   },
   "devDependencies": {
-    "@types/chrome": "^0.1.11",
-    "typescript": "^5.9.2"
+    "@types/chrome": "^0.1.27",
+    "typescript": "^5.9.3"
   }
 }
