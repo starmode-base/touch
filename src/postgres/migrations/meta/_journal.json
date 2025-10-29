@@ -12,64 +12,8 @@
     {
       "idx": 1,
       "version": "7",
-      "when": 1756918581377,
-      "tag": "0001_amazing_selene",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1757897278214,
-      "tag": "0002_peaceful_tigra",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1757897290739,
-      "tag": "0003_slippery_mandarin",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1758588796421,
-      "tag": "0004_lazy_boom_boom",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1761346955894,
-      "tag": "0005_clammy_supernaut",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1761672082862,
-      "tag": "0006_same_salo",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1761672099385,
-      "tag": "0007_naive_johnny_blaze",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1761764650113,
-      "tag": "0008_silent_clea",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1761764654625,
-      "tag": "0009_keen_magma",
+      "when": 1761766075568,
+      "tag": "0001_peaceful_sentry",
       "breakpoints": true
     }
   ]
