@@ -6,13 +6,12 @@
     "moduleResolution": "Bundler",
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "isolatedModules": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "target": "ES2022",
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "noUncheckedIndexedAccess": true,
     "verbatimModuleSyntax": true
-  },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules", "**/*.js", "**/*.jsx", "**/*.tsx"]
+  }
 }
