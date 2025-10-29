@@ -93,8 +93,6 @@ export const contactActivitiesCollection = createCollection(
       updated_at: z.string(),
       userId: z.string(),
       contact_id: z.string(),
-      // TODO: Remove this field
-      created_by_id: z.string(),
       happened_at: z.string(),
       kind: z.string(),
       body: z.string(),
