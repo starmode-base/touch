@@ -111,10 +111,6 @@ export const contactRoleAssignmentsRelations = relations(
 export const opportunityContactLinksRelations = relations(
   opportunityContactLinks,
   ({ one }) => ({
-    user: one(users, {
-      fields: [opportunityContactLinks.user_id],
-      references: [users.id],
-    }),
     contact: one(contacts, {
       fields: [opportunityContactLinks.user_id],
       references: [contacts.id],
@@ -122,6 +118,10 @@ export const opportunityContactLinksRelations = relations(
     opportunity: one(opportunities, {
       fields: [opportunityContactLinks.user_id],
       references: [opportunities.id],
+    }),
+    user: one(users, {
+      fields: [opportunityContactLinks.user_id],
+      references: [users.id],
     }),
   }),
 );
