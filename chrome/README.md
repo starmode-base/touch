@@ -8,11 +8,11 @@
 
 ## Usage
 
-1. Open a Touch tab with a workspace selected
+1. Open [Touch](https://touch.starmode.dev/) in a browser tab
 2. Navigate to any LinkedIn profile page
 3. Click the Touch extension icon
 
-The extension automatically detects your workspace from the most recently used Touch tab and uses your existing app session to authenticate.
+The extension automatically uses your existing app session from the most recently used Touch tab to authenticate.
 
 ## Notifications
 
