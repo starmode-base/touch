@@ -30,7 +30,7 @@ test("Drizzle ORM WebSocket database operations", async () => {
 
   await db().insert(schema.users).values({
     email: "ellen.ripley@example.com",
-    clerkUserId: "qSX0fLb39fQz8GqRvk9D",
+    clerk_user_id: "qSX0fLb39fQz8GqRvk9D",
   });
 
   const users = await db().select().from(schema.users);
@@ -38,10 +38,10 @@ test("Drizzle ORM WebSocket database operations", async () => {
   expect(users).toStrictEqual([
     {
       id: expect.any(String),
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
+      created_at: expect.any(String),
+      updated_at: expect.any(String),
       email: "ellen.ripley@example.com",
-      clerkUserId: "qSX0fLb39fQz8GqRvk9D",
+      clerk_user_id: "qSX0fLb39fQz8GqRvk9D",
     },
   ]);
 });

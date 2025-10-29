@@ -15,11 +15,11 @@ export const contactActivitiesRelations = relations(
   contactActivities,
   ({ one }) => ({
     user: one(users, {
-      fields: [contactActivities.userId],
+      fields: [contactActivities.user_id],
       references: [users.id],
     }),
     contact: one(contacts, {
-      fields: [contactActivities.userId],
+      fields: [contactActivities.user_id],
       references: [contacts.id],
     }),
   }),
@@ -39,7 +39,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const contactsRelations = relations(contacts, ({ one, many }) => ({
   contactActivities: many(contactActivities),
   user: one(users, {
-    fields: [contacts.userId],
+    fields: [contacts.user_id],
     references: [users.id],
   }),
   contactRoleAssignments: many(contactRoleAssignments),
@@ -50,7 +50,7 @@ export const contactRolesRelations = relations(
   contactRoles,
   ({ one, many }) => ({
     user: one(users, {
-      fields: [contactRoles.userId],
+      fields: [contactRoles.user_id],
       references: [users.id],
     }),
     contactRoleAssignments: many(contactRoleAssignments),
@@ -61,7 +61,7 @@ export const opportunitiesRelations = relations(
   opportunities,
   ({ one, many }) => ({
     user: one(users, {
-      fields: [opportunities.userId],
+      fields: [opportunities.user_id],
       references: [users.id],
     }),
     opportunityActivities: many(opportunityActivities),
@@ -73,11 +73,11 @@ export const opportunityActivitiesRelations = relations(
   opportunityActivities,
   ({ one }) => ({
     user: one(users, {
-      fields: [opportunityActivities.userId],
+      fields: [opportunityActivities.user_id],
       references: [users.id],
     }),
     opportunity: one(opportunities, {
-      fields: [opportunityActivities.userId],
+      fields: [opportunityActivities.user_id],
       references: [opportunities.id],
     }),
   }),
@@ -85,7 +85,7 @@ export const opportunityActivitiesRelations = relations(
 
 export const passkeysRelations = relations(passkeys, ({ one }) => ({
   user: one(users, {
-    fields: [passkeys.userId],
+    fields: [passkeys.user_id],
     references: [users.id],
   }),
 }));
@@ -94,15 +94,15 @@ export const contactRoleAssignmentsRelations = relations(
   contactRoleAssignments,
   ({ one }) => ({
     user: one(users, {
-      fields: [contactRoleAssignments.userId],
+      fields: [contactRoleAssignments.user_id],
       references: [users.id],
     }),
     contact: one(contacts, {
-      fields: [contactRoleAssignments.userId],
+      fields: [contactRoleAssignments.user_id],
       references: [contacts.id],
     }),
     contactRole: one(contactRoles, {
-      fields: [contactRoleAssignments.userId],
+      fields: [contactRoleAssignments.user_id],
       references: [contactRoles.id],
     }),
   }),
@@ -112,15 +112,15 @@ export const opportunityContactLinksRelations = relations(
   opportunityContactLinks,
   ({ one }) => ({
     user: one(users, {
-      fields: [opportunityContactLinks.userId],
+      fields: [opportunityContactLinks.user_id],
       references: [users.id],
     }),
     contact: one(contacts, {
-      fields: [opportunityContactLinks.userId],
+      fields: [opportunityContactLinks.user_id],
       references: [contacts.id],
     }),
     opportunity: one(opportunities, {
-      fields: [opportunityContactLinks.userId],
+      fields: [opportunityContactLinks.user_id],
       references: [opportunities.id],
     }),
   }),
