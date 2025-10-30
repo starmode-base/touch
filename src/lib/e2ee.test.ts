@@ -47,6 +47,23 @@ describe("encryptField and decryptField", () => {
     expect(encrypted.length).toBeGreaterThan(plaintext.length);
   });
 
+  test("encrypted value never contains padding", async () => {
+    // Test with various plaintext lengths that would produce padding if using standard base64
+    const plaintexts = [
+      "a", // 1 byte
+      "ab", // 2 bytes
+      "abcde", // 5 bytes
+      "Alice Smith",
+      "Bob Jones",
+    ];
+
+    for (const plaintext of plaintexts) {
+      const encrypted = await encryptField(plaintext, dek);
+      // Verify no padding characters are present
+      expect(encrypted).not.toContain("=");
+    }
+  });
+
   test("encrypting same plaintext twice produces different ciphertext", async () => {
     const plaintext = "Charlie Brown";
     const encrypted1 = await encryptField(plaintext, dek);

@@ -26,6 +26,7 @@ export const createContactInputSchemaEncrypted = z.object({
 export const createContactInputSchema =
   createContactInputSchemaEncrypted.extend({
     name: ContactName,
+    linkedin: LinkedInUrl.nullable(),
   });
 
 /**
@@ -143,6 +144,7 @@ export const upsertContactInputSchemaEncrypted = z.object({
 export const upsertContactInputSchema =
   upsertContactInputSchemaEncrypted.extend({
     name: ContactName,
+    linkedin: LinkedInUrl,
   });
 
 /**
