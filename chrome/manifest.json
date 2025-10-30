@@ -3,7 +3,11 @@
   "name": "Touch",
   "version": "0.1.0",
   "action": {
-    "default_title": "Save to Touch"
+    "default_title": "Save to Touch",
+    "default_icon": {
+      "48": "icon-gray-48.png",
+      "128": "icon-gray-128.png"
+    }
   },
   "background": {
     "service_worker": "background.js",

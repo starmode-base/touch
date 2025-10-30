@@ -144,50 +144,166 @@ async function checkDekUnlocked(tabId: number): Promise<boolean> {
 const dekStateByTab = new Map<number, boolean>();
 
 /**
- * Update extension icon state based on Touch tab availability and DEK unlock status
+ * Check if a URL is a LinkedIn profile page
  */
-async function updateIconState(): Promise<void> {
-  const allowedOrigins = getAllowedOriginsFromManifest();
-  const touchTabId = await findBestTouchTab(allowedOrigins);
+function isLinkedInProfilePage(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    const normalizedUrl = normalizeLinkedInUrl(url);
+    return normalizedUrl !== null;
+  } catch {
+    return false;
+  }
+}
 
-  if (!touchTabId) {
-    await chrome.action.setIcon({ path: ICON_PATHS.disabled });
-    // Clear badge when no Touch tab is available
-    await chrome.action.setBadgeText({ text: "" });
-    await chrome.action.setTitle({
-      title: "Touch: Open Touch app in a browser tab",
+/**
+ * Base function to set icon state with all visual properties
+ */
+async function setIcon(options: {
+  tabId: number;
+  iconState: IconState;
+  badge: {
+    text: string;
+    color: string;
+  } | null;
+  title: string;
+}): Promise<void> {
+  await chrome.action.setTitle({ tabId: options.tabId, title: options.title });
+
+  await chrome.action.setIcon({
+    tabId: options.tabId,
+    path: ICON_PATHS[options.iconState],
+  });
+
+  if (options.badge) {
+    await chrome.action.setBadgeText({
+      tabId: options.tabId,
+      text: options.badge.text,
     });
 
+    await chrome.action.setBadgeBackgroundColor({
+      tabId: options.tabId,
+      color: options.badge.color,
+    });
+  } else {
+    await chrome.action.setBadgeText({ tabId: options.tabId, text: "" });
+  }
+}
+
+/**
+ * Set icon to disabled state (gray, not on LinkedIn)
+ */
+async function setIconDisabled(tabId: number): Promise<void> {
+  await setIcon({
+    tabId,
+    iconState: "disabled",
+    badge: null,
+    title: "Touch: Navigate to a LinkedIn profile page to save contacts",
+  });
+}
+
+/**
+ * Set icon to "no Touch tab" state (black icon, red badge)
+ */
+async function setIconNoTouch(tabId: number): Promise<void> {
+  await setIcon({
+    tabId,
+    iconState: "enabled",
+    badge: { text: "!", color: "#dc2626" },
+    title: "Touch: Open Touch app in a browser tab",
+  });
+}
+
+/**
+ * Set icon to "locked" state (black icon, yellow badge)
+ */
+async function setIconLocked(tabId: number): Promise<void> {
+  await setIcon({
+    tabId,
+    iconState: "enabled",
+    badge: { text: "!", color: "#eab308" },
+    title: "Touch: Unlock your vault to save contacts",
+  });
+}
+
+/**
+ * Set icon to "ready" state (black icon, green badge)
+ */
+async function setIconReady(tabId: number): Promise<void> {
+  await setIcon({
+    tabId,
+    iconState: "enabled",
+    badge: { text: "✓", color: "#16a34a" },
+    title: "Touch: Ready to save contacts",
+  });
+}
+
+/**
+ * Update icon state for a specific tab using progressive guard clauses
+ */
+async function updateTabIconState(
+  tabId: number,
+  url: string | undefined,
+): Promise<void> {
+  // Not LinkedIn → gray
+  if (!url || !isLinkedInProfilePage(url)) {
+    await setIconDisabled(tabId);
     return;
   }
 
-  // Use cached state if available, otherwise check
+  // LinkedIn profile - check Touch/DEK state
+  const allowedOrigins = getAllowedOriginsFromManifest();
+  const touchTabId = await findBestTouchTab(allowedOrigins);
+
+  // No Touch → red
+  if (!touchTabId) {
+    await setIconNoTouch(tabId);
+    return;
+  }
+
+  // Has Touch - check DEK status
   const cachedState = dekStateByTab.get(touchTabId);
   const isDekUnlocked =
     cachedState !== undefined
       ? cachedState
       : await checkDekUnlocked(touchTabId);
 
-  // Update badge and title
-  if (isDekUnlocked) {
-    await chrome.action.setIcon({ path: ICON_PATHS.enabled });
-    await chrome.action.setBadgeText({ text: "✓" });
-    await chrome.action.setBadgeBackgroundColor({ color: "#16a34a" }); // green
-    await chrome.action.setTitle({ title: "Touch: Ready to save contacts" });
-  } else {
-    await chrome.action.setIcon({ path: ICON_PATHS.disabled });
-    await chrome.action.setBadgeText({ text: "!" });
-    await chrome.action.setBadgeBackgroundColor({ color: "#dc2626" }); // red
-    await chrome.action.setTitle({
-      title: "Touch: Unlock your vault to save contacts",
-    });
+  // Touch + locked → yellow
+  if (!isDekUnlocked) {
+    await setIconLocked(tabId);
+    return;
   }
+
+  // Touch + unlocked → green (happy path!)
+  await setIconReady(tabId);
+}
+
+/**
+ * Update icon state for all tabs (across all windows)
+ */
+async function updateAllTabsIconState(): Promise<void> {
+  const tabs = await chrome.tabs.query({});
+
+  // Only update LinkedIn tabs - non-LinkedIn tabs are already gray by default
+  const linkedInTabs = tabs.filter(
+    (tab) => tab.id !== undefined && tab.url && isLinkedInProfilePage(tab.url),
+  );
+
+  await Promise.all(
+    linkedInTabs.map((tab) => updateTabIconState(tab.id!, tab.url)),
+  );
 }
 
 chrome.action.onClicked.addListener((tab) => {
   const run = async () => {
     try {
       if (!tab || typeof tab.id !== "number") throw new Error("No active tab");
+
+      // 0) Check if we're on a LinkedIn profile page
+      if (!tab.url || !isLinkedInProfilePage(tab.url)) {
+        await notify("Navigate to a LinkedIn profile page to save contacts");
+        return;
+      }
 
       // 1) Extract LinkedIn data from the current tab
       const [injection] = await chrome.scripting.executeScript({
@@ -329,24 +445,26 @@ chrome.action.onClicked.addListener((tab) => {
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "DEK_STATE_CHANGE" && sender.tab?.id) {
+    const tabId = sender.tab.id;
+
     // Update cached state
-    dekStateByTab.set(sender.tab.id, message.isUnlocked);
-    // Update icon state immediately
-    void updateIconState();
+    dekStateByTab.set(tabId, message.isUnlocked);
+    // Update ALL tabs since DEK state affects all LinkedIn tabs
+    void updateAllTabsIconState();
     sendResponse({ success: true });
   }
   return true; // Keep channel open for async response
 });
 
 /**
- * Update icon state on startup
+ * Update all tabs' icon state on startup
  */
-void updateIconState();
+void updateAllTabsIconState();
 
 /**
- * Update icon state when tabs are updated (only for Touch tabs)
+ * Update icon state when tabs are updated
  */
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   // Only check when navigation completes
   if (changeInfo.status !== "complete") return;
 
@@ -354,11 +472,20 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (!tab.url) return;
 
   const tabOrigin = new URL(tab.url).origin;
-  if (allowedOrigins.includes(tabOrigin)) {
+  const isTouchTab = allowedOrigins.includes(tabOrigin);
+
+  if (isTouchTab) {
     // Clear cached state on navigation (new page load)
     dekStateByTab.delete(tabId);
-    void updateIconState();
+    // Touch tabs are never LinkedIn, set gray immediately
+    await setIconDisabled(tabId);
+    // Update ALL other tabs since system state may have changed
+    void updateAllTabsIconState();
+    return;
   }
+
+  // For non-Touch tabs, update just this tab's icon (handles LinkedIn navigation)
+  void updateTabIconState(tabId, tab.url);
 });
 
 /**
@@ -366,5 +493,15 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
  */
 chrome.tabs.onRemoved.addListener((tabId) => {
   dekStateByTab.delete(tabId);
-  void updateIconState();
+  // Update all tabs in case the removed tab was the Touch tab
+  void updateAllTabsIconState();
+});
+
+/**
+ * Update icon state when user switches tabs
+ */
+chrome.tabs.onActivated.addListener(() => {
+  // When switching tabs, the "best Touch tab" may have changed
+  // Update all LinkedIn tabs to reflect the current best Touch tab's DEK state
+  void updateAllTabsIconState();
 });
