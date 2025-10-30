@@ -768,6 +768,42 @@ export async function unlockWithPasskey(
 let globalDek: Uint8Array | null = null;
 
 /**
+ * DEK state change event
+ */
+export interface DekStateChangeEvent {
+  isUnlocked: boolean;
+}
+
+type DekStateChangeListener = (event: DekStateChangeEvent) => void;
+
+const dekStateChangeListeners: DekStateChangeListener[] = [];
+
+/**
+ * Register a listener for DEK state changes
+ *
+ * Returns a cleanup function to remove the listener
+ */
+export function onDekStateChange(listener: DekStateChangeListener): () => void {
+  dekStateChangeListeners.push(listener);
+  return () => {
+    const index = dekStateChangeListeners.indexOf(listener);
+    if (index !== -1) {
+      dekStateChangeListeners.splice(index, 1);
+    }
+  };
+}
+
+/**
+ * Notify all listeners of DEK state change
+ */
+function notifyDekStateChange(isUnlocked: boolean): void {
+  const event: DekStateChangeEvent = { isUnlocked };
+  for (const listener of dekStateChangeListeners) {
+    listener(event);
+  }
+}
+
+/**
  * Store DEK in memory for the current tab session
  */
 export function setGlobalDek(dek: Uint8Array): void {
@@ -775,6 +811,7 @@ export function setGlobalDek(dek: Uint8Array): void {
     throw new Error("DEK must be 32 bytes");
   }
   globalDek = dek;
+  notifyDekStateChange(true);
 }
 
 /**
@@ -794,6 +831,7 @@ export function getGlobalDek(): Uint8Array {
  */
 export function clearGlobalDek(): void {
   globalDek = null;
+  notifyDekStateChange(false);
 }
 
 /**
