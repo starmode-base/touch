@@ -9,6 +9,13 @@
     "service_worker": "background.js",
     "type": "module"
   },
+  "content_scripts": [
+    {
+      "matches": ["https://touch.starmode.dev/*", "http://localhost:3012/*"],
+      "js": ["content-script.js"],
+      "run_at": "document_start"
+    }
+  ],
   "permissions": ["scripting", "activeTab", "tabs", "notifications"],
   "host_permissions": [
     "https://touch.starmode.dev/*",

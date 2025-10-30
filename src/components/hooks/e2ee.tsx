@@ -53,6 +53,21 @@ export function E2eeProvider(props: React.PropsWithChildren) {
     clearGlobalDek();
   };
 
+  // Notify Chrome extension when DEK state changes
+  useEffect(() => {
+    // Only dispatch if we're in a browser environment
+    if (typeof window === "undefined") return;
+
+    // Dispatch message for Chrome extension to listen
+    window.postMessage(
+      {
+        type: "TOUCH_DEK_STATE_CHANGE",
+        isUnlocked: dek !== null,
+      },
+      window.location.origin,
+    );
+  }, [dek]);
+
   const value: E2eeContext = {
     isDekUnlocked: dek !== null,
     dek,

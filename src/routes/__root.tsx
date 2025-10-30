@@ -14,6 +14,7 @@ import { syncViewerSF } from "~/server-functions/viewer";
 import { Button } from "~/components/atoms";
 import { E2eeProvider } from "~/components/hooks/e2ee";
 import { E2eeGate } from "~/components/e2ee-gate";
+import "~/lib/e2ee-globals";
 
 export const Route = createRootRoute({
   beforeLoad: async () => ({

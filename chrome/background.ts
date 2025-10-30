@@ -4,6 +4,25 @@ console.log("Background service worker initialized!");
 const linkedinPattern = /^https:\/\/www\.linkedin\.com\/in\/[a-z0-9-]+\/$/;
 
 /**
+ * Icon state enum
+ */
+type IconState = "enabled" | "disabled";
+
+/**
+ * Icon paths for different states
+ */
+const ICON_PATHS: Record<IconState, { "48": string; "128": string }> = {
+  enabled: {
+    "48": "icon-48.png",
+    "128": "icon-128.png",
+  },
+  disabled: {
+    "48": "icon-gray-48.png",
+    "128": "icon-gray-128.png",
+  },
+};
+
+/**
  * Normalize a LinkedIn URL to the canonical format
  */
 function normalizeLinkedInUrl(input: string) {
@@ -32,7 +51,7 @@ async function notify(message: string): Promise<void> {
   try {
     await chrome.notifications.create({
       type: "basic",
-      iconUrl: "icon-128.png",
+      iconUrl: ICON_PATHS["enabled"]["128"],
       title: "Touch",
       message,
     });
@@ -92,6 +111,79 @@ async function findBestTouchTab(origins: string[]) {
   return null;
 }
 
+/**
+ * Check if DEK is unlocked in a Touch tab
+ */
+async function checkDekUnlocked(tabId: number): Promise<boolean> {
+  try {
+    const [injection] = await chrome.scripting.executeScript({
+      target: { tabId },
+      world: "MAIN",
+      func: () => {
+        const win = window as any;
+        try {
+          return win.isDekUnlocked?.() ?? false;
+        } catch {
+          return false;
+        }
+      },
+    });
+
+    return injection?.result === true;
+  } catch (error) {
+    // Script injection might fail if page isn't ready or CSP blocks it
+    // Return false to be safe
+    console.log("Failed to check DEK unlock status:", error);
+    return false;
+  }
+}
+
+/**
+ * Track DEK unlock state per tab
+ */
+const dekStateByTab = new Map<number, boolean>();
+
+/**
+ * Update extension icon state based on Touch tab availability and DEK unlock status
+ */
+async function updateIconState(): Promise<void> {
+  const allowedOrigins = getAllowedOriginsFromManifest();
+  const touchTabId = await findBestTouchTab(allowedOrigins);
+
+  if (!touchTabId) {
+    await chrome.action.setIcon({ path: ICON_PATHS.disabled });
+    // Clear badge when no Touch tab is available
+    await chrome.action.setBadgeText({ text: "" });
+    await chrome.action.setTitle({
+      title: "Touch: Open Touch app in a browser tab",
+    });
+
+    return;
+  }
+
+  // Use cached state if available, otherwise check
+  const cachedState = dekStateByTab.get(touchTabId);
+  const isDekUnlocked =
+    cachedState !== undefined
+      ? cachedState
+      : await checkDekUnlocked(touchTabId);
+
+  // Update badge and title
+  if (isDekUnlocked) {
+    await chrome.action.setIcon({ path: ICON_PATHS.enabled });
+    await chrome.action.setBadgeText({ text: "✓" });
+    await chrome.action.setBadgeBackgroundColor({ color: "#16a34a" }); // green
+    await chrome.action.setTitle({ title: "Touch: Ready to save contacts" });
+  } else {
+    await chrome.action.setIcon({ path: ICON_PATHS.disabled });
+    await chrome.action.setBadgeText({ text: "!" });
+    await chrome.action.setBadgeBackgroundColor({ color: "#dc2626" }); // red
+    await chrome.action.setTitle({
+      title: "Touch: Unlock your vault to save contacts",
+    });
+  }
+}
+
 chrome.action.onClicked.addListener((tab) => {
   const run = async () => {
     try {
@@ -129,23 +221,42 @@ chrome.action.onClicked.addListener((tab) => {
       const touchTabId = await findBestTouchTab(allowedOrigins);
 
       if (!touchTabId) {
-        await notify("Open the Touch app to sync contacts");
+        await notify(
+          "Touch app not open - Open Touch in a browser tab to sync contacts",
+        );
         return;
       }
 
-      // 3) Post directly via the Touch tab so auth cookies apply
+      // 3) Encrypt the name and post via the Touch tab so auth cookies apply
+      // We check DEK status inside the injected script for better reliability
+      // Use MAIN world to access page's window object where globals are set
       const [inj] = await chrome.scripting.executeScript({
         target: { tabId: touchTabId },
+        world: "MAIN",
         args: [{ name, linkedin }],
         func: async (payload) => {
           try {
+            const win = window as any;
+
+            // Check if DEK is unlocked (functions are always available)
+            if (!win.isDekUnlocked?.()) {
+              return {
+                ok: false as const,
+                error: "DEK_LOCKED",
+                debug: "DEK is not unlocked",
+              };
+            }
+
+            // Encrypt the name (function throws if DEK not available)
+            const encryptedName = await win.encryptContactName(payload.name);
+
             const url = new URL("/api/chrome", window.location.origin);
             const res = await fetch(url.toString(), {
               method: "POST",
               headers: { "content-type": "application/json" },
               credentials: "include",
               body: JSON.stringify({
-                name: payload.name,
+                name: encryptedName,
                 linkedin: payload.linkedin,
               }),
             });
@@ -160,7 +271,11 @@ chrome.action.onClicked.addListener((tab) => {
             return { ok: true as const, data };
           } catch (e) {
             if (e instanceof Error) {
-              return { ok: false as const, error: e.message };
+              return {
+                ok: false as const,
+                error: e.message,
+                debug: `Exception: ${e.message} ${e.stack || ""}`,
+              };
             }
 
             throw e;
@@ -181,12 +296,25 @@ chrome.action.onClicked.addListener((tab) => {
         return;
       }
 
-      await notify(
+      // Handle specific error cases
+      if (result?.error === "DEK_LOCKED") {
+        // Log debug info to console for troubleshooting
+        console.log("DEK_LOCKED error:", result?.debug);
+        await notify(
+          "Unlock Touch to save contacts - Click the Touch app tab and unlock your vault",
+        );
+        return;
+      }
+
+      const errorMessage =
         result?.error ||
-          (result?.status === 401
-            ? "Sign in to Touch"
-            : "Failed to save contact"),
-      );
+        (result?.status === 401
+          ? "Sign in to Touch"
+          : result?.error?.includes("encrypt") || result?.error?.includes("DEK")
+            ? "Failed to encrypt contact name"
+            : "Failed to save contact");
+
+      await notify(errorMessage);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       await notify(message);
@@ -194,4 +322,49 @@ chrome.action.onClicked.addListener((tab) => {
   };
 
   void run();
+});
+
+/**
+ * Listen for messages from content script
+ */
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "DEK_STATE_CHANGE" && sender.tab?.id) {
+    // Update cached state
+    dekStateByTab.set(sender.tab.id, message.isUnlocked);
+    // Update icon state immediately
+    void updateIconState();
+    sendResponse({ success: true });
+  }
+  return true; // Keep channel open for async response
+});
+
+/**
+ * Update icon state on startup
+ */
+void updateIconState();
+
+/**
+ * Update icon state when tabs are updated (only for Touch tabs)
+ */
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  // Only check when navigation completes
+  if (changeInfo.status !== "complete") return;
+
+  const allowedOrigins = getAllowedOriginsFromManifest();
+  if (!tab.url) return;
+
+  const tabOrigin = new URL(tab.url).origin;
+  if (allowedOrigins.includes(tabOrigin)) {
+    // Clear cached state on navigation (new page load)
+    dekStateByTab.delete(tabId);
+    void updateIconState();
+  }
+});
+
+/**
+ * Update icon state when tabs are removed
+ */
+chrome.tabs.onRemoved.addListener((tabId) => {
+  dekStateByTab.delete(tabId);
+  void updateIconState();
 });
