@@ -23,6 +23,7 @@ export default defineConfig([
       ".output/*",
       ".tanstack/*",
       "dist/*",
+      "chrome/*",
       "**/*.{js,mjs,cjs,jsx}",
     ],
   },
