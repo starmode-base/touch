@@ -6,21 +6,7 @@
  */
 import { clerkMiddleware } from "@clerk/tanstack-react-start/server";
 import { createStart } from "@tanstack/react-start";
-import { onDekStateChange } from "~/lib/e2ee";
-
-// Set up Chrome extension integration
-// Listen to DEK state changes and notify the extension
-if (typeof window !== "undefined") {
-  onDekStateChange((event) => {
-    window.postMessage(
-      {
-        type: "TOUCH_DEK_STATE_CHANGE",
-        isUnlocked: event.isUnlocked,
-      },
-      window.location.origin,
-    );
-  });
-}
+import "~/lib/e2ee-globals";
 
 export const startInstance = createStart(() => {
   return {

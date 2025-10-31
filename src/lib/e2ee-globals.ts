@@ -11,9 +11,16 @@
  * Functions handle DEK availability internally:
  * - isDekUnlocked() returns false if DEK is not available
  * - encryptContactName() throws if DEK is not available
+ *
+ * Also sets up DEK state change notifications to the chrome extension via postMessage.
  */
 
-import { hasGlobalDek, getGlobalDek, encryptField } from "./e2ee";
+import {
+  hasGlobalDek,
+  getGlobalDek,
+  encryptField,
+  onDekStateChange,
+} from "./e2ee";
 
 /**
  * Global window interface for E2EE functions exposed to chrome extension
@@ -58,4 +65,16 @@ function setupE2eeGlobals(): void {
 // Initialize globals once when module loads (if in browser)
 if (typeof window !== "undefined") {
   setupE2eeGlobals();
+
+  // Set up Chrome extension integration
+  // Listen to DEK state changes and notify the extension
+  onDekStateChange((event) => {
+    window.postMessage(
+      {
+        type: "TOUCH_DEK_STATE_CHANGE",
+        isUnlocked: event.isUnlocked,
+      },
+      window.location.origin,
+    );
+  });
 }
