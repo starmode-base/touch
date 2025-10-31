@@ -6,6 +6,7 @@
  */
 import { clerkMiddleware } from "@clerk/tanstack-react-start/server";
 import { createStart } from "@tanstack/react-start";
+import "~/lib/e2ee-globals";
 
 export const startInstance = createStart(() => {
   return {
