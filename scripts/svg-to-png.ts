@@ -7,6 +7,7 @@ export async function convertSvgToPng(inputFileUrl: URL, sizes: number[]) {
     inputFileUrl.pathname,
     path.extname(inputFileUrl.pathname),
   );
+
   for (const size of sizes) {
     const filename = `${baseName}-${size}.png`;
     const outputUrl = new URL(filename, inputFileUrl);
