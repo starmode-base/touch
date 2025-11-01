@@ -10,7 +10,7 @@
         "@neondatabase/serverless": "^1.0.2",
         "@tailwindcss/vite": "^4.1.16",
         "@tanstack/electric-db-collection": "^0.1.40",
-        "@tanstack/query-core": "^5.90.5",
+        "@tanstack/query-core": "^5.90.6",
         "@tanstack/query-db-collection": "^0.2.37",
         "@tanstack/react-db": "^0.1.36",
         "@tanstack/react-router": "^1.133.36",
@@ -458,7 +458,7 @@
 
     "@tanstack/pacer": ["@tanstack/pacer@0.1.0", "", {}, "sha512-QVzkGO5clvGj/qdX8H2wUj0QCXCLZ/pwPMnfSqhoYfpzDRkRHDj+3D+VzdcehBIVnE+GCd1D/P1tGMzfjmfrzQ=="],
 
-    "@tanstack/query-core": ["@tanstack/query-core@5.90.5", "", {}, "sha512-wLamYp7FaDq6ZnNehypKI5fNvxHPfTYylE0m/ZpuuzJfJqhR5Pxg9gvGBHZx4n7J+V5Rg5mZxHHTlv25Zt5u+w=="],
+    "@tanstack/query-core": ["@tanstack/query-core@5.90.6", "", {}, "sha512-AnZSLF26R8uX+tqb/ivdrwbVdGemdEDm1Q19qM6pry6eOZ6bEYiY7mWhzXT1YDIPTNEVcZ5kYP9nWjoxDLiIVw=="],
 
     "@tanstack/query-db-collection": ["@tanstack/query-db-collection@0.2.37", "", { "dependencies": { "@standard-schema/spec": "^1.0.0", "@tanstack/db": "0.4.14" }, "peerDependencies": { "@tanstack/query-core": "^5.0.0", "typescript": ">=4.7" } }, "sha512-r8WB3vHw8svW/ohG67vaHvNvQkdhiEHNW7nGxRYfCV8Pqgn5jM09hwkV3pwnBhIAjXX79gujC6Fv0o6i35SzGQ=="],
 
