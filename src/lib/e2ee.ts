@@ -41,12 +41,16 @@ function requireBrowser(message: string): void {
   }
 }
 
+function generateRandomBytes(byteLength: number) {
+  return crypto.getRandomValues(new Uint8Array(byteLength));
+}
+
 function generateKekSalt(byteLength = 16): Uint8Array {
   if (byteLength <= 0) {
     throw new Error("kek salt length must be positive");
   }
 
-  return crypto.getRandomValues(new Uint8Array(byteLength));
+  return generateRandomBytes(byteLength);
 }
 
 function ensureArrayBuffer(view: Uint8Array): Uint8Array<ArrayBuffer> {
@@ -136,7 +140,7 @@ export function toHex(u8: Uint8Array) {
  * Generate a random 32-byte DEK (Data Encryption Key)
  */
 export function generateDek(): Uint8Array {
-  return crypto.getRandomValues(new Uint8Array(32));
+  return generateRandomBytes(32);
 }
 
 /**
@@ -157,7 +161,7 @@ async function wrapDekWithKek(
   }
 
   // Generate random 12-byte nonce for AES-GCM
-  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const nonce = generateRandomBytes(12);
 
   // Import KEK for AES-GCM
   const kekKey = await crypto.subtle.importKey(
@@ -368,7 +372,7 @@ export async function attemptAutoUnlock(
   }));
 
   // Single WebAuthn call with PRF evaluation
-  const challenge = crypto.getRandomValues(new Uint8Array(32));
+  const challenge = generateRandomBytes(32);
 
   const assertion = await navigator.credentials.get({
     publicKey: {
@@ -482,8 +486,8 @@ export async function enrollPasskey(
   const prfInput = await getPrfInput(options.origin);
 
   // Step 2: Create PRF-enabled passkey with PRF evaluation
-  const userId = crypto.getRandomValues(new Uint8Array(32));
-  const challenge = crypto.getRandomValues(new Uint8Array(32));
+  const userId = generateRandomBytes(32);
+  const challenge = generateRandomBytes(32);
 
   const credential = await navigator.credentials.create({
     publicKey: {
@@ -589,8 +593,8 @@ export async function addAdditionalPasskey(
   const prfInput = await getPrfInput(options.origin);
 
   // Step 2: Create PRF-enabled passkey with PRF evaluation
-  const userId = crypto.getRandomValues(new Uint8Array(32));
-  const challenge = crypto.getRandomValues(new Uint8Array(32));
+  const userId = generateRandomBytes(32);
+  const challenge = generateRandomBytes(32);
 
   const credential = await navigator.credentials.create({
     publicKey: {
@@ -692,7 +696,7 @@ export async function unlockWithPasskey(
   const allowCredentials = prepareAllowCredentials(options.passkeys);
 
   // Step 3: Single WebAuthn call with PRF evaluation
-  const challenge = crypto.getRandomValues(new Uint8Array(32));
+  const challenge = generateRandomBytes(32);
 
   const assertion = await navigator.credentials.get({
     publicKey: {
@@ -845,7 +849,7 @@ export async function encryptField(
   }
 
   // Generate random 12-byte IV (nonce) for AES-GCM
-  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const iv = generateRandomBytes(12);
 
   // Import DEK for AES-GCM encryption
   const key = await crypto.subtle.importKey(
