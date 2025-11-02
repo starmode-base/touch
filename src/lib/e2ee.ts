@@ -35,17 +35,6 @@ function base64urlDecode(base64url: string): Uint8Array {
   return bytes;
 }
 
-interface KekDerivationOptions {
-  /** Per-user random salt stored server-side (16-64 bytes recommended) */
-  kekSalt: Uint8Array;
-  /** Origin for PRF context binding (e.g., location.origin) */
-  origin: string;
-  /** Optional HKDF info label; defaults to 'kek-v1' */
-  hkdfInfo?: string;
-  /** Optional PRF context label included in the PRF input; defaults to 'kek' */
-  prfContext?: string;
-}
-
 function requireBrowser(message: string): void {
   if (typeof window === "undefined" || typeof navigator === "undefined") {
     throw new Error(message);
@@ -77,127 +66,6 @@ async function sha256(data: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(digest);
 }
 
-function toUint8(arrayBuffer: ArrayBuffer): Uint8Array {
-  return new Uint8Array(arrayBuffer);
-}
-
-/**
- * Create a PRF-enabled resident credential for E2EE
- *
- * Returns credential details including the public key for future authentication
- * (Option 2 migration), though the public key is not used yet in Option 1 where
- * Clerk handles authentication.
- */
-export async function createPrfPasskey(options: {
-  /** Relying Party ID (required, typically the domain) */
-  rpId: string;
-  rpName?: string;
-  userName?: string;
-  userDisplayName?: string;
-}) {
-  requireBrowser("create prf passkey requires a browser environment");
-
-  if (!options.rpId) {
-    throw new Error("rpId is required");
-  }
-
-  const rpName = options.rpName ?? "Touch";
-  const userName = options.userName ?? "e2ee-" + new Date().toISOString();
-  const userDisplayName = options.userDisplayName ?? "E2EE key";
-
-  const userId = new Uint8Array(32);
-  crypto.getRandomValues(userId);
-
-  const challenge = new Uint8Array(32);
-  crypto.getRandomValues(challenge);
-
-  const prfSeed = new Uint8Array(32);
-  crypto.getRandomValues(prfSeed);
-
-  const credential = await navigator.credentials.create({
-    publicKey: {
-      challenge,
-      rp: {
-        name: rpName,
-        id: options.rpId,
-      },
-      user: {
-        id: userId,
-        name: userName,
-        displayName: userDisplayName,
-      },
-      pubKeyCredParams: [{ type: "public-key", alg: -7 }],
-      authenticatorSelection: {
-        residentKey: "required",
-        userVerification: "required",
-      },
-      extensions: {
-        prf: {
-          eval: {
-            first: prfSeed,
-          },
-        },
-      },
-    },
-  });
-
-  if (!(credential instanceof PublicKeyCredential)) {
-    throw new Error("expected PublicKeyCredential");
-  }
-
-  if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
-    throw new Error("expected AuthenticatorAttestationResponse");
-  }
-
-  // Extract public key (for future authentication in Option 2)
-  const publicKeyBytes = credential.response.getPublicKey();
-  if (!publicKeyBytes) {
-    throw new Error("public key not available in credential response");
-  }
-
-  return {
-    credentialId: base64urlEncode(credential.rawId),
-    publicKey: base64urlEncode(publicKeyBytes),
-    transports: credential.response.getTransports(),
-    algorithm: -7, // ES256
-  };
-}
-
-async function getWebAuthnPrf(firstInput: Uint8Array): Promise<Uint8Array> {
-  requireBrowser("webauthn prf requires a browser environment");
-
-  const challenge = new Uint8Array(32);
-  crypto.getRandomValues(challenge);
-
-  const publicKey: PublicKeyCredentialRequestOptions = {
-    challenge,
-    userVerification: "required",
-    extensions: {
-      prf: {
-        eval: {
-          first: ensureArrayBuffer(firstInput),
-        },
-      },
-    },
-  };
-
-  const credential = await navigator.credentials.get({ publicKey });
-
-  if (!(credential instanceof PublicKeyCredential)) {
-    throw new Error("expected PublicKeyCredential");
-  }
-
-  const first = credential.getClientExtensionResults().prf?.results?.first;
-
-  if (!(first instanceof ArrayBuffer)) {
-    throw new Error(
-      "webauthn prf not available on this credential or platform",
-    );
-  }
-
-  return toUint8(first);
-}
-
 async function hkdfExtractAndExpand(
   ikm: Uint8Array,
   salt: Uint8Array,
@@ -225,42 +93,42 @@ async function hkdfExtractAndExpand(
 }
 
 /**
- * Derive a KEK using WebAuthn PRF output and HKDF-SHA256
+ * Generate constant PRF input for all passkeys
+ *
+ * This input is constant for a given origin, allowing single-prompt authentication.
+ * Per-passkey KEK differentiation happens via unique kekSalt values in HKDF.
  */
-export async function deriveKekWithWebAuthn(
-  options: KekDerivationOptions,
-): Promise<{
-  kek: Uint8Array; // 32 bytes
-  prfOutput: Uint8Array; // 32 bytes
-}> {
-  const { kekSalt, origin, hkdfInfo = "kek-v1", prfContext = "kek" } = options;
-
-  if (kekSalt.byteLength < 16) {
-    throw new Error("kekSalt length must be at least 16 bytes");
-  }
-
+export async function getPrfInput(origin: string): Promise<Uint8Array> {
   if (!origin) {
     throw new Error("origin is required for PRF context binding");
   }
 
-  // Bind PRF input to origin and context to avoid cross-origin re-use
-  const prfLabelBytes = new TextEncoder().encode(
-    `${origin}::${prfContext}::v1`,
-  );
+  const prfLabelBytes = new TextEncoder().encode(`${origin}::kek::v1`);
+  return await sha256(prfLabelBytes);
+}
 
-  const firstInput = await sha256(prfLabelBytes);
-
-  const prfOutput = await getWebAuthnPrf(firstInput);
+/**
+ * Derive a KEK from PRF output using HKDF-SHA256
+ *
+ * Takes pre-computed PRF output (from WebAuthn) and derives a KEK using the
+ * per-passkey salt. This allows single-prompt authentication while maintaining
+ * unique KEKs per passkey.
+ */
+export async function deriveKekFromPrfOutput(
+  prfOutput: Uint8Array,
+  kekSalt: Uint8Array,
+  hkdfInfo = "kek-v1",
+): Promise<Uint8Array> {
   if (prfOutput.byteLength !== 32) {
-    throw new Error(
-      `unexpected prf output length: expected 32 bytes, got ${prfOutput.byteLength}`,
-    );
+    throw new Error("PRF output must be 32 bytes");
+  }
+
+  if (kekSalt.byteLength < 16) {
+    throw new Error("kekSalt must be at least 16 bytes");
   }
 
   const infoBytes = new TextEncoder().encode(hkdfInfo);
-  const kek = await hkdfExtractAndExpand(prfOutput, kekSalt, infoBytes, 256);
-
-  return { kek, prfOutput };
+  return await hkdfExtractAndExpand(prfOutput, kekSalt, infoBytes, 256);
 }
 
 export function toHex(u8: Uint8Array) {
@@ -455,6 +323,7 @@ export function clearCachedKek(): void {
  * Attempt to auto-unlock the DEK using cached KEK or WebAuthn
  *
  * Returns the DEK if successful, throws an error if it fails.
+ * Uses single WebAuthn prompt by including PRF evaluation in authentication
  */
 export async function attemptAutoUnlock(
   passkeys: StoredPasskey[],
@@ -487,12 +356,15 @@ export async function attemptAutoUnlock(
     return dek;
   }
 
-  // Step 2: No cached KEK, do WebAuthn authentication
+  // Step 2: No cached KEK, do WebAuthn authentication with PRF
   console.log("No cached KEK, triggering WebAuthn...");
 
   if (passkeys.length === 0) {
     throw new Error("No passkeys found");
   }
+
+  // Generate constant PRF input
+  const prfInput = await getPrfInput(location.origin);
 
   // Prepare allowCredentials for WebAuthn
   const allowCredentials = passkeys.map((passkey) => ({
@@ -501,7 +373,7 @@ export async function attemptAutoUnlock(
     transports: passkey.transports as AuthenticatorTransport[],
   }));
 
-  // Trigger WebAuthn authentication
+  // Single WebAuthn call with PRF evaluation
   const challenge = new Uint8Array(32);
   crypto.getRandomValues(challenge);
 
@@ -510,11 +382,24 @@ export async function attemptAutoUnlock(
       challenge,
       allowCredentials,
       userVerification: "required",
+      extensions: {
+        prf: {
+          eval: {
+            first: ensureArrayBuffer(prfInput),
+          },
+        },
+      },
     },
   });
 
   if (!(assertion instanceof PublicKeyCredential)) {
     throw new Error("expected PublicKeyCredential");
+  }
+
+  // Extract PRF output
+  const prfOutput = assertion.getClientExtensionResults().prf?.results?.first;
+  if (!(prfOutput instanceof ArrayBuffer)) {
+    throw new Error("PRF extension not available");
   }
 
   // Find matching passkey by credential ID
@@ -533,12 +418,9 @@ export async function attemptAutoUnlock(
     throw new Error("Passkey not found in stored passkeys");
   }
 
-  // Derive KEK using the matched passkey's salt
+  // Derive KEK from PRF output + matched passkey's salt
   const kekSalt = hexToUint8Array(matchedPasskey.kekSalt);
-  const { kek } = await deriveKekWithWebAuthn({
-    kekSalt,
-    origin: location.origin,
-  });
+  const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
 
   // Unwrap DEK with KEK
   const dek = await unwrapDekWithKek(matchedPasskey.wrappedDek, kek);
@@ -596,40 +478,90 @@ interface EnrollPasskeyResult {
  * Complete passkey enrollment flow
  *
  * Creates PRF-enabled passkey, generates DEK, wraps it with KEK
+ * Uses single WebAuthn prompt by including PRF evaluation in credential creation
  */
 export async function enrollPasskey(
   options: EnrollPasskeyOptions,
 ): Promise<EnrollPasskeyResult> {
-  // Step 1: Create PRF-enabled passkey
-  const passkeyResult = await createPrfPasskey({
-    rpId: options.rpId,
-    rpName: options.rpName,
-    userDisplayName: options.userDisplayName,
+  requireBrowser("enrollPasskey requires a browser environment");
+
+  // Step 1: Generate constant PRF input
+  const prfInput = await getPrfInput(options.origin);
+
+  // Step 2: Create PRF-enabled passkey with PRF evaluation
+  const userId = new Uint8Array(32);
+  crypto.getRandomValues(userId);
+
+  const challenge = new Uint8Array(32);
+  crypto.getRandomValues(challenge);
+
+  const credential = await navigator.credentials.create({
+    publicKey: {
+      challenge,
+      rp: {
+        name: options.rpName,
+        id: options.rpId,
+      },
+      user: {
+        id: userId,
+        name: "e2ee-" + new Date().toISOString(),
+        displayName: options.userDisplayName,
+      },
+      pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+      authenticatorSelection: {
+        residentKey: "required",
+        userVerification: "required",
+      },
+      extensions: {
+        prf: {
+          eval: {
+            first: ensureArrayBuffer(prfInput),
+          },
+        },
+      },
+    },
   });
 
-  // Step 2: Generate KEK salt
+  if (!(credential instanceof PublicKeyCredential)) {
+    throw new Error("expected PublicKeyCredential");
+  }
+
+  if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
+    throw new Error("expected AuthenticatorAttestationResponse");
+  }
+
+  // Step 3: Extract PRF output
+  const prfOutput = credential.getClientExtensionResults().prf?.results?.first;
+  if (!(prfOutput instanceof ArrayBuffer)) {
+    throw new Error(
+      "PRF extension not available on this credential or platform",
+    );
+  }
+
+  // Step 4: Extract public key
+  const publicKeyBytes = credential.response.getPublicKey();
+  if (!publicKeyBytes) {
+    throw new Error("public key not available in credential response");
+  }
+
+  // Step 5: Generate KEK salt and derive KEK
   const kekSalt = generateKekSalt(32);
+  const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
 
-  // Step 3: Derive KEK from passkey's PRF output
-  const { kek } = await deriveKekWithWebAuthn({
-    kekSalt,
-    origin: options.origin,
-  });
-
-  // Step 4: Generate random DEK
+  // Step 6: Generate random DEK
   const dek = generateDek();
 
-  // Step 5: Wrap DEK with KEK
+  // Step 7: Wrap DEK with KEK
   const wrappedDek = await wrapDekWithKek(dek, kek);
 
   return {
     dek,
-    credentialId: passkeyResult.credentialId,
-    publicKey: passkeyResult.publicKey,
+    credentialId: base64urlEncode(credential.rawId),
+    publicKey: base64urlEncode(publicKeyBytes),
     wrappedDek,
     kekSalt: toHex(kekSalt),
-    transports: passkeyResult.transports,
-    algorithm: passkeyResult.algorithm.toString(),
+    transports: credential.response.getTransports(),
+    algorithm: "-7",
     kek,
   };
 }
@@ -656,36 +588,86 @@ interface AddAdditionalPasskeyResult {
  * Add an additional passkey for an existing DEK
  *
  * Creates new PRF-enabled passkey and wraps the existing DEK with new KEK
+ * Uses single WebAuthn prompt by including PRF evaluation in credential creation
  */
 export async function addAdditionalPasskey(
   options: AddAdditionalPasskeyOptions,
 ): Promise<AddAdditionalPasskeyResult> {
-  // Step 1: Create new PRF-enabled passkey
-  const passkeyResult = await createPrfPasskey({
-    rpId: options.rpId,
-    rpName: options.rpName,
-    userDisplayName: options.userDisplayName,
+  requireBrowser("addAdditionalPasskey requires a browser environment");
+
+  // Step 1: Generate constant PRF input
+  const prfInput = await getPrfInput(options.origin);
+
+  // Step 2: Create PRF-enabled passkey with PRF evaluation
+  const userId = new Uint8Array(32);
+  crypto.getRandomValues(userId);
+
+  const challenge = new Uint8Array(32);
+  crypto.getRandomValues(challenge);
+
+  const credential = await navigator.credentials.create({
+    publicKey: {
+      challenge,
+      rp: {
+        name: options.rpName,
+        id: options.rpId,
+      },
+      user: {
+        id: userId,
+        name: "e2ee-" + new Date().toISOString(),
+        displayName: options.userDisplayName,
+      },
+      pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+      authenticatorSelection: {
+        residentKey: "required",
+        userVerification: "required",
+      },
+      extensions: {
+        prf: {
+          eval: {
+            first: ensureArrayBuffer(prfInput),
+          },
+        },
+      },
+    },
   });
 
-  // Step 2: Generate new KEK salt for this passkey
+  if (!(credential instanceof PublicKeyCredential)) {
+    throw new Error("expected PublicKeyCredential");
+  }
+
+  if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
+    throw new Error("expected AuthenticatorAttestationResponse");
+  }
+
+  // Step 3: Extract PRF output
+  const prfOutput = credential.getClientExtensionResults().prf?.results?.first;
+  if (!(prfOutput instanceof ArrayBuffer)) {
+    throw new Error(
+      "PRF extension not available on this credential or platform",
+    );
+  }
+
+  // Step 4: Extract public key
+  const publicKeyBytes = credential.response.getPublicKey();
+  if (!publicKeyBytes) {
+    throw new Error("public key not available in credential response");
+  }
+
+  // Step 5: Generate new KEK salt and derive KEK
   const kekSalt = generateKekSalt(32);
+  const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
 
-  // Step 3: Derive KEK from new passkey's PRF output
-  const { kek } = await deriveKekWithWebAuthn({
-    kekSalt,
-    origin: options.origin,
-  });
-
-  // Step 4: Wrap existing DEK with new KEK
+  // Step 6: Wrap existing DEK with new KEK
   const wrappedDek = await wrapDekWithKek(options.dek, kek);
 
   return {
-    credentialId: passkeyResult.credentialId,
-    publicKey: passkeyResult.publicKey,
+    credentialId: base64urlEncode(credential.rawId),
+    publicKey: base64urlEncode(publicKeyBytes),
     wrappedDek,
     kekSalt: toHex(kekSalt),
-    transports: passkeyResult.transports,
-    algorithm: passkeyResult.algorithm.toString(),
+    transports: credential.response.getTransports(),
+    algorithm: "-7",
     kek,
   };
 }
@@ -704,18 +686,25 @@ interface UnlockWithPasskeyResult {
 
 /**
  * Unlock DEK using WebAuthn passkey authentication
+ *
+ * Uses single WebAuthn prompt by including PRF evaluation in authentication
  */
 export async function unlockWithPasskey(
   options: UnlockWithPasskeyOptions,
 ): Promise<UnlockWithPasskeyResult> {
+  requireBrowser("unlockWithPasskey requires a browser environment");
+
   if (options.passkeys.length === 0) {
     throw new Error("No passkeys found. Please enroll a passkey first.");
   }
 
-  // Step 1: Prepare allowCredentials for WebAuthn
+  // Step 1: Generate constant PRF input
+  const prfInput = await getPrfInput(options.origin);
+
+  // Step 2: Prepare allowCredentials for WebAuthn
   const allowCredentials = prepareAllowCredentials(options.passkeys);
 
-  // Step 2: Trigger WebAuthn authentication to identify which passkey
+  // Step 3: Single WebAuthn call with PRF evaluation
   const challenge = new Uint8Array(32);
   crypto.getRandomValues(challenge);
 
@@ -724,6 +713,13 @@ export async function unlockWithPasskey(
       challenge,
       allowCredentials,
       userVerification: "required",
+      extensions: {
+        prf: {
+          eval: {
+            first: ensureArrayBuffer(prfInput),
+          },
+        },
+      },
     },
   });
 
@@ -731,7 +727,13 @@ export async function unlockWithPasskey(
     throw new Error("expected PublicKeyCredential");
   }
 
-  // Step 3: Find matching passkey by credential ID
+  // Step 4: Extract PRF output
+  const prfOutput = assertion.getClientExtensionResults().prf?.results?.first;
+  if (!(prfOutput instanceof ArrayBuffer)) {
+    throw new Error("PRF extension not available");
+  }
+
+  // Step 5: Find matching passkey by credential ID
   const matchedPasskey = findPasskeyByCredentialId(
     options.passkeys,
     assertion.rawId,
@@ -741,14 +743,11 @@ export async function unlockWithPasskey(
     throw new Error("Passkey not found in stored passkeys");
   }
 
-  // Step 4: Derive KEK using the matched passkey's salt
+  // Step 6: Derive KEK from PRF output + matched passkey's salt
   const kekSalt = hexToUint8Array(matchedPasskey.kekSalt);
-  const { kek } = await deriveKekWithWebAuthn({
-    kekSalt,
-    origin: options.origin,
-  });
+  const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
 
-  // Step 5: Unwrap DEK with KEK
+  // Step 7: Unwrap DEK with KEK
   const dek = await unwrapDekWithKek(matchedPasskey.wrappedDek, kek);
 
   return {
