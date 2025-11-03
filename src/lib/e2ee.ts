@@ -55,6 +55,25 @@ function generateKekSalt() {
   return generateRandomBytes(32);
 }
 
+function generateNonce() {
+  return generateRandomBytes(12);
+}
+
+function generateChallenge() {
+  return generateRandomBytes(32);
+}
+
+function generateUserId() {
+  return generateRandomBytes(32);
+}
+
+/**
+ * Generate a random 32-byte DEK (Data Encryption Key)
+ */
+export function generateDek() {
+  return generateRandomBytes(32);
+}
+
 async function sha256(data: CryptoBytes) {
   const digest = await crypto.subtle.digest("SHA-256", data);
   return new Uint8Array(digest);
@@ -122,13 +141,6 @@ async function deriveKekFromPrfOutput(
 }
 
 /**
- * Generate a random 32-byte DEK (Data Encryption Key)
- */
-export function generateDek() {
-  return generateRandomBytes(32);
-}
-
-/**
  * Wrap (encrypt) a DEK using a KEK with AES-GCM
  *
  * Returns base64url-encoded wrapped DEK (includes nonce + ciphertext + auth tag)
@@ -143,7 +155,7 @@ async function wrapDekWithKek(dek: CryptoBytes, kek: CryptoBytes) {
   }
 
   // Generate random 12-byte nonce for AES-GCM
-  const nonce = generateRandomBytes(12);
+  const nonce = generateNonce();
 
   // Import KEK for AES-GCM
   const kekKey = await crypto.subtle.importKey(
@@ -314,7 +326,7 @@ export async function attemptAutoUnlock(passkeys: StoredPasskey[]) {
   }));
 
   // Single WebAuthn call with PRF evaluation
-  const challenge = generateRandomBytes(32);
+  const challenge = generateChallenge();
 
   const assertion = await navigator.credentials.get({
     publicKey: {
@@ -417,8 +429,8 @@ export async function enrollPasskey(options: {
   const prfInput = await getPrfInput(options.origin);
 
   // Step 2: Create PRF-enabled passkey with PRF evaluation
-  const userId = generateRandomBytes(32);
-  const challenge = generateRandomBytes(32);
+  const userId = generateUserId();
+  const challenge = generateChallenge();
 
   const credential = await navigator.credentials.create({
     publicKey: {
@@ -518,8 +530,8 @@ export async function addAdditionalPasskey(options: {
   const prfInput = await getPrfInput(options.origin);
 
   // Step 2: Create PRF-enabled passkey with PRF evaluation
-  const userId = generateRandomBytes(32);
-  const challenge = generateRandomBytes(32);
+  const userId = generateUserId();
+  const challenge = generateChallenge();
 
   const credential = await navigator.credentials.create({
     publicKey: {
@@ -615,7 +627,7 @@ export async function unlockWithPasskey(options: {
   const allowCredentials = prepareAllowCredentials(options.passkeys);
 
   // Step 3: Single WebAuthn call with PRF evaluation
-  const challenge = generateRandomBytes(32);
+  const challenge = generateChallenge();
 
   const assertion = await navigator.credentials.get({
     publicKey: {
@@ -744,11 +756,11 @@ export function hasGlobalDek() {
 /**
  * Encrypt a field value using AES-256-GCM
  *
- * Returns base64url(iv || ciphertext) where:
- * - iv: 12-byte random nonce
+ * Returns base64url(nonce || ciphertext) where:
+ * - nonce: 12-byte random nonce
  * - ciphertext: encrypted data + 16-byte auth tag
  *
- * Uses random IV for each encryption, so encrypting the same plaintext twice
+ * Uses random nonce for each encryption, so encrypting the same plaintext twice
  * produces different ciphertext.
  */
 export async function encryptField(plaintext: string, dek: CryptoBytes) {
@@ -756,8 +768,8 @@ export async function encryptField(plaintext: string, dek: CryptoBytes) {
     throw new Error("DEK must be 32 bytes for AES-256-GCM");
   }
 
-  // Generate random 12-byte IV (nonce) for AES-GCM
-  const iv = generateRandomBytes(12);
+  // Generate random 12-byte nonce for AES-GCM
+  const nonce = generateNonce();
 
   // Import DEK for AES-GCM encryption
   const key = await crypto.subtle.importKey(
@@ -771,15 +783,15 @@ export async function encryptField(plaintext: string, dek: CryptoBytes) {
   // Encrypt plaintext
   const plaintextBytes = new TextEncoder().encode(plaintext);
   const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
+    { name: "AES-GCM", iv: nonce },
     key,
     plaintextBytes,
   );
 
-  // Concatenate iv + ciphertext for storage
-  const encrypted = new Uint8Array(iv.byteLength + ciphertext.byteLength);
-  encrypted.set(iv, 0);
-  encrypted.set(new Uint8Array(ciphertext), iv.byteLength);
+  // Concatenate nonce + ciphertext for storage
+  const encrypted = new Uint8Array(nonce.byteLength + ciphertext.byteLength);
+  encrypted.set(nonce, 0);
+  encrypted.set(new Uint8Array(ciphertext), nonce.byteLength);
 
   return base64urlEncode(encrypted);
 }
@@ -787,7 +799,7 @@ export async function encryptField(plaintext: string, dek: CryptoBytes) {
 /**
  * Decrypt a field value using AES-256-GCM
  *
- * Takes base64url(iv || ciphertext) and returns plaintext string
+ * Takes base64url(nonce || ciphertext) and returns plaintext string
  */
 export async function decryptField(encrypted: string, dek: CryptoBytes) {
   if (dek.byteLength !== 32) {
@@ -797,8 +809,8 @@ export async function decryptField(encrypted: string, dek: CryptoBytes) {
   // Decode base64url
   const encryptedBytes = base64urlDecode(encrypted);
 
-  // Extract IV (first 12 bytes) and ciphertext (rest)
-  const iv = encryptedBytes.slice(0, 12);
+  // Extract nonce (first 12 bytes) and ciphertext (rest)
+  const nonce = encryptedBytes.slice(0, 12);
   const ciphertext = encryptedBytes.slice(12);
 
   // Import DEK for AES-GCM decryption
@@ -812,7 +824,7 @@ export async function decryptField(encrypted: string, dek: CryptoBytes) {
 
   // Decrypt ciphertext
   const plaintextBuffer = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
+    { name: "AES-GCM", iv: nonce },
     key,
     ciphertext,
   );
