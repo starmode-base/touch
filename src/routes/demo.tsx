@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "~/components/atoms";
-import {
-  createPrfPasskey,
-  deriveKekWithWebAuthn,
-  generateKekSalt,
-  toHex,
-} from "~/lib/e2ee";
+import { enrollPasskey, toHex } from "~/lib/e2ee";
 
 export const Route = createFileRoute("/demo")({
   ssr: false,
@@ -14,70 +9,51 @@ export const Route = createFileRoute("/demo")({
 });
 
 function Home() {
-  const [prfResult, setPrfResult] = useState("");
-  const [prfError, setPrfError] = useState("");
-  const [createResult, setCreateResult] = useState("");
-  const [createError, setCreateError] = useState("");
+  const [enrollResult, setEnrollResult] = useState("");
+  const [enrollError, setEnrollError] = useState("");
 
   return (
     <div className="grid flex-1 grid-cols-3 gap-4 p-4">
       <div className="flex flex-col gap-4 rounded bg-violet-100 p-4">
-        WebAuthn PRF
+        WebAuthn PRF (Single-Prompt)
         <div className="flex gap-2">
           <Button
             onClick={async () => {
-              setCreateError("");
-              setCreateResult("");
+              setEnrollError("");
+              setEnrollResult("");
 
               try {
-                const cred = await createPrfPasskey({
+                const result = await enrollPasskey({
                   rpId: location.hostname,
-                });
-
-                console.log("cred", cred);
-
-                setCreateResult(
-                  `Created PRF passkey.\nCredential ID: ${cred.credentialId.slice(0, 32)}...\nPublic Key: ${cred.publicKey.slice(0, 32)}...\nTransports: ${cred.transports.join(", ")}\nAlgorithm: ${cred.algorithm}`,
-                );
-              } catch (e) {
-                setCreateError((e as Error).message);
-              }
-            }}
-          >
-            Create E2EE passkey (PRF)
-          </Button>
-          <Button
-            onClick={async () => {
-              setPrfError("");
-              setPrfResult("");
-              try {
-                const kekSalt = generateKekSalt();
-                const { kek, prfOutput } = await deriveKekWithWebAuthn({
-                  kekSalt,
+                  rpName: "Touch Demo",
+                  userDisplayName: "Demo Encryption Key",
                   origin: location.origin,
                 });
-                setPrfResult(
-                  `KEK (32B hex): ${toHex(kek)}\nPRF (32B hex): ${toHex(prfOutput)}`,
+
+                console.log("enrollment result", result);
+
+                setEnrollResult(
+                  `✅ Single-prompt enrollment complete!\n\nCredential ID: ${result.credentialId.slice(0, 32)}...\nPublic Key: ${result.publicKey.slice(0, 32)}...\nTransports: ${result.transports.join(", ")}\nAlgorithm: ${result.algorithm}\n\nKEK (32B hex): ${toHex(result.kek)}\nDEK (32B hex): ${toHex(result.dek)}\nWrapped DEK: ${result.wrappedDek.slice(0, 32)}...`,
                 );
               } catch (e) {
-                setPrfError((e as Error).message);
+                setEnrollError((e as Error).message);
               }
             }}
           >
-            Derive KEK (WebAuthn PRF)
+            Enroll E2EE Passkey (1 prompt!)
           </Button>
         </div>
-        {createResult ? (
-          <pre className="whitespace-pre-wrap">{createResult}</pre>
+        <div className="text-sm text-slate-600">
+          This now uses a single WebAuthn prompt for both authentication and PRF
+          evaluation, improving UX while maintaining security.
+        </div>
+        {enrollResult ? (
+          <pre className="text-xs whitespace-pre-wrap">{enrollResult}</pre>
         ) : null}
-        {createError ? (
-          <pre className="whitespace-pre-wrap text-red-700">{createError}</pre>
-        ) : null}
-        {prfResult ? (
-          <pre className="whitespace-pre-wrap">{prfResult}</pre>
-        ) : null}
-        {prfError ? (
-          <pre className="whitespace-pre-wrap text-red-700">{prfError}</pre>
+        {enrollError ? (
+          <pre className="text-xs whitespace-pre-wrap text-red-700">
+            {enrollError}
+          </pre>
         ) : null}
       </div>
     </div>
