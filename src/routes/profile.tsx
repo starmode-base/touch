@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "~/components/atoms";
 import { enrollPasskey, base64urlEncode } from "~/lib/e2ee";
 
-export const Route = createFileRoute("/demo")({
+export const Route = createFileRoute("/profile")({
   ssr: false,
   component: Home,
 });
@@ -13,7 +13,7 @@ function Home() {
   const [enrollError, setEnrollError] = useState("");
 
   return (
-    <div className="grid flex-1 grid-cols-3 gap-4 p-4">
+    <div className="grid flex-1 grid-cols-2 gap-4 p-4">
       <div className="flex flex-col gap-4 rounded bg-violet-100 p-4">
         WebAuthn PRF (Single-Prompt)
         <div className="flex gap-2">
@@ -56,6 +56,7 @@ function Home() {
           </pre>
         ) : null}
       </div>
+      <div className="flex flex-col gap-4 rounded bg-blue-100 p-4">Profile</div>
     </div>
   );
 }

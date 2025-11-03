@@ -9,7 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as DemoRouteImport } from './routes/demo'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ContactsIndexRouteImport } from './routes/contacts.index'
@@ -20,9 +20,9 @@ import { Route as ApiContactRoleAssignmentsRouteImport } from './routes/api.cont
 import { Route as ApiContactActivitiesRouteImport } from './routes/api.contact-activities'
 import { Route as ApiChromeRouteImport } from './routes/api.chrome'
 
-const DemoRoute = DemoRouteImport.update({
-  id: '/demo',
-  path: '/demo',
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactsRoute = ContactsRouteImport.update({
@@ -75,7 +75,7 @@ const ApiChromeRoute = ApiChromeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/contacts': typeof ContactsRouteWithChildren
-  '/demo': typeof DemoRoute
+  '/profile': typeof ProfileRoute
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
@@ -86,7 +86,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/demo': typeof DemoRoute
+  '/profile': typeof ProfileRoute
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
@@ -99,7 +99,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/contacts': typeof ContactsRouteWithChildren
-  '/demo': typeof DemoRoute
+  '/profile': typeof ProfileRoute
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
@@ -113,7 +113,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/contacts'
-    | '/demo'
+    | '/profile'
     | '/api/chrome'
     | '/api/contact-activities'
     | '/api/contact-role-assignments'
@@ -124,7 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/demo'
+    | '/profile'
     | '/api/chrome'
     | '/api/contact-activities'
     | '/api/contact-role-assignments'
@@ -136,7 +136,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/contacts'
-    | '/demo'
+    | '/profile'
     | '/api/chrome'
     | '/api/contact-activities'
     | '/api/contact-role-assignments'
@@ -149,7 +149,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ContactsRoute: typeof ContactsRouteWithChildren
-  DemoRoute: typeof DemoRoute
+  ProfileRoute: typeof ProfileRoute
   ApiChromeRoute: typeof ApiChromeRoute
   ApiContactActivitiesRoute: typeof ApiContactActivitiesRoute
   ApiContactRoleAssignmentsRoute: typeof ApiContactRoleAssignmentsRoute
@@ -159,11 +159,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/demo': {
-      id: '/demo'
-      path: '/demo'
-      fullPath: '/demo'
-      preLoaderRoute: typeof DemoRouteImport
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contacts': {
@@ -249,7 +249,7 @@ const ContactsRouteWithChildren = ContactsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ContactsRoute: ContactsRouteWithChildren,
-  DemoRoute: DemoRoute,
+  ProfileRoute: ProfileRoute,
   ApiChromeRoute: ApiChromeRoute,
   ApiContactActivitiesRoute: ApiContactActivitiesRoute,
   ApiContactRoleAssignmentsRoute: ApiContactRoleAssignmentsRoute,
