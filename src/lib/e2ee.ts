@@ -14,7 +14,7 @@ export type CryptoBytes = Uint8Array<ArrayBuffer>;
 /**
  * Base64url encoding utilities
  */
-function base64urlEncode(buffer: ArrayBuffer | Uint8Array) {
+export function base64urlEncode(buffer: ArrayBuffer | Uint8Array) {
   const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
 
   let binary = "";
@@ -125,10 +125,6 @@ async function deriveKekFromPrfOutput(
   return await hkdfExtractAndExpand(prfOutput, kekSalt, infoBytes, 256);
 }
 
-export function toHex(u8: Uint8Array) {
-  return Array.from(u8, (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 /**
  * Generate a random 32-byte DEK (Data Encryption Key)
  */
@@ -224,43 +220,8 @@ interface StoredPasskey {
 }
 
 interface CachedKek {
-  kek: string; // hex-encoded
+  kek: string; // base64url-encoded
   credentialId: string;
-}
-
-function hexToUint8Array(hex: string) {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    bytes[i / 2] = Number.parseInt(hex.slice(i, i + 2), 16);
-  }
-  return bytes;
-}
-
-function base64urlToArrayBuffer(base64url: string) {
-  const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64.padEnd(
-    base64.length + ((4 - (base64.length % 4)) % 4),
-    "=",
-  );
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes.buffer;
-}
-
-/**
- * Convert an ArrayBuffer to a base64url string
- */
-function arrayBufferToBase64url(buffer: ArrayBuffer) {
-  const bytes = new Uint8Array(buffer);
-  return btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
 }
 
 const KEK_STORAGE_KEY = "e2ee_kek";
@@ -291,7 +252,7 @@ export function hasCachedKek() {
  */
 export function storeCachedKek(kek: Uint8Array, credentialId: string) {
   const cached: CachedKek = {
-    kek: toHex(kek),
+    kek: base64urlEncode(kek),
     credentialId,
   };
   sessionStorage.setItem(KEK_STORAGE_KEY, JSON.stringify(cached));
@@ -330,7 +291,7 @@ export async function attemptAutoUnlock(passkeys: StoredPasskey[]) {
     }
 
     // Unwrap DEK with cached KEK
-    const kek = hexToUint8Array(cachedKek.kek);
+    const kek = base64urlDecode(cachedKek.kek);
     const dek = await unwrapDekWithKek(matchedPasskey.wrappedDek, kek);
 
     console.log(
@@ -351,7 +312,7 @@ export async function attemptAutoUnlock(passkeys: StoredPasskey[]) {
 
   // Prepare allowCredentials for WebAuthn
   const allowCredentials = passkeys.map((passkey) => ({
-    id: base64urlToArrayBuffer(passkey.credentialId),
+    id: base64urlDecode(passkey.credentialId).buffer,
     type: "public-key" as const,
     transports: passkey.transports as AuthenticatorTransport[],
   }));
@@ -385,12 +346,7 @@ export async function attemptAutoUnlock(passkeys: StoredPasskey[]) {
   }
 
   // Find matching passkey by credential ID
-  const credentialIdBase64url = btoa(
-    String.fromCharCode(...new Uint8Array(assertion.rawId)),
-  )
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
+  const credentialIdBase64url = base64urlEncode(assertion.rawId);
 
   const matchedPasskey = passkeys.find(
     (p) => p.credentialId === credentialIdBase64url,
@@ -401,7 +357,7 @@ export async function attemptAutoUnlock(passkeys: StoredPasskey[]) {
   }
 
   // Derive KEK from PRF output + matched passkey's salt
-  const kekSalt = hexToUint8Array(matchedPasskey.kekSalt);
+  const kekSalt = base64urlDecode(matchedPasskey.kekSalt);
   const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
 
   // Unwrap DEK with KEK
@@ -421,7 +377,7 @@ function prepareAllowCredentials(
   passkeys: StoredPasskey[],
 ): PublicKeyCredentialDescriptor[] {
   return passkeys.map((passkey) => ({
-    id: base64urlToArrayBuffer(passkey.credentialId),
+    id: base64urlDecode(passkey.credentialId).buffer,
     type: "public-key" as const,
     transports: passkey.transports as AuthenticatorTransport[],
   }));
@@ -434,7 +390,7 @@ function findPasskeyByCredentialId(
   passkeys: StoredPasskey[],
   credentialId: ArrayBuffer,
 ): StoredPasskey | null {
-  const credentialIdBase64url = arrayBufferToBase64url(credentialId);
+  const credentialIdBase64url = base64urlEncode(credentialId);
   return passkeys.find((p) => p.credentialId === credentialIdBase64url) ?? null;
 }
 
@@ -532,7 +488,7 @@ export async function enrollPasskey(options: {
     credentialId: base64urlEncode(credential.rawId),
     publicKey: base64urlEncode(publicKeyBytes),
     wrappedDek,
-    kekSalt: toHex(kekSalt),
+    kekSalt: base64urlEncode(kekSalt),
     transports: credential.response.getTransports(),
     algorithm: "-7",
     kek,
@@ -629,7 +585,7 @@ export async function addAdditionalPasskey(options: {
     credentialId: base64urlEncode(credential.rawId),
     publicKey: base64urlEncode(publicKeyBytes),
     wrappedDek,
-    kekSalt: toHex(kekSalt),
+    kekSalt: base64urlEncode(kekSalt),
     transports: credential.response.getTransports(),
     algorithm: "-7",
     kek,
@@ -701,7 +657,7 @@ export async function unlockWithPasskey(options: {
   }
 
   // Step 6: Derive KEK from PRF output + matched passkey's salt
-  const kekSalt = hexToUint8Array(matchedPasskey.kekSalt);
+  const kekSalt = base64urlDecode(matchedPasskey.kekSalt);
   const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
 
   // Step 7: Unwrap DEK with KEK

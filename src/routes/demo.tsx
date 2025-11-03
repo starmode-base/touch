@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "~/components/atoms";
-import { enrollPasskey, toHex } from "~/lib/e2ee";
+import { enrollPasskey, base64urlEncode } from "~/lib/e2ee";
 
 export const Route = createFileRoute("/demo")({
   ssr: false,
@@ -33,7 +33,7 @@ function Home() {
                 console.log("enrollment result", result);
 
                 setEnrollResult(
-                  `✅ Single-prompt enrollment complete!\n\nCredential ID: ${result.credentialId.slice(0, 32)}...\nPublic Key: ${result.publicKey.slice(0, 32)}...\nTransports: ${result.transports.join(", ")}\nAlgorithm: ${result.algorithm}\n\nKEK (32B hex): ${toHex(result.kek)}\nDEK (32B hex): ${toHex(result.dek)}\nWrapped DEK: ${result.wrappedDek.slice(0, 32)}...`,
+                  `✅ Single-prompt enrollment complete!\n\nCredential ID: ${result.credentialId.slice(0, 32)}...\nPublic Key: ${result.publicKey.slice(0, 32)}...\nTransports: ${result.transports.join(", ")}\nAlgorithm: ${result.algorithm}\n\nKEK (base64url): ${base64urlEncode(result.kek)}\nDEK (base64url): ${base64urlEncode(result.dek)}\nWrapped DEK: ${result.wrappedDek.slice(0, 32)}...`,
                 );
               } catch (e) {
                 setEnrollError((e as Error).message);
