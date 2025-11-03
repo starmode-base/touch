@@ -51,12 +51,8 @@ function generateRandomBytes(byteLength: number) {
   return crypto.getRandomValues(new Uint8Array(byteLength));
 }
 
-function generateKekSalt(byteLength = 16) {
-  if (byteLength <= 0) {
-    throw new Error("kek salt length must be positive");
-  }
-
-  return generateRandomBytes(byteLength);
+function generateKekSalt() {
+  return generateRandomBytes(32);
 }
 
 async function sha256(data: CryptoBytes) {
@@ -474,7 +470,7 @@ export async function enrollPasskey(options: {
   }
 
   // Step 5: Generate KEK salt and derive KEK
-  const kekSalt = generateKekSalt(32);
+  const kekSalt = generateKekSalt();
   const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
 
   // Step 6: Generate random DEK
@@ -575,7 +571,7 @@ export async function addAdditionalPasskey(options: {
   }
 
   // Step 5: Generate new KEK salt and derive KEK
-  const kekSalt = generateKekSalt(32);
+  const kekSalt = generateKekSalt();
   const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
 
   // Step 6: Wrap existing DEK with new KEK
