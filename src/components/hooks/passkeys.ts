@@ -113,7 +113,6 @@ export function usePasskeys(): UsePasskeysReturn {
       rpId: location.hostname,
       rpName: "Touch",
       userDisplayName: "Touch Encryption Key",
-      origin: location.origin,
     });
 
     // Insert into Electric collection (will sync to server via onInsert)
@@ -151,7 +150,6 @@ export function usePasskeys(): UsePasskeysReturn {
       rpId: location.hostname,
       rpName: "Touch",
       userDisplayName: "Touch Encryption Key (Additional)",
-      origin: location.origin,
     });
 
     // Insert into Electric collection (will sync to server via onInsert)
@@ -207,7 +205,7 @@ export function usePasskeys(): UsePasskeysReturn {
 
       const result = await unlockWithPasskey({
         passkeys: storedPasskeys,
-        origin: location.origin,
+        rpId: location.hostname,
       });
 
       storeCachedKek(result.kek, result.credentialId);
@@ -233,7 +231,7 @@ export function usePasskeys(): UsePasskeysReturn {
 
       const result = await unlockWithPasskey({
         passkeys: [storedPasskey],
-        origin: location.origin,
+        rpId: location.hostname,
       });
 
       storeCachedKek(result.kek, result.credentialId);

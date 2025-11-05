@@ -104,15 +104,15 @@ async function hkdfExtractAndExpand(
 /**
  * Generate constant PRF input for all passkeys
  *
- * This input is constant for a given origin, allowing single-prompt authentication.
+ * This input is constant for a given RP ID, allowing single-prompt authentication.
  * Per-passkey KEK differentiation happens via unique kekSalt values in HKDF.
  */
-async function getPrfInput(origin: string) {
-  if (!origin) {
-    throw new Error("origin is required for PRF context binding");
+async function getPrfInput(rpId: string) {
+  if (!rpId) {
+    throw new Error("rpId is required for PRF context binding");
   }
 
-  const prfLabelBytes = new TextEncoder().encode(`${origin}::kek::v1`);
+  const prfLabelBytes = new TextEncoder().encode(`${rpId}::kek::v1`);
   return await sha256(prfLabelBytes);
 }
 
@@ -320,7 +320,7 @@ export async function attemptAutoUnlock(passkeys: StoredPasskey[]) {
   }
 
   // Generate constant PRF input
-  const prfInput = await getPrfInput(location.origin);
+  const prfInput = await getPrfInput(location.hostname);
 
   // Prepare allowCredentials for WebAuthn
   const allowCredentials = passkeys.map((passkey) => ({
@@ -416,7 +416,6 @@ export async function enrollPasskey(options: {
   rpId: string;
   rpName: string;
   userDisplayName: string;
-  origin: string;
 }): Promise<{
   dek: CryptoBytes;
   credentialId: string;
@@ -430,7 +429,7 @@ export async function enrollPasskey(options: {
   requireBrowser("enrollPasskey requires a browser environment");
 
   // Step 1: Generate constant PRF input
-  const prfInput = await getPrfInput(options.origin);
+  const prfInput = await getPrfInput(options.rpId);
 
   // Step 2: Create PRF-enabled passkey with PRF evaluation
   const userId = generateUserId();
@@ -518,7 +517,6 @@ export async function addAdditionalPasskey(options: {
   rpId: string;
   rpName: string;
   userDisplayName: string;
-  origin: string;
 }): Promise<{
   credentialId: string;
   publicKey: string;
@@ -531,7 +529,7 @@ export async function addAdditionalPasskey(options: {
   requireBrowser("addAdditionalPasskey requires a browser environment");
 
   // Step 1: Generate constant PRF input
-  const prfInput = await getPrfInput(options.origin);
+  const prfInput = await getPrfInput(options.rpId);
 
   // Step 2: Create PRF-enabled passkey with PRF evaluation
   const userId = generateUserId();
@@ -611,7 +609,7 @@ export async function addAdditionalPasskey(options: {
  */
 export async function unlockWithPasskey(options: {
   passkeys: StoredPasskey[];
-  origin: string;
+  rpId: string;
 }): Promise<{
   dek: CryptoBytes;
   credentialId: string;
@@ -625,7 +623,7 @@ export async function unlockWithPasskey(options: {
   }
 
   // Step 1: Generate constant PRF input
-  const prfInput = await getPrfInput(options.origin);
+  const prfInput = await getPrfInput(options.rpId);
 
   // Step 2: Prepare allowCredentials for WebAuthn
   const allowCredentials = prepareAllowCredentials(options.passkeys);
