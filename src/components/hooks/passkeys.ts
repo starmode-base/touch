@@ -21,6 +21,7 @@ interface UsePasskeysReturn {
   addPasskey: () => Promise<void>;
   deletePasskey: (credentialId: string) => void;
   unlock: (passkeys: Passkey[]) => Promise<void>;
+  unlockWithSpecificPasskey: (passkey: Passkey) => Promise<void>;
   lock: () => void;
 
   // Auto-unlock
@@ -216,6 +217,32 @@ export function usePasskeys(): UsePasskeysReturn {
     [setDek],
   );
 
+  // Unlock with specific passkey operation
+  const unlockWithSpecificPasskey = useCallback(
+    async (passkey: Passkey) => {
+      setIsUnlocking(true);
+      setUnlockError("");
+
+      // Convert to StoredPasskey format
+      const storedPasskey: StoredPasskey = {
+        credentialId: passkey.credential_id,
+        wrappedDek: passkey.wrapped_dek,
+        kekSalt: passkey.kek_salt,
+        transports: passkey.transports,
+      };
+
+      const result = await unlockWithPasskey({
+        passkeys: [storedPasskey],
+        origin: location.origin,
+      });
+
+      storeCachedKek(result.kek, result.credentialId);
+      setDek(result.dek);
+      setIsUnlocking(false);
+    },
+    [setDek],
+  );
+
   // Lock operation (clear KEK cache + wipe DEK from memory)
   const lock = useCallback(() => {
     clearCachedKek();
@@ -228,6 +255,7 @@ export function usePasskeys(): UsePasskeysReturn {
     addPasskey,
     deletePasskey,
     unlock,
+    unlockWithSpecificPasskey,
     /** Lock operation (clear KEK cache + wipe DEK from memory) */
     lock,
 

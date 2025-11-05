@@ -16,6 +16,8 @@ function ProfilePage() {
     addPasskey,
     deletePasskey,
     unlock,
+    unlockWithSpecificPasskey,
+    triedAutoUnlock,
     isAdding,
     addError,
     addSuccess,
@@ -67,6 +69,14 @@ function ProfilePage() {
     }
   };
 
+  const handleUnlockWithPasskey = async (passkey: (typeof passkeys)[0]) => {
+    try {
+      await unlockWithSpecificPasskey(passkey);
+    } catch (e) {
+      console.error("Failed to unlock with passkey:", e);
+    }
+  };
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
       <h1 className="text-2xl font-bold">Passkey management</h1>
@@ -74,12 +84,15 @@ function ProfilePage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Your passkeys</h2>
-          <Button onClick={handleAddPasskey} disabled={!dek || isAdding}>
+          <Button
+            onClick={handleAddPasskey}
+            disabled={(!dek && triedAutoUnlock) || isAdding}
+          >
             {isAdding ? "Adding..." : "Add passkey"}
           </Button>
         </div>
 
-        {!dek ? (
+        {!dek && triedAutoUnlock ? (
           <div className="rounded bg-blue-100 p-4 text-sm">
             <p>
               E2EE is locked. You can view and delete passkeys, but you need to{" "}
@@ -142,14 +155,24 @@ function ProfilePage() {
                     <strong>Transports:</strong> {passkey.transports.join(", ")}
                   </div>
                 </div>
-                <Button
-                  onClick={() => {
-                    handleDeletePasskey(passkey.credential_id);
-                  }}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? "Deleting..." : "Delete"}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      void handleUnlockWithPasskey(passkey);
+                    }}
+                    disabled={!!dek || isDeleting || !triedAutoUnlock}
+                  >
+                    Unlock
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      handleDeletePasskey(passkey.credential_id);
+                    }}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
