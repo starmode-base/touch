@@ -95,7 +95,10 @@ export function usePasskeys(): UsePasskeysReturn {
         createdAt: p.created_at,
       }));
 
-      const dekBytes = await attemptAutoUnlock(storedPasskeys);
+      const dekBytes = await attemptAutoUnlock({
+        passkeys: storedPasskeys,
+        rpId: location.hostname,
+      });
 
       setDek(dekBytes);
       setTriedAutoUnlock(true);

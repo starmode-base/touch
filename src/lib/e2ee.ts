@@ -283,8 +283,12 @@ export function clearCachedKek() {
  * Returns the DEK if successful, throws an error if it fails.
  * Uses single WebAuthn prompt by including PRF evaluation in authentication
  */
-export async function attemptAutoUnlock(passkeys: StoredPasskey[]) {
+export async function attemptAutoUnlock(options: {
+  passkeys: StoredPasskey[];
+  rpId: string;
+}) {
   requireBrowser("attemptAutoUnlock requires a browser environment");
+  const { passkeys, rpId } = options;
 
   // Step 1: Check for cached KEK in sessionStorage
   const cachedKek = getCachedKek();
@@ -320,7 +324,7 @@ export async function attemptAutoUnlock(passkeys: StoredPasskey[]) {
   }
 
   // Generate constant PRF input
-  const prfInput = await getPrfInput(location.hostname);
+  const prfInput = await getPrfInput(rpId);
 
   // Prepare allowCredentials for WebAuthn
   const allowCredentials = passkeys.map((passkey) => ({
