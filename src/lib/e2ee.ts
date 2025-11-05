@@ -252,6 +252,14 @@ export function hasCachedKek() {
 }
 
 /**
+ * Get the credential ID of the cached KEK
+ */
+export function getCachedCredentialId(): string | null {
+  const cached = getCachedKek();
+  return cached?.credentialId ?? null;
+}
+
+/**
  * Store a cached KEK in sessionStorage
  */
 export function storeCachedKek(kek: Uint8Array, credentialId: string) {

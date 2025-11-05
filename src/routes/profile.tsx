@@ -4,6 +4,7 @@ import { Button } from "~/components/atoms";
 import { usePasskeys } from "~/components/hooks/passkeys";
 import { useE2ee } from "~/components/hooks/e2ee";
 import { passkeysCollection } from "~/collections/passkeys-collection";
+import { getCachedCredentialId } from "~/lib/e2ee";
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
@@ -31,6 +32,8 @@ function ProfilePage() {
   );
 
   const passkeys = passkeysQuery.data;
+
+  const activeCredentialId = getCachedCredentialId();
 
   const handleAddPasskey = async () => {
     try {
@@ -135,46 +138,57 @@ function ProfilePage() {
           <div className="rounded bg-gray-100 p-4">No passkeys found</div>
         ) : (
           <div className="flex flex-col gap-2">
-            {passkeys.map((passkey) => (
-              <div
-                key={passkey.credential_id}
-                className="flex items-center justify-between rounded border border-gray-300 bg-white p-4"
-              >
-                <div className="flex flex-col gap-1">
-                  <div className="text-sm">
-                    <strong>Credential ID:</strong>{" "}
-                    {passkey.credential_id.slice(0, 16)}...
+            {passkeys.map((passkey) => {
+              const isActive = passkey.credential_id === activeCredentialId;
+              return (
+                <div
+                  key={passkey.credential_id}
+                  className={`flex items-center justify-between rounded border p-4 ${
+                    isActive
+                      ? "border-green-500 bg-green-50"
+                      : "border-gray-300 bg-white"
+                  }`}
+                >
+                  <div className="flex flex-col gap-1">
+                    <div className="text-sm">
+                      <strong>Credential ID:</strong>{" "}
+                      {passkey.credential_id.slice(0, 16)}...
+                      {isActive ? (
+                        <span className="ml-2 text-green-700">(active)</span>
+                      ) : null}
+                    </div>
+                    <div className="text-sm">
+                      <strong>Algorithm:</strong> {passkey.algorithm}
+                    </div>
+                    <div className="text-sm">
+                      <strong>Created:</strong> {passkey.created_at}
+                    </div>
+                    <div className="text-sm">
+                      <strong>Transports:</strong>{" "}
+                      {passkey.transports.join(", ")}
+                    </div>
                   </div>
-                  <div className="text-sm">
-                    <strong>Algorithm:</strong> {passkey.algorithm}
-                  </div>
-                  <div className="text-sm">
-                    <strong>Created:</strong> {passkey.created_at}
-                  </div>
-                  <div className="text-sm">
-                    <strong>Transports:</strong> {passkey.transports.join(", ")}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => {
+                        void handleUnlockWithPasskey(passkey);
+                      }}
+                      disabled={!!dek || isDeleting || !triedAutoUnlock}
+                    >
+                      Unlock
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        handleDeletePasskey(passkey.credential_id);
+                      }}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? "Deleting..." : "Delete"}
+                    </Button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => {
-                      void handleUnlockWithPasskey(passkey);
-                    }}
-                    disabled={!!dek || isDeleting || !triedAutoUnlock}
-                  >
-                    Unlock
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      handleDeletePasskey(passkey.credential_id);
-                    }}
-                    disabled={isDeleting}
-                  >
-                    {isDeleting ? "Deleting..." : "Delete"}
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
