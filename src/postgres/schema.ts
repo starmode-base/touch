@@ -82,31 +82,52 @@ export const users = pgTable("users", {
  */
 export const passkeys = pgTable("passkeys", {
   ...baseSchema,
+  /** Owner - who owns this passkey */
   user_id: text()
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
+
+  /**
+   * WebAuthn relying party (RP) context - where this passkey was created
+   */
+
+  /** WebAuthn RP name */
+  rp_name: text().notNull(),
+  /** WebAuthn RP ID (e.g., "localhost", "touch.example.com") */
+  rp_id: text().notNull(),
+
+  /**
+   * WebAuthn user context - what user identity was used
+   */
+
+  /** WebAuthn user.id (base64url-encoded random bytes) */
+  webauthn_user_id: text().notNull(),
+  /** WebAuthn user.name */
+  webauthn_user_name: text().notNull(),
+  /** WebAuthn user.displayName */
+  webauthn_user_display_name: text().notNull(),
+
+  /**
+   * WebAuthn credential outputs - what the authenticator gave us
+   */
+
   /** WebAuthn credential ID (base64url-encoded, globally unique) */
   credential_id: text().notNull().unique(),
   /** Base64url-encoded public key (for future authentication) */
   public_key: text().notNull(),
+  /** Algorithm used (e.g., -7 for ES256) */
+  algorithm: smallint().notNull(),
+  /** Transports for UX optimization (e.g., ["internal", "hybrid"]) */
+  transports: jsonb().$type<string[]>().notNull(),
+
+  /**
+   *  E2EE data - our app-specific encryption
+   */
+
   /** Base64url-encoded DEK wrapped by this passkey's KEK */
   wrapped_dek: text().notNull(),
   /** Base64url-encoded salt for deriving KEK from PRF output */
   kek_salt: text().notNull(),
-  /** Transports for UX optimization (e.g., ["internal", "hybrid"]) */
-  transports: jsonb().$type<string[]>().notNull(),
-  /** Algorithm used (e.g., -7 for ES256) */
-  algorithm: smallint().notNull(),
-  /** WebAuthn RP name (e.g., "Touch") */
-  rp_name: text().notNull(),
-  /** WebAuthn RP ID (e.g., "localhost", "touch.example.com") */
-  rp_id: text().notNull(),
-  /** WebAuthn user.id (base64url-encoded random bytes) */
-  webauthn_user_id: text().notNull(),
-  /** WebAuthn user.name (e.g., "e2ee-2025-01-15T...") */
-  webauthn_user_name: text().notNull(),
-  /** WebAuthn user.displayName (e.g., "Touch Encryption Key") */
-  webauthn_user_display_name: text().notNull(),
 });
 
 /**
