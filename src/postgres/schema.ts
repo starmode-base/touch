@@ -32,6 +32,7 @@ import {
   timestamp,
   jsonb,
   unique,
+  smallint,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -95,7 +96,7 @@ export const passkeys = pgTable("passkeys", {
   /** Transports for UX optimization (e.g., ["internal", "hybrid"]) */
   transports: jsonb().$type<string[]>().notNull(),
   /** Algorithm used (e.g., -7 for ES256) */
-  algorithm: text().notNull(),
+  algorithm: smallint().notNull(),
   /** WebAuthn RP name (e.g., "Touch") */
   rp_name: text().notNull(),
   /** WebAuthn RP ID (e.g., "localhost", "touch.example.com") */

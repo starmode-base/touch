@@ -16,7 +16,7 @@ export const storePasskeySF = createServerFn({ method: "POST" })
       wrappedDek: z.string(),
       kekSalt: z.string(),
       transports: z.array(z.string()),
-      algorithm: z.string(),
+      algorithm: z.int(),
       rpName: z.string(),
       rpId: z.string(),
       webauthnUserId: z.string(),

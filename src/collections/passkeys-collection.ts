@@ -13,7 +13,7 @@ const Passkey = z.object({
   wrapped_dek: z.string(),
   kek_salt: z.string(),
   transports: z.array(z.string()),
-  algorithm: z.string(),
+  algorithm: z.int(),
   rp_name: z.string(),
   rp_id: z.string(),
   webauthn_user_id: z.string(),

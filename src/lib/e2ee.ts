@@ -436,93 +436,17 @@ export async function enrollPasskey(options: {
   webauthnUserName: string;
   webauthnUserDisplayName: string;
 }> {
-  requireBrowser("enrollPasskey requires a browser environment");
-
-  // Step 1: Generate constant PRF input
-  const prfInput = await getPrfInput(options.rpId);
-
-  // Step 2: Create PRF-enabled passkey with PRF evaluation
-  const userId = generateUserId();
-  const userName = "e2ee-" + new Date().toISOString();
-  const challenge = generateChallenge();
-
-  // -7 for ES256, which is the COSE algorithm identifier
-  const algorithm = -7;
-
-  const credential = await navigator.credentials.create({
-    publicKey: {
-      challenge,
-      rp: {
-        name: options.rpName,
-        id: options.rpId,
-      },
-      user: {
-        id: userId,
-        name: options.userName,
-        displayName: options.userDisplayName,
-      },
-      pubKeyCredParams: [{ type: "public-key", alg: algorithm }],
-      authenticatorSelection: {
-        residentKey: "required",
-        userVerification: "required",
-      },
-      extensions: {
-        prf: {
-          eval: {
-            first: prfInput,
-          },
-        },
-      },
-    },
-  });
-
-  if (!(credential instanceof PublicKeyCredential)) {
-    throw new Error("expected PublicKeyCredential");
-  }
-
-  if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
-    throw new Error("expected AuthenticatorAttestationResponse");
-  }
-
-  // Step 3: Extract PRF output
-  const prfOutput = credential.getClientExtensionResults().prf?.results?.first;
-  if (!(prfOutput instanceof ArrayBuffer)) {
-    throw new Error(
-      "PRF extension not available on this credential or platform",
-    );
-  }
-
-  // Step 4: Extract public key
-  const publicKeyBytes = credential.response.getPublicKey();
-  if (!publicKeyBytes) {
-    throw new Error("public key not available in credential response");
-  }
-
-  // Step 5: Generate KEK salt and derive KEK
-  const kekSalt = generateKekSalt();
-  const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
-
-  // Step 6: Generate random DEK
   const dek = generateDek();
 
-  // Step 7: Wrap DEK with KEK
-  const wrappedDek = await wrapDekWithKek(dek, kek);
-
-  return {
+  const result = await addAdditionalPasskey({
     dek,
-    credentialId: base64urlEncode(credential.rawId),
-    publicKey: base64urlEncode(publicKeyBytes),
-    wrappedDek,
-    kekSalt: base64urlEncode(kekSalt),
-    transports: credential.response.getTransports(),
-    algorithm,
-    kek,
-    rpName: options.rpName,
     rpId: options.rpId,
-    webauthnUserId: base64urlEncode(userId),
-    webauthnUserName: userName,
-    webauthnUserDisplayName: options.userDisplayName,
-  };
+    rpName: options.rpName,
+    userName: options.userName,
+    userDisplayName: options.userDisplayName,
+  });
+
+  return { ...result, dek };
 }
 
 /**
