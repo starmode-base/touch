@@ -1,8 +1,9 @@
 import { Button } from "./atoms";
 import { usePasskeys } from "./hooks/passkeys";
 import { useAuth } from "./hooks/auth";
+import type { Passkey } from "~/collections/passkeys-collection";
 
-export function E2eeUnlock() {
+export function E2eeUnlock(props: { passkeys: Passkey[] }) {
   const { unlock, isUnlocking, unlockError } = usePasskeys();
   const { signOut } = useAuth();
 
@@ -13,7 +14,7 @@ export function E2eeUnlock() {
         Use your passkey to unlock your encrypted data for this session.
       </div>
       <div className="flex gap-2">
-        <Button onClick={unlock} disabled={isUnlocking}>
+        <Button onClick={() => unlock(props.passkeys)} disabled={isUnlocking}>
           {isUnlocking ? "Unlocking..." : "Unlock with passkey"}
         </Button>
         <Button onClick={signOut}>Sign out</Button>

@@ -220,7 +220,7 @@ async function unwrapDekWithKek(wrappedDekBase64url: string, kek: CryptoBytes) {
 /**
  * Passkey with wrapped DEK from server
  */
-interface StoredPasskey {
+export interface StoredPasskey {
   credentialId: string;
   wrappedDek: string;
   kekSalt: string;
@@ -241,11 +241,7 @@ function getCachedKek() {
   const cached = sessionStorage.getItem(KEK_STORAGE_KEY);
   if (!cached) return null;
 
-  try {
-    return JSON.parse(cached) as CachedKek;
-  } catch {
-    return null;
-  }
+  return JSON.parse(cached) as CachedKek;
 }
 
 /**
@@ -704,6 +700,24 @@ export function onDekStateChange(listener: DekStateChangeListener) {
       dekStateChangeListeners.splice(index, 1);
     }
   };
+}
+
+type DekUnlockCallback = () => void;
+
+/**
+ * Register a callback to be called when DEK is unlocked
+ *
+ * Convenience wrapper around onDekStateChange that only fires on unlock.
+ * Used by encrypted collections to process queued decryption work.
+ *
+ * Returns a cleanup function to remove the listener.
+ */
+export function onDekUnlock(callback: DekUnlockCallback) {
+  return onDekStateChange((event) => {
+    if (event.isUnlocked) {
+      callback();
+    }
+  });
 }
 
 /**

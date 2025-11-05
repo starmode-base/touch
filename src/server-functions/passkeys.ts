@@ -1,24 +1,24 @@
 import { createServerFn } from "@tanstack/react-start";
-import { eq } from "drizzle-orm";
 import { db, schema } from "~/postgres/db";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { z } from "zod";
-
-const storePasskeyInputSchema = z.object({
-  credentialId: z.string(),
-  publicKey: z.string(),
-  wrappedDek: z.string(),
-  kekSalt: z.string(),
-  transports: z.array(z.string()),
-  algorithm: z.string(),
-});
+import { eq, and, count } from "drizzle-orm";
 
 /**
  * Store a new passkey for the authenticated user
  */
 export const storePasskeySF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(storePasskeyInputSchema)
+  .inputValidator(
+    z.object({
+      credentialId: z.string(),
+      publicKey: z.string(),
+      wrappedDek: z.string(),
+      kekSalt: z.string(),
+      transports: z.array(z.string()),
+      algorithm: z.string(),
+    }),
+  )
   .handler(async ({ data, context }) => {
     const [passkey] = await db()
       .insert(schema.passkeys)
@@ -41,22 +41,40 @@ export const storePasskeySF = createServerFn({ method: "POST" })
   });
 
 /**
- * Get all passkeys for the authenticated user
+ * Delete a passkey for the authenticated user
  */
-export const getUserPasskeysSF = createServerFn({ method: "GET" })
+export const deletePasskeySF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .handler(async ({ context }) => {
-    const passkeys = await db()
-      .select({
-        credentialId: schema.passkeys.credential_id,
-        wrappedDek: schema.passkeys.wrapped_dek,
-        kekSalt: schema.passkeys.kek_salt,
-        transports: schema.passkeys.transports,
-        createdAt: schema.passkeys.created_at,
-      })
+  .inputValidator(
+    z.object({
+      credentialId: z.string(),
+    }),
+  )
+  .handler(async ({ data, context }) => {
+    // Check total passkey count for user
+    const [result] = await db()
+      .select({ count: count() })
       .from(schema.passkeys)
-      .where(eq(schema.passkeys.user_id, context.viewer.id))
-      .orderBy(schema.passkeys.created_at);
+      .where(eq(schema.passkeys.user_id, context.viewer.id));
 
-    return passkeys;
+    if (!result || result.count <= 1) {
+      throw new Error("Cannot delete the last passkey");
+    }
+
+    // Delete the passkey
+    const [deleted] = await db()
+      .delete(schema.passkeys)
+      .where(
+        and(
+          eq(schema.passkeys.user_id, context.viewer.id),
+          eq(schema.passkeys.credential_id, data.credentialId),
+        ),
+      )
+      .returning();
+
+    if (!deleted) {
+      throw new Error("Failed to delete passkey");
+    }
+
+    return deleted;
   });

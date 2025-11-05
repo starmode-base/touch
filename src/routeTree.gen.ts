@@ -14,6 +14,7 @@ import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ContactsIndexRouteImport } from './routes/contacts.index'
 import { Route as ContactsContactRouteImport } from './routes/contacts.$contact'
+import { Route as ApiPasskeysRouteImport } from './routes/api.passkeys'
 import { Route as ApiContactsRouteImport } from './routes/api.contacts'
 import { Route as ApiContactRolesRouteImport } from './routes/api.contact-roles'
 import { Route as ApiContactRoleAssignmentsRouteImport } from './routes/api.contact-role-assignments'
@@ -44,6 +45,11 @@ const ContactsContactRoute = ContactsContactRouteImport.update({
   id: '/$contact',
   path: '/$contact',
   getParentRoute: () => ContactsRoute,
+} as any)
+const ApiPasskeysRoute = ApiPasskeysRouteImport.update({
+  id: '/api/passkeys',
+  path: '/api/passkeys',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiContactsRoute = ApiContactsRouteImport.update({
   id: '/api/contacts',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
   '/api/contact-roles': typeof ApiContactRolesRoute
   '/api/contacts': typeof ApiContactsRoute
+  '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof ContactsContactRoute
   '/contacts/': typeof ContactsIndexRoute
 }
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
   '/api/contact-roles': typeof ApiContactRolesRoute
   '/api/contacts': typeof ApiContactsRoute
+  '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof ContactsContactRoute
   '/contacts': typeof ContactsIndexRoute
 }
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
   '/api/contact-roles': typeof ApiContactRolesRoute
   '/api/contacts': typeof ApiContactsRoute
+  '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof ContactsContactRoute
   '/contacts/': typeof ContactsIndexRoute
 }
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
+    | '/api/passkeys'
     | '/contacts/$contact'
     | '/contacts/'
   fileRoutesByTo: FileRoutesByTo
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
+    | '/api/passkeys'
     | '/contacts/$contact'
     | '/contacts'
   id:
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
+    | '/api/passkeys'
     | '/contacts/$contact'
     | '/contacts/'
   fileRoutesById: FileRoutesById
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   ApiContactRoleAssignmentsRoute: typeof ApiContactRoleAssignmentsRoute
   ApiContactRolesRoute: typeof ApiContactRolesRoute
   ApiContactsRoute: typeof ApiContactsRoute
+  ApiPasskeysRoute: typeof ApiPasskeysRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -193,6 +206,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/contacts/$contact'
       preLoaderRoute: typeof ContactsContactRouteImport
       parentRoute: typeof ContactsRoute
+    }
+    '/api/passkeys': {
+      id: '/api/passkeys'
+      path: '/api/passkeys'
+      fullPath: '/api/passkeys'
+      preLoaderRoute: typeof ApiPasskeysRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/contacts': {
       id: '/api/contacts'
@@ -255,6 +275,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiContactRoleAssignmentsRoute: ApiContactRoleAssignmentsRoute,
   ApiContactRolesRoute: ApiContactRolesRoute,
   ApiContactsRoute: ApiContactsRoute,
+  ApiPasskeysRoute: ApiPasskeysRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

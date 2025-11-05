@@ -14,6 +14,7 @@ import {
   getGlobalDek,
   hasGlobalDek,
   encryptField,
+  onDekUnlock,
 } from "~/lib/e2ee";
 import { genSecureToken } from "../lib/secure-token";
 
@@ -95,66 +96,94 @@ const contactsCollection = createCollection(
 );
 
 /**
- * Decrypt and insert a contact in the decrypted collection
- */
-async function insertDecryptedContact(encrypted: Contact): Promise<void> {
-  if (!hasGlobalDek()) {
-    return;
-  }
-
-  const dek = getGlobalDek();
-  const namePlaintext = await decryptField(encrypted.name, dek);
-
-  contactsCollection.insert({
-    id: encrypted.id,
-    name: namePlaintext,
-    linkedin: encrypted.linkedin,
-    created_at: encrypted.created_at,
-    updated_at: encrypted.updated_at,
-    user_id: encrypted.user_id,
-  });
-}
-
-/**
- * Decrypt and update a contact in the decrypted collection
- */
-async function updateDecryptedContact(encrypted: Contact): Promise<void> {
-  if (!hasGlobalDek()) {
-    return;
-  }
-
-  const dek = getGlobalDek();
-  const namePlaintext = await decryptField(encrypted.name, dek);
-
-  contactsCollection.update(encrypted.id, (draft) => {
-    draft.name = namePlaintext;
-    draft.linkedin = encrypted.linkedin;
-    draft.created_at = encrypted.created_at;
-    draft.updated_at = encrypted.updated_at;
-    draft.user_id = encrypted.user_id;
-  });
-}
-
-/**
- * Subscribe to encrypted collection changes and sync to decrypted collection
+ * Decryption queue
  *
- * All syncing happens here in the background as Electric emits change events.
- * The DEK must be available before Electric starts syncing, otherwise changes
- * will be silently dropped (insert/update functions return early without DEK).
+ * Holds IDs of contacts that need to be decrypted. Events are queued here
+ * when they arrive from Electric, and processed when DEK becomes available.
+ */
+const decryptionQueue = new Set<string>();
+
+/**
+ * Subscribe to encrypted collection changes and queue for decryption
  */
 contactsCollectionEncrypted.subscribeChanges((changes) => {
-  console.log("changes", changes);
   for (const change of changes) {
-    const value = change.value;
-
-    if (change.type === "insert") {
-      void insertDecryptedContact(value);
-    } else if (change.type === "update") {
-      void updateDecryptedContact(value);
+    if (change.type === "insert" || change.type === "update") {
+      // Queue contact for decryption
+      decryptionQueue.add(change.value.id);
     } else {
+      // Remove from queue and decrypted collection
+      decryptionQueue.delete(String(change.key));
       contactsCollection.delete(String(change.key));
     }
   }
+
+  // Try to process queue (will return early if no DEK)
+  void processDecryptionQueue();
+});
+
+/**
+ * Process the decryption queue
+ *
+ * Decrypts all queued contacts if DEK is available. Called:
+ * 1. When new events arrive (subscription handler)
+ * 2. When DEK unlocks (via onDekUnlock callback)
+ */
+async function processDecryptionQueue(): Promise<void> {
+  if (!hasGlobalDek()) {
+    return;
+  }
+
+  if (decryptionQueue.size === 0) {
+    return;
+  }
+
+  const dek = getGlobalDek();
+  const queuedIds = Array.from(decryptionQueue);
+
+  for (const contactId of queuedIds) {
+    const encrypted = contactsCollectionEncrypted.get(contactId);
+
+    if (!encrypted) {
+      decryptionQueue.delete(contactId);
+      continue;
+    }
+
+    // Decrypt name
+    const namePlaintext = await decryptField(encrypted.name, dek);
+
+    // Check if contact already exists in decrypted collection
+    const existingDecrypted = contactsCollection.get(contactId);
+
+    if (existingDecrypted) {
+      // Update existing contact
+      contactsCollection.update(contactId, (draft) => {
+        draft.name = namePlaintext;
+        draft.linkedin = encrypted.linkedin;
+        draft.created_at = encrypted.created_at;
+        draft.updated_at = encrypted.updated_at;
+        draft.user_id = encrypted.user_id;
+      });
+    } else {
+      // Insert new contact
+      contactsCollection.insert({
+        id: encrypted.id,
+        name: namePlaintext,
+        linkedin: encrypted.linkedin,
+        created_at: encrypted.created_at,
+        updated_at: encrypted.updated_at,
+        user_id: encrypted.user_id,
+      });
+    }
+
+    // Remove from queue
+    decryptionQueue.delete(contactId);
+  }
+}
+
+// Register queue processor to run when DEK unlocks
+onDekUnlock(() => {
+  void processDecryptionQueue();
 });
 
 /**
@@ -201,10 +230,20 @@ export const contactsStore = {
     return contactsCollectionEncrypted.delete(id);
   },
 
-  /** Clear all decrypted contacts and encrypted collection */
+  /**
+   * Clear all data (encrypted, decrypted, and queue)
+   *
+   * Called when locking DEK or signing out. Clears everything including
+   * the encrypted collection, which will stop Electric sync.
+   */
   clear: async () => {
-    // cleanup() stops sync and clears data
+    // Clear decrypted collection (plaintext)
     await contactsCollection.cleanup();
+
+    // Clear encrypted collection (stops Electric sync)
     await contactsCollectionEncrypted.cleanup();
+
+    // Clear decryption queue
+    decryptionQueue.clear();
   },
 };
