@@ -1,62 +1,160 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useLiveQuery } from "@tanstack/react-db";
 import { Button } from "~/components/atoms";
-import { enrollPasskey, base64urlEncode } from "~/lib/e2ee";
+import { usePasskeys } from "~/components/hooks/passkeys";
+import { useE2ee } from "~/components/hooks/e2ee";
+import { passkeysCollection } from "~/collections/passkeys-collection";
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
-  component: Home,
+  component: ProfilePage,
 });
 
-function Home() {
-  const [enrollResult, setEnrollResult] = useState("");
-  const [enrollError, setEnrollError] = useState("");
+function ProfilePage() {
+  const { dek } = useE2ee();
+  const {
+    addPasskey,
+    deletePasskey,
+    unlock,
+    isAdding,
+    addError,
+    addSuccess,
+    isDeleting,
+    deleteError,
+    deleteSuccess,
+  } = usePasskeys();
+
+  const passkeysQuery = useLiveQuery((q) =>
+    q.from({ passkey: passkeysCollection }),
+  );
+
+  const passkeys = passkeysQuery.data;
+
+  const handleAddPasskey = async () => {
+    try {
+      await addPasskey();
+    } catch (e) {
+      console.error("Failed to add passkey:", e);
+    }
+  };
+
+  const handleDeletePasskey = (credentialId: string) => {
+    if (passkeys.length <= 1) {
+      alert("Cannot delete the last passkey");
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this passkey? You won't be able to decrypt your data on this device anymore.",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      deletePasskey(credentialId);
+    } catch (e) {
+      console.error("Failed to delete passkey:", e);
+    }
+  };
+
+  const handleUnlock = async () => {
+    try {
+      await unlock(passkeys);
+    } catch (e) {
+      console.error("Failed to unlock:", e);
+    }
+  };
 
   return (
-    <div className="grid flex-1 grid-cols-2 gap-4 p-4">
-      <div className="flex flex-col gap-4 rounded bg-violet-100 p-4">
-        WebAuthn PRF (Single-Prompt)
-        <div className="flex gap-2">
-          <Button
-            onClick={async () => {
-              setEnrollError("");
-              setEnrollResult("");
+    <div className="flex flex-1 flex-col gap-4 p-4">
+      <h1 className="text-2xl font-bold">Passkey management</h1>
 
-              try {
-                const result = await enrollPasskey({
-                  rpId: location.hostname,
-                  rpName: "Touch Demo",
-                  userDisplayName: "Demo Encryption Key",
-                  origin: location.origin,
-                });
-
-                console.log("enrollment result", result);
-
-                setEnrollResult(
-                  `✅ Single-prompt enrollment complete!\n\nCredential ID: ${result.credentialId.slice(0, 32)}...\nPublic Key: ${result.publicKey.slice(0, 32)}...\nTransports: ${result.transports.join(", ")}\nAlgorithm: ${result.algorithm}\n\nKEK (base64url): ${base64urlEncode(result.kek)}\nDEK (base64url): ${base64urlEncode(result.dek)}\nWrapped DEK: ${result.wrappedDek.slice(0, 32)}...`,
-                );
-              } catch (e) {
-                setEnrollError((e as Error).message);
-              }
-            }}
-          >
-            Enroll E2EE Passkey (1 prompt!)
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Your passkeys</h2>
+          <Button onClick={handleAddPasskey} disabled={!dek || isAdding}>
+            {isAdding ? "Adding..." : "Add passkey"}
           </Button>
         </div>
-        <div className="text-sm text-slate-600">
-          This now uses a single WebAuthn prompt for both authentication and PRF
-          evaluation, improving UX while maintaining security.
-        </div>
-        {enrollResult ? (
-          <pre className="text-xs whitespace-pre-wrap">{enrollResult}</pre>
+
+        {!dek ? (
+          <div className="rounded bg-blue-100 p-4 text-sm">
+            <p>
+              E2EE is locked. You can view and delete passkeys, but you need to{" "}
+              <button
+                onClick={handleUnlock}
+                className="font-semibold underline"
+              >
+                unlock
+              </button>{" "}
+              to add new passkeys.
+            </p>
+          </div>
         ) : null}
-        {enrollError ? (
-          <pre className="text-xs whitespace-pre-wrap text-red-700">
-            {enrollError}
-          </pre>
+
+        {addSuccess ? (
+          <div className="rounded bg-green-100 p-2 text-sm text-green-800">
+            {addSuccess}
+          </div>
         ) : null}
+
+        {addError ? (
+          <div className="rounded bg-red-100 p-2 text-sm text-red-800">
+            {addError}
+          </div>
+        ) : null}
+
+        {deleteSuccess ? (
+          <div className="rounded bg-green-100 p-2 text-sm text-green-800">
+            {deleteSuccess}
+          </div>
+        ) : null}
+
+        {deleteError ? (
+          <div className="rounded bg-red-100 p-2 text-sm text-red-800">
+            {deleteError}
+          </div>
+        ) : null}
+
+        {passkeys.length === 0 ? (
+          <div className="rounded bg-gray-100 p-4">No passkeys found</div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {passkeys.map((passkey) => (
+              <div
+                key={passkey.credential_id}
+                className="flex items-center justify-between rounded border border-gray-300 bg-white p-4"
+              >
+                <div className="flex flex-col gap-1">
+                  <div className="text-sm">
+                    <strong>Credential ID:</strong>{" "}
+                    {passkey.credential_id.slice(0, 16)}...
+                  </div>
+                  <div className="text-sm">
+                    <strong>Algorithm:</strong> {passkey.algorithm}
+                  </div>
+                  <div className="text-sm">
+                    <strong>Created:</strong> {passkey.created_at}
+                  </div>
+                  <div className="text-sm">
+                    <strong>Transports:</strong> {passkey.transports.join(", ")}
+                  </div>
+                </div>
+                <Button
+                  onClick={() => {
+                    handleDeletePasskey(passkey.credential_id);
+                  }}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      <div className="flex flex-col gap-4 rounded bg-blue-100 p-4">Profile</div>
     </div>
   );
 }

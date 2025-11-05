@@ -19,6 +19,7 @@ interface UsePasskeysReturn {
   // Operations
   enroll: () => Promise<void>;
   addPasskey: () => Promise<void>;
+  deletePasskey: (credentialId: string) => void;
   unlock: (passkeys: Passkey[]) => Promise<void>;
   lock: () => void;
 
@@ -38,6 +39,12 @@ interface UsePasskeysReturn {
   addSuccess: string;
   resetAddState: () => void;
 
+  // States for delete
+  isDeleting: boolean;
+  deleteError: string;
+  deleteSuccess: string;
+  resetDeleteState: () => void;
+
   // States for unlock
   isUnlocking: boolean;
   unlockError: string;
@@ -56,6 +63,11 @@ export function usePasskeys(): UsePasskeysReturn {
   const [isAdding, setIsAdding] = useState(false);
   const [addError, setAddError] = useState("");
   const [addSuccess, setAddSuccess] = useState("");
+
+  // Delete states
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteSuccess, setDeleteSuccess] = useState("");
 
   // Unlock states
   const [isUnlocking, setIsUnlocking] = useState(false);
@@ -160,6 +172,23 @@ export function usePasskeys(): UsePasskeysReturn {
     setIsAdding(false);
   }, [dek]);
 
+  // Delete passkey operation
+  const deletePasskey = useCallback((credentialId: string) => {
+    setIsDeleting(true);
+    setDeleteError("");
+    setDeleteSuccess("");
+
+    try {
+      // Delete from Electric collection (will sync to server via onDelete)
+      passkeysCollection.delete(credentialId);
+      setDeleteSuccess("Passkey deleted successfully!");
+    } catch (e) {
+      setDeleteError((e as Error).message);
+    } finally {
+      setIsDeleting(false);
+    }
+  }, []);
+
   // Unlock operation
   const unlock = useCallback(
     async (passkeys: Passkey[]) => {
@@ -197,6 +226,7 @@ export function usePasskeys(): UsePasskeysReturn {
     // Operations
     enroll,
     addPasskey,
+    deletePasskey,
     unlock,
     /** Lock operation (clear KEK cache + wipe DEK from memory) */
     lock,
@@ -221,6 +251,15 @@ export function usePasskeys(): UsePasskeysReturn {
     resetAddState: () => {
       setAddError("");
       setAddSuccess("");
+    },
+
+    // Delete states
+    isDeleting,
+    deleteError,
+    deleteSuccess,
+    resetDeleteState: () => {
+      setDeleteError("");
+      setDeleteSuccess("");
     },
 
     // Unlock states
