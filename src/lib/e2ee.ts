@@ -419,6 +419,7 @@ function findPasskeyByCredentialId(
 export async function enrollPasskey(options: {
   rpId: string;
   rpName: string;
+  userName: string;
   userDisplayName: string;
 }): Promise<{
   dek: CryptoBytes;
@@ -427,7 +428,7 @@ export async function enrollPasskey(options: {
   wrappedDek: string;
   kekSalt: string;
   transports: string[];
-  algorithm: string;
+  algorithm: number;
   kek: CryptoBytes;
   rpName: string;
   rpId: string;
@@ -445,6 +446,9 @@ export async function enrollPasskey(options: {
   const userName = "e2ee-" + new Date().toISOString();
   const challenge = generateChallenge();
 
+  // -7 for ES256, which is the COSE algorithm identifier
+  const algorithm = -7;
+
   const credential = await navigator.credentials.create({
     publicKey: {
       challenge,
@@ -454,10 +458,10 @@ export async function enrollPasskey(options: {
       },
       user: {
         id: userId,
-        name: userName,
+        name: options.userName,
         displayName: options.userDisplayName,
       },
-      pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+      pubKeyCredParams: [{ type: "public-key", alg: algorithm }],
       authenticatorSelection: {
         residentKey: "required",
         userVerification: "required",
@@ -511,7 +515,7 @@ export async function enrollPasskey(options: {
     wrappedDek,
     kekSalt: base64urlEncode(kekSalt),
     transports: credential.response.getTransports(),
-    algorithm: "-7",
+    algorithm,
     kek,
     rpName: options.rpName,
     rpId: options.rpId,
@@ -531,6 +535,7 @@ export async function addAdditionalPasskey(options: {
   dek: CryptoBytes;
   rpId: string;
   rpName: string;
+  userName: string;
   userDisplayName: string;
 }): Promise<{
   credentialId: string;
@@ -538,7 +543,7 @@ export async function addAdditionalPasskey(options: {
   wrappedDek: string;
   kekSalt: string;
   transports: string[];
-  algorithm: string;
+  algorithm: number;
   kek: CryptoBytes;
   rpName: string;
   rpId: string;
@@ -556,6 +561,9 @@ export async function addAdditionalPasskey(options: {
   const userName = "e2ee-" + new Date().toISOString();
   const challenge = generateChallenge();
 
+  // -7 for ES256, which is the COSE algorithm identifier
+  const algorithm = -7;
+
   const credential = await navigator.credentials.create({
     publicKey: {
       challenge,
@@ -565,10 +573,10 @@ export async function addAdditionalPasskey(options: {
       },
       user: {
         id: userId,
-        name: userName,
+        name: options.userName,
         displayName: options.userDisplayName,
       },
-      pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+      pubKeyCredParams: [{ type: "public-key", alg: algorithm }],
       authenticatorSelection: {
         residentKey: "required",
         userVerification: "required",
@@ -618,7 +626,7 @@ export async function addAdditionalPasskey(options: {
     wrappedDek,
     kekSalt: base64urlEncode(kekSalt),
     transports: credential.response.getTransports(),
-    algorithm: "-7",
+    algorithm,
     kek,
     rpName: options.rpName,
     rpId: options.rpId,

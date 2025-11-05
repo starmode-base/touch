@@ -116,6 +116,7 @@ export function usePasskeys(): UsePasskeysReturn {
       rpId: location.hostname,
       rpName: "Touch",
       userDisplayName: "Touch Encryption Key",
+      userName: "e2ee-" + new Date().toISOString(),
     });
 
     // Insert into Electric collection (will sync to server via onInsert)
@@ -158,6 +159,7 @@ export function usePasskeys(): UsePasskeysReturn {
       rpId: location.hostname,
       rpName: "Touch",
       userDisplayName: "Touch Encryption Key (Additional)",
+      userName: "e2ee-" + new Date().toISOString(),
     });
 
     // Insert into Electric collection (will sync to server via onInsert)
