@@ -17,6 +17,11 @@ export const storePasskeySF = createServerFn({ method: "POST" })
       kekSalt: z.string(),
       transports: z.array(z.string()),
       algorithm: z.string(),
+      rpName: z.string(),
+      rpId: z.string(),
+      webauthnUserId: z.string(),
+      webauthnUserName: z.string(),
+      webauthnUserDisplayName: z.string(),
     }),
   )
   .handler(async ({ data, context }) => {
@@ -30,6 +35,11 @@ export const storePasskeySF = createServerFn({ method: "POST" })
         kek_salt: data.kekSalt,
         transports: data.transports,
         algorithm: data.algorithm,
+        rp_name: data.rpName,
+        rp_id: data.rpId,
+        webauthn_user_id: data.webauthnUserId,
+        webauthn_user_name: data.webauthnUserName,
+        webauthn_user_display_name: data.webauthnUserDisplayName,
       })
       .returning();
 

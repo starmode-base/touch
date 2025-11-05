@@ -14,6 +14,11 @@ const Passkey = z.object({
   kek_salt: z.string(),
   transports: z.array(z.string()),
   algorithm: z.string(),
+  rp_name: z.string(),
+  rp_id: z.string(),
+  webauthn_user_id: z.string(),
+  webauthn_user_name: z.string(),
+  webauthn_user_display_name: z.string(),
 });
 export type Passkey = z.infer<typeof Passkey>;
 
@@ -41,6 +46,11 @@ export const passkeysCollection = createCollection(
         kekSalt: item.modified.kek_salt,
         transports: item.modified.transports,
         algorithm: item.modified.algorithm,
+        rpName: item.modified.rp_name,
+        rpId: item.modified.rp_id,
+        webauthnUserId: item.modified.webauthn_user_id,
+        webauthnUserName: item.modified.webauthn_user_name,
+        webauthnUserDisplayName: item.modified.webauthn_user_display_name,
       }));
 
       await Promise.all(data.map((item) => storePasskeySF({ data: item })));

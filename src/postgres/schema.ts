@@ -96,6 +96,16 @@ export const passkeys = pgTable("passkeys", {
   transports: jsonb().$type<string[]>().notNull(),
   /** Algorithm used (e.g., -7 for ES256) */
   algorithm: text().notNull(),
+  /** WebAuthn RP name (e.g., "Touch") */
+  rp_name: text().notNull(),
+  /** WebAuthn RP ID (e.g., "localhost", "touch.example.com") */
+  rp_id: text().notNull(),
+  /** WebAuthn user.id (base64url-encoded random bytes) */
+  webauthn_user_id: text().notNull(),
+  /** WebAuthn user.name (e.g., "e2ee-2025-01-15T...") */
+  webauthn_user_name: text().notNull(),
+  /** WebAuthn user.displayName (e.g., "Touch Encryption Key") */
+  webauthn_user_display_name: text().notNull(),
 });
 
 /**

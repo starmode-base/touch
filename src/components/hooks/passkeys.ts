@@ -130,6 +130,11 @@ export function usePasskeys(): UsePasskeysReturn {
       kek_salt: result.kekSalt,
       transports: result.transports,
       algorithm: result.algorithm,
+      rp_name: result.rpName,
+      rp_id: result.rpId,
+      webauthn_user_id: result.webauthnUserId,
+      webauthn_user_name: result.webauthnUserName,
+      webauthn_user_display_name: result.webauthnUserDisplayName,
     });
 
     storeCachedKek(result.kek, result.credentialId);
@@ -167,6 +172,11 @@ export function usePasskeys(): UsePasskeysReturn {
       kek_salt: result.kekSalt,
       transports: result.transports,
       algorithm: result.algorithm,
+      rp_name: result.rpName,
+      rp_id: result.rpId,
+      webauthn_user_id: result.webauthnUserId,
+      webauthn_user_name: result.webauthnUserName,
+      webauthn_user_display_name: result.webauthnUserDisplayName,
     });
 
     storeCachedKek(result.kek, result.credentialId);

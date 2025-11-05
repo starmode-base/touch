@@ -429,6 +429,11 @@ export async function enrollPasskey(options: {
   transports: string[];
   algorithm: string;
   kek: CryptoBytes;
+  rpName: string;
+  rpId: string;
+  webauthnUserId: string;
+  webauthnUserName: string;
+  webauthnUserDisplayName: string;
 }> {
   requireBrowser("enrollPasskey requires a browser environment");
 
@@ -437,6 +442,7 @@ export async function enrollPasskey(options: {
 
   // Step 2: Create PRF-enabled passkey with PRF evaluation
   const userId = generateUserId();
+  const userName = "e2ee-" + new Date().toISOString();
   const challenge = generateChallenge();
 
   const credential = await navigator.credentials.create({
@@ -448,7 +454,7 @@ export async function enrollPasskey(options: {
       },
       user: {
         id: userId,
-        name: "e2ee-" + new Date().toISOString(),
+        name: userName,
         displayName: options.userDisplayName,
       },
       pubKeyCredParams: [{ type: "public-key", alg: -7 }],
@@ -507,6 +513,11 @@ export async function enrollPasskey(options: {
     transports: credential.response.getTransports(),
     algorithm: "-7",
     kek,
+    rpName: options.rpName,
+    rpId: options.rpId,
+    webauthnUserId: base64urlEncode(userId),
+    webauthnUserName: userName,
+    webauthnUserDisplayName: options.userDisplayName,
   };
 }
 
@@ -529,6 +540,11 @@ export async function addAdditionalPasskey(options: {
   transports: string[];
   algorithm: string;
   kek: CryptoBytes;
+  rpName: string;
+  rpId: string;
+  webauthnUserId: string;
+  webauthnUserName: string;
+  webauthnUserDisplayName: string;
 }> {
   requireBrowser("addAdditionalPasskey requires a browser environment");
 
@@ -537,6 +553,7 @@ export async function addAdditionalPasskey(options: {
 
   // Step 2: Create PRF-enabled passkey with PRF evaluation
   const userId = generateUserId();
+  const userName = "e2ee-" + new Date().toISOString();
   const challenge = generateChallenge();
 
   const credential = await navigator.credentials.create({
@@ -548,7 +565,7 @@ export async function addAdditionalPasskey(options: {
       },
       user: {
         id: userId,
-        name: "e2ee-" + new Date().toISOString(),
+        name: userName,
         displayName: options.userDisplayName,
       },
       pubKeyCredParams: [{ type: "public-key", alg: -7 }],
@@ -603,6 +620,11 @@ export async function addAdditionalPasskey(options: {
     transports: credential.response.getTransports(),
     algorithm: "-7",
     kek,
+    rpName: options.rpName,
+    rpId: options.rpId,
+    webauthnUserId: base64urlEncode(userId),
+    webauthnUserName: userName,
+    webauthnUserDisplayName: options.userDisplayName,
   };
 }
 
