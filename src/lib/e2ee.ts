@@ -545,7 +545,7 @@ export async function addAdditionalPasskey(options: {
   const wrappedDek = await wrapDekWithKek(options.dek, kek);
 
   return {
-    credentialId: base64urlEncode(credential.rawId),
+    credentialId: credential.id,
     publicKey: base64urlEncode(publicKeyBytes),
     wrappedDek,
     kekSalt: base64urlEncode(kekSalt),
