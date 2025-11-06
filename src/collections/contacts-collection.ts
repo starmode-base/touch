@@ -86,6 +86,8 @@ const contactsCollectionEncrypted = createCollection(
 
 /**
  * Decrypted contacts collection (Client-only)
+ *
+ * https://tanstack.com/db/latest/docs/reference/functions/localOnlyCollectionOptions
  */
 const contactsCollection = createCollection(
   localOnlyCollectionOptions({
