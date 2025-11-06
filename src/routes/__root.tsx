@@ -50,7 +50,7 @@ function RootDocument(props: React.PropsWithChildren) {
           <HeadContent />
         </head>
         <body>
-          <RootLayout>{props.children}</RootLayout>
+          <Shell>{props.children}</Shell>
           {/* <TanStackRouterDevtools position="bottom-left" /> */}
           <Scripts />
         </body>
@@ -67,7 +67,7 @@ function Providers(props: React.PropsWithChildren) {
   );
 }
 
-function RootLayout(props: React.PropsWithChildren) {
+function Shell(props: React.PropsWithChildren) {
   return (
     <main className="bg-pattern-lines flex h-dvh flex-col bg-slate-50">
       <SignedIn>
