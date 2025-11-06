@@ -1,7 +1,7 @@
 import { Button } from "./atoms";
 import { usePasskeys } from "./hooks/passkeys";
 import { useAuth } from "./hooks/auth";
-import type { Passkey } from "~/collections/passkeys-collection";
+import type { Passkey } from "~/collections/passkeys";
 
 export function E2eeUnlock(props: { passkeys: Passkey[] }) {
   const { unlock, isUnlocking, unlockError } = usePasskeys();

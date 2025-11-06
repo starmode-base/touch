@@ -1,6 +1,6 @@
 import { Contacts } from "~/components/contacts";
 import { Button } from "~/components/atoms";
-import { contactsStore } from "~/collections/contacts-collection";
+import { contactsStore } from "~/collections/contacts";
 import { createContactInputSchema } from "~/server-functions/contacts";
 import { useState } from "react";
 import { extractLinkedInAndName } from "~/lib/linkedin-extractor";

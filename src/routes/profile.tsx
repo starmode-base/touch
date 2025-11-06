@@ -3,7 +3,7 @@ import { useLiveQuery } from "@tanstack/react-db";
 import { Button } from "~/components/atoms";
 import { usePasskeys } from "~/components/hooks/passkeys";
 import { useE2ee } from "~/components/hooks/e2ee";
-import { passkeysCollection } from "~/collections/passkeys-collection";
+import { passkeysCollection } from "~/collections/passkeys";
 import { getCachedCredentialId } from "~/lib/e2ee";
 
 export const Route = createFileRoute("/profile")({

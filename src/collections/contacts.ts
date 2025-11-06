@@ -1,3 +1,12 @@
+/**
+ * Examples
+ *
+ * https://github.com/electric-sql/electric/tree/main/examples/tanstack-db-web-starter
+ * https://electric-sql.com/blog/2025/07/29/local-first-sync-with-tanstack-db
+ * https://tanstack.com/db/latest/docs/overview#2-electricsql-sync
+ * https://tanstack.com/db/latest/docs/collections/electric-collection
+ * https://github.com/TanStack/db/tree/main/examples/react
+ */
 import {
   createCollection,
   localOnlyCollectionOptions,

@@ -4,7 +4,7 @@ import { useE2ee } from "./hooks/e2ee";
 import { usePasskeys } from "./hooks/passkeys";
 import { E2eeEnrollment } from "./e2ee-enrollment";
 import { E2eeUnlock } from "./e2ee-unlock";
-import { passkeysCollection } from "~/collections/passkeys-collection";
+import { passkeysCollection } from "~/collections/passkeys";
 
 /**
  * E2EEGate component that orchestrates the E2EE flow

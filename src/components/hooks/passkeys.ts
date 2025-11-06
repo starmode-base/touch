@@ -1,9 +1,6 @@
 import { useState, useCallback } from "react";
 import { useE2ee } from "./e2ee";
-import {
-  passkeysCollection,
-  type Passkey,
-} from "~/collections/passkeys-collection";
+import { passkeysCollection, type Passkey } from "~/collections/passkeys";
 import {
   enrollPasskey,
   addAdditionalPasskey,
