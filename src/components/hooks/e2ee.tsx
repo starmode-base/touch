@@ -69,7 +69,7 @@ export function useE2ee() {
   const context = useContext(E2eeContext);
 
   if (!context) {
-    throw new Error("useE2EE must be used within E2EEProvider");
+    throw new Error("useE2ee must be used within E2eeProvider");
   }
 
   return context;
