@@ -28,9 +28,9 @@ export function E2eeProvider(props: React.PropsWithChildren) {
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
-      // Wipe DEK on unmount
-      setDekState(null);
-      clearGlobalDek();
+
+      // Wipe DEK on unmount - just in case beforeunload fires after unmount
+      handleBeforeUnload();
     };
   }, []);
 
