@@ -34,7 +34,7 @@
     "@tailwindcss/vite": "^4.1.16",
     "@tanstack/electric-db-collection": "^0.1.44",
     "@tanstack/query-core": "^5.90.7",
-    "@tanstack/query-db-collection": "^0.2.42",
+    "@tanstack/query-db-collection": "^0.3.0",
     "@tanstack/react-db": "^0.1.43",
     "@tanstack/react-router": "^1.133.36",
     "@tanstack/react-router-devtools": "^1.133.36",
