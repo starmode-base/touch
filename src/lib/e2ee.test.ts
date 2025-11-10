@@ -7,6 +7,7 @@ import {
   getGlobalDek,
   clearGlobalDek,
   hasGlobalDek,
+  type CryptoBytes,
 } from "./e2ee";
 
 describe("generateDek", () => {
@@ -24,7 +25,7 @@ describe("generateDek", () => {
 });
 
 describe("encryptField and decryptField", () => {
-  let dek: Uint8Array;
+  let dek: CryptoBytes;
 
   beforeEach(() => {
     dek = generateDek();

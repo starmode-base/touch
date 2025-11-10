@@ -1,9 +1,7 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
-import {
-  contactRoleAssignmentsCollection,
-  contactRolesCollection,
-} from "~/lib/collections";
-import { contactsStore } from "~/collections/contacts-collection";
+import { contactRoleAssignmentsCollection } from "~/collections/contact-role-assignments";
+import { contactRolesCollection } from "~/collections/contact-roles";
+import { contactsStore } from "~/collections/contacts";
 import { ContactCard } from "~/components/atoms";
 import { useMemo } from "react";
 

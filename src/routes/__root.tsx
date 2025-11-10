@@ -13,7 +13,7 @@ import {
 import { syncViewerSF } from "~/server-functions/viewer";
 import { Button } from "~/components/atoms";
 import { E2eeProvider } from "~/components/hooks/e2ee";
-import { E2eeGate } from "~/components/e2ee-gate";
+import { Toolbar } from "~/components/toolbar";
 
 export const Route = createRootRoute({
   beforeLoad: async () => ({
@@ -50,7 +50,7 @@ function RootDocument(props: React.PropsWithChildren) {
           <HeadContent />
         </head>
         <body>
-          <RootLayout>{props.children}</RootLayout>
+          <Shell>{props.children}</Shell>
           {/* <TanStackRouterDevtools position="bottom-left" /> */}
           <Scripts />
         </body>
@@ -67,11 +67,12 @@ function Providers(props: React.PropsWithChildren) {
   );
 }
 
-function RootLayout(props: React.PropsWithChildren) {
+function Shell(props: React.PropsWithChildren) {
   return (
     <main className="bg-pattern-lines flex h-dvh flex-col bg-slate-50">
       <SignedIn>
-        <E2eeGate>{props.children}</E2eeGate>
+        <Toolbar />
+        {props.children}
       </SignedIn>
       <SignedOut>
         <div className="m-auto flex flex-col gap-4 rounded border border-slate-100 bg-white p-8">

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { contactActivitiesCollection } from "~/lib/collections";
+import { contactActivitiesCollection } from "~/collections/contact-activities";
 import { eq, useLiveQuery } from "@tanstack/react-db";
 
 export const Route = createFileRoute("/contacts/$contact")({

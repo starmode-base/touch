@@ -1,6 +1,6 @@
 import { useClerk } from "@clerk/tanstack-react-start";
 import { usePasskeys } from "~/components/hooks/passkeys";
-import { contactsStore } from "~/collections/contacts-collection";
+import { contactsStore } from "~/collections/contacts";
 
 /**
  * High-level auth orchestration hook
