@@ -12,7 +12,6 @@
         "@tailwindcss/vite": "^4.1.17",
         "@tanstack/electric-db-collection": "^0.2.0",
         "@tanstack/query-core": "^5.90.9",
-        "@tanstack/query-db-collection": "^1.0.0",
         "@tanstack/react-db": "^0.1.44",
         "@tanstack/react-router": "^1.133.36",
         "@tanstack/react-router-devtools": "^1.133.36",
@@ -464,8 +463,6 @@
     "@tanstack/pacer": ["@tanstack/pacer@0.1.0", "", {}, "sha512-QVzkGO5clvGj/qdX8H2wUj0QCXCLZ/pwPMnfSqhoYfpzDRkRHDj+3D+VzdcehBIVnE+GCd1D/P1tGMzfjmfrzQ=="],
 
     "@tanstack/query-core": ["@tanstack/query-core@5.90.9", "", {}, "sha512-UFOCQzi6pRGeVTVlPNwNdnAvT35zugcIydqjvFUzG62dvz2iVjElmNp/hJkUoM5eqbUPfSU/GJIr/wbvD8bTUw=="],
-
-    "@tanstack/query-db-collection": ["@tanstack/query-db-collection@1.0.0", "", { "dependencies": { "@standard-schema/spec": "^1.0.0" }, "peerDependencies": { "@tanstack/db": "*", "@tanstack/query-core": "^5.0.0", "typescript": ">=4.7" } }, "sha512-BO5m9C73kFwuymB1XblVInyE1rNNaNlIDe7W26xSdecSCSm4AH1OyTxmgoUn0IbfMCUg6i3m7ww45cniy33ukg=="],
 
     "@tanstack/react-db": ["@tanstack/react-db@0.1.44", "", { "dependencies": { "@tanstack/db": "0.5.0", "use-sync-external-store": "^1.6.0" }, "peerDependencies": { "react": ">=16.8.0" } }, "sha512-O1jYNhCWhrGvJYP2QBmG4HMPcUEbJoX78WYHAwjNl1slGqm7KuGKQtkOZovFNuioLiLaJmkU+77X5k+MBo2wfw=="],
 
