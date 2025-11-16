@@ -29,7 +29,6 @@ function ProfilePage() {
 
   const passkeys = passkeysQuery.data;
   const hasPasskeys = passkeys.length > 0;
-
   const activeCredentialId = getCachedCredentialId();
 
   // Auto-unlock when passkeys are loaded and not already unlocked
@@ -38,23 +37,6 @@ function ProfilePage() {
       void tryAutoUnlock(passkeys);
     }
   }, [hasPasskeys, dek, triedAutoUnlock, tryAutoUnlock, passkeys]);
-
-  const handleAddPasskey = async () => {
-    await addPasskey();
-  };
-
-  const handleDeletePasskey = (id: string) => {
-    if (passkeys.length <= 1) {
-      alert("Cannot delete the last passkey");
-      return;
-    }
-
-    if (!window.confirm("Delete this passkey?")) {
-      return;
-    }
-
-    deletePasskey(id);
-  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
@@ -73,7 +55,7 @@ function ProfilePage() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Your passkeys</h2>
 
-          <Button onClick={handleAddPasskey} disabled={isAdding}>
+          <Button onClick={addPasskey} disabled={isAdding}>
             {isAdding ? "Adding..." : "Add passkey"}
           </Button>
         </div>
@@ -134,7 +116,16 @@ function ProfilePage() {
                     </Button>
                     <Button
                       onClick={() => {
-                        handleDeletePasskey(passkey.id);
+                        if (passkeys.length <= 1) {
+                          alert("Cannot delete the last passkey");
+                          return;
+                        }
+
+                        if (!window.confirm("Delete this passkey?")) {
+                          return;
+                        }
+
+                        deletePasskey(passkey.id);
                       }}
                     >
                       Delete
