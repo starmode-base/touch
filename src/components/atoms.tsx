@@ -8,10 +8,15 @@ import {
 import { useState } from "react";
 
 export function Button(props: React.ComponentPropsWithoutRef<"button">) {
+  const { className = "", ...rest } = props;
+
   return (
     <button
-      className="h-fit w-fit rounded bg-sky-500 px-4 py-1 text-white disabled:bg-sky-300"
-      {...props}
+      className={
+        "h-fit w-fit rounded bg-sky-500 px-4 py-1 text-white disabled:bg-sky-300 " +
+        className
+      }
+      {...rest}
     >
       {props.children}
     </button>
