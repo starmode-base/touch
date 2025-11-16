@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useLiveQuery } from "@tanstack/react-db";
 import { useE2ee } from "./e2ee";
 import { passkeysCollection, type Passkey } from "~/collections/passkeys";
 import {
@@ -12,40 +13,63 @@ import {
 } from "~/lib/e2ee";
 import { genSecureToken } from "~/lib/secure-token";
 
+/**
+ * Auto-unlock hook that attempts to unlock the DEK on mount
+ * Should be called once at the root of the authenticated app
+ */
+export function useAutoUnlock() {
+  const { dek, setDek } = useE2ee();
+  const { passkeys } = usePasskeys();
+  const [triedAutoUnlock, setTriedAutoUnlock] = useState(false);
+
+  const hasPasskeys = passkeys.length > 0;
+
+  useEffect(() => {
+    if (hasPasskeys && !dek && !triedAutoUnlock) {
+      if (hasCachedKek()) {
+        const tryUnlock = async () => {
+          // Convert to StoredPasskey format
+          const storedPasskeys: StoredPasskey[] = passkeys.map((p) => ({
+            credentialId: p.credential_id,
+            wrappedDek: p.wrapped_dek,
+            kekSalt: p.kek_salt,
+            transports: p.transports,
+            createdAt: p.created_at,
+          }));
+
+          const dekBytes = await attemptAutoUnlock({
+            passkeys: storedPasskeys,
+            rpId: location.hostname,
+          });
+
+          setDek(dekBytes);
+          setTriedAutoUnlock(true);
+        };
+
+        void tryUnlock();
+      } else {
+        // No cached KEK, can't auto-unlock
+        void Promise.resolve().then(() => {
+          setTriedAutoUnlock(true);
+        });
+      }
+    }
+  }, [hasPasskeys, dek, triedAutoUnlock, passkeys, setDek]);
+
+  return { triedAutoUnlock };
+}
+
 export function usePasskeys() {
   const { setDek, unsetDek, dek } = useE2ee();
   const [isAdding, setIsAdding] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
-  const [triedAutoUnlock, setTriedAutoUnlock] = useState(false);
 
-  // Auto-unlock on mount if passkeys exist
-  const tryAutoUnlock = useCallback(
-    async (passkeys: Passkey[]) => {
-      // Only attempt auto-unlock if there's a cached KEK
-      if (!hasCachedKek()) {
-        setTriedAutoUnlock(true);
-        return;
-      }
-
-      // Convert to StoredPasskey format
-      const storedPasskeys: StoredPasskey[] = passkeys.map((p) => ({
-        credentialId: p.credential_id,
-        wrappedDek: p.wrapped_dek,
-        kekSalt: p.kek_salt,
-        transports: p.transports,
-        createdAt: p.created_at,
-      }));
-
-      const dekBytes = await attemptAutoUnlock({
-        passkeys: storedPasskeys,
-        rpId: location.hostname,
-      });
-
-      setDek(dekBytes);
-      setTriedAutoUnlock(true);
-    },
-    [setDek],
+  // Query passkeys from Electric collection
+  const passkeysQuery = useLiveQuery((q) =>
+    q.from({ passkey: passkeysCollection }),
   );
+
+  const passkeys = passkeysQuery.data;
 
   // Add passkey operation
   // Pass null for first passkey (generates new DEK), pass existing DEK for additional passkeys
@@ -123,16 +147,15 @@ export function usePasskeys() {
   }, [unsetDek]);
 
   return {
+    // Data
+    passkeys,
+
     // Operations
     addPasskey,
     deletePasskey,
     unlock,
     /** Lock operation (clear KEK cache + wipe DEK from memory) */
     lock,
-
-    // Auto-unlock
-    tryAutoUnlock,
-    triedAutoUnlock,
 
     // States
     isAdding,

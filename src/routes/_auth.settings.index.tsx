@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useLiveQuery } from "@tanstack/react-db";
-import { useEffect } from "react";
 import { Button } from "~/components/atoms";
 import { usePasskeys } from "~/components/hooks/passkeys";
 import { useE2ee } from "~/components/hooks/e2ee";
-import { passkeysCollection } from "~/collections/passkeys";
 import { getCachedCredentialId } from "~/lib/e2ee";
 import { UserButton } from "@clerk/tanstack-react-start";
 
@@ -14,29 +11,10 @@ export const Route = createFileRoute("/_auth/settings/")({
 
 function ProfilePage() {
   const { dek } = useE2ee();
-  const {
-    addPasskey,
-    deletePasskey,
-    unlock,
-    triedAutoUnlock,
-    tryAutoUnlock,
-    isAdding,
-  } = usePasskeys();
+  const { passkeys, addPasskey, deletePasskey, unlock, isAdding } =
+    usePasskeys();
 
-  const passkeysQuery = useLiveQuery((q) =>
-    q.from({ passkey: passkeysCollection }),
-  );
-
-  const passkeys = passkeysQuery.data;
-  const hasPasskeys = passkeys.length > 0;
   const activeCredentialId = getCachedCredentialId();
-
-  // Auto-unlock when passkeys are loaded and not already unlocked
-  useEffect(() => {
-    if (hasPasskeys && !dek && !triedAutoUnlock) {
-      void tryAutoUnlock(passkeys);
-    }
-  }, [hasPasskeys, dek, triedAutoUnlock, tryAutoUnlock, passkeys]);
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
@@ -55,7 +33,7 @@ function ProfilePage() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Your passkeys</h2>
 
-          <Button onClick={addPasskey} disabled={isAdding}>
+          <Button onClick={addPasskey} disabled={!dek || isAdding}>
             {isAdding ? "Adding..." : "Add passkey"}
           </Button>
         </div>
@@ -66,6 +44,7 @@ function ProfilePage() {
           <div className="flex flex-col gap-2">
             {passkeys.map((passkey) => {
               const isActive = passkey.credential_id === activeCredentialId;
+
               return (
                 <div
                   key={passkey.credential_id}
