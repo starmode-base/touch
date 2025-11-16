@@ -146,7 +146,7 @@ function ProfilePage() {
                       onClick={() => {
                         void handleUnlockWithPasskey(passkey);
                       }}
-                      disabled={!!dek || isDeleting || !triedAutoUnlock}
+                      disabled={!!dek || isDeleting}
                     >
                       Unlock
                     </Button>
