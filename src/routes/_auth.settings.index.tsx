@@ -56,14 +56,6 @@ function ProfilePage() {
     deletePasskey(id);
   };
 
-  const handleUnlock = async () => {
-    await unlock(passkeys);
-  };
-
-  const handleUnlockWithPasskey = async (passkey: (typeof passkeys)[0]) => {
-    await unlock([passkey]);
-  };
-
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
@@ -85,21 +77,6 @@ function ProfilePage() {
             {isAdding ? "Adding..." : "Add passkey"}
           </Button>
         </div>
-
-        {!dek && triedAutoUnlock ? (
-          <div className="rounded bg-blue-100 p-4 text-sm">
-            <p>
-              E2EE is locked. You can view and delete passkeys, but you need to{" "}
-              <button
-                onClick={handleUnlock}
-                className="font-semibold underline"
-              >
-                unlock
-              </button>{" "}
-              to add new passkeys.
-            </p>
-          </div>
-        ) : null}
 
         {passkeys.length === 0 ? (
           <div className="rounded bg-gray-100 p-4">No passkeys found</div>
@@ -150,7 +127,7 @@ function ProfilePage() {
                   <div className="flex gap-2">
                     <Button
                       onClick={() => {
-                        void handleUnlockWithPasskey(passkey);
+                        void unlock([passkey]);
                       }}
                     >
                       Unlock
