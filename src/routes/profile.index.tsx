@@ -8,7 +8,6 @@ import { getCachedCredentialId } from "~/lib/e2ee";
 import { UserButton } from "@clerk/tanstack-react-start";
 
 export const Route = createFileRoute("/profile/")({
-  ssr: false,
   component: ProfilePage,
 });
 
