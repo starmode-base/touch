@@ -20,7 +20,6 @@ function ProfilePage() {
     unlockWithSpecificPasskey,
     triedAutoUnlock,
     isAdding,
-    isDeleting,
   } = usePasskeys();
 
   const passkeysQuery = useLiveQuery((q) =>
@@ -146,7 +145,7 @@ function ProfilePage() {
                       onClick={() => {
                         void handleUnlockWithPasskey(passkey);
                       }}
-                      disabled={!!dek || isDeleting}
+                      disabled={!!dek}
                     >
                       Unlock
                     </Button>
@@ -154,9 +153,8 @@ function ProfilePage() {
                       onClick={() => {
                         handleDeletePasskey(passkey.id);
                       }}
-                      disabled={isDeleting}
                     >
-                      {isDeleting ? "Deleting..." : "Delete"}
+                      Delete
                     </Button>
                   </div>
                 </div>

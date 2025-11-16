@@ -22,9 +22,6 @@ export function usePasskeys() {
   // Add states
   const [isAdding, setIsAdding] = useState(false);
 
-  // Delete states
-  const [isDeleting, setIsDeleting] = useState(false);
-
   // Unlock states
   const [isUnlocking, setIsUnlocking] = useState(false);
 
@@ -136,11 +133,8 @@ export function usePasskeys() {
 
   // Delete passkey operation
   const deletePasskey = useCallback((id: string) => {
-    setIsDeleting(true);
-
     // Delete from Electric collection (will sync to server via onDelete)
     passkeysCollection.delete(id);
-    setIsDeleting(false);
   }, []);
 
   // Unlock operation
@@ -219,9 +213,6 @@ export function usePasskeys() {
 
     // Add states
     isAdding,
-
-    // Delete states
-    isDeleting,
 
     // Unlock states
     isUnlocking,
