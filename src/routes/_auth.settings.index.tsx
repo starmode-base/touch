@@ -32,11 +32,7 @@ function ProfilePage() {
   const activeCredentialId = getCachedCredentialId();
 
   const handleAddPasskey = async () => {
-    try {
-      await addPasskey();
-    } catch (e) {
-      console.error("Failed to add passkey:", e);
-    }
+    await addPasskey();
   };
 
   const handleDeletePasskey = (id: string) => {
@@ -53,27 +49,15 @@ function ProfilePage() {
       return;
     }
 
-    try {
-      deletePasskey(id);
-    } catch (e) {
-      console.error("Failed to delete passkey:", e);
-    }
+    deletePasskey(id);
   };
 
   const handleUnlock = async () => {
-    try {
-      await unlock(passkeys);
-    } catch (e) {
-      console.error("Failed to unlock:", e);
-    }
+    await unlock(passkeys);
   };
 
   const handleUnlockWithPasskey = async (passkey: (typeof passkeys)[0]) => {
-    try {
-      await unlockWithSpecificPasskey(passkey);
-    } catch (e) {
-      console.error("Failed to unlock with passkey:", e);
-    }
+    await unlockWithSpecificPasskey(passkey);
   };
 
   return (
