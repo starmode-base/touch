@@ -11,6 +11,7 @@ import {
   clearCachedKek,
   type StoredPasskey,
 } from "~/lib/e2ee";
+import { genSecureToken } from "~/lib/secure-token";
 
 export function usePasskeys() {
   const { setDek, unsetDek, dek } = useE2ee();
@@ -72,7 +73,7 @@ export function usePasskeys() {
 
     // Insert into Electric collection (will sync to server via onInsert)
     passkeysCollection.insert({
-      id: result.credentialId,
+      id: genSecureToken(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       user_id: "", // Will be set server-side
@@ -112,7 +113,7 @@ export function usePasskeys() {
 
     // Insert into Electric collection (will sync to server via onInsert)
     passkeysCollection.insert({
-      id: result.credentialId,
+      id: genSecureToken(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       user_id: "", // Will be set server-side
