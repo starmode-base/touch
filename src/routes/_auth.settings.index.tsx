@@ -20,11 +20,7 @@ function ProfilePage() {
     unlockWithSpecificPasskey,
     triedAutoUnlock,
     isAdding,
-    addError,
-    addSuccess,
     isDeleting,
-    deleteError,
-    deleteSuccess,
   } = usePasskeys();
 
   const passkeysQuery = useLiveQuery((q) =>
@@ -116,30 +112,6 @@ function ProfilePage() {
               </button>{" "}
               to add new passkeys.
             </p>
-          </div>
-        ) : null}
-
-        {addSuccess ? (
-          <div className="rounded bg-green-100 p-2 text-sm text-green-800">
-            {addSuccess}
-          </div>
-        ) : null}
-
-        {addError ? (
-          <div className="rounded bg-red-100 p-2 text-sm text-red-800">
-            {addError}
-          </div>
-        ) : null}
-
-        {deleteSuccess ? (
-          <div className="rounded bg-green-100 p-2 text-sm text-green-800">
-            {deleteSuccess}
-          </div>
-        ) : null}
-
-        {deleteError ? (
-          <div className="rounded bg-red-100 p-2 text-sm text-red-800">
-            {deleteError}
           </div>
         ) : null}
 

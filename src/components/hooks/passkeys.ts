@@ -27,26 +27,15 @@ interface UsePasskeysReturn {
 
   // States for enroll
   isEnrolling: boolean;
-  enrollError: string;
-  enrollSuccess: string;
-  resetEnrollState: () => void;
 
   // States for add
   isAdding: boolean;
-  addError: string;
-  addSuccess: string;
-  resetAddState: () => void;
 
   // States for delete
   isDeleting: boolean;
-  deleteError: string;
-  deleteSuccess: string;
-  resetDeleteState: () => void;
 
   // States for unlock
   isUnlocking: boolean;
-  unlockError: string;
-  resetUnlockState: () => void;
 }
 
 export function usePasskeys(): UsePasskeysReturn {
@@ -54,22 +43,15 @@ export function usePasskeys(): UsePasskeysReturn {
 
   // Enroll states
   const [isEnrolling, setIsEnrolling] = useState(false);
-  const [enrollError, setEnrollError] = useState("");
-  const [enrollSuccess, setEnrollSuccess] = useState("");
 
   // Add states
   const [isAdding, setIsAdding] = useState(false);
-  const [addError, setAddError] = useState("");
-  const [addSuccess, setAddSuccess] = useState("");
 
   // Delete states
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState("");
-  const [deleteSuccess, setDeleteSuccess] = useState("");
 
   // Unlock states
   const [isUnlocking, setIsUnlocking] = useState(false);
-  const [unlockError, setUnlockError] = useState("");
 
   // Auto-unlock state
   const [triedAutoUnlock, setTriedAutoUnlock] = useState(false);
@@ -106,8 +88,6 @@ export function usePasskeys(): UsePasskeysReturn {
   // Enroll operation
   const enroll = useCallback(async () => {
     setIsEnrolling(true);
-    setEnrollError("");
-    setEnrollSuccess("");
 
     const result = await enrollPasskey({
       rpId: location.hostname,
@@ -137,7 +117,6 @@ export function usePasskeys(): UsePasskeysReturn {
 
     storeCachedKek(result.kek, result.credentialId);
     setDek(result.dek);
-    setEnrollSuccess("Encryption enabled successfully!");
     setIsEnrolling(false);
   }, [setDek]);
 
@@ -148,8 +127,6 @@ export function usePasskeys(): UsePasskeysReturn {
     }
 
     setIsAdding(true);
-    setAddError("");
-    setAddSuccess("");
 
     const result = await addAdditionalPasskey({
       dek,
@@ -179,32 +156,22 @@ export function usePasskeys(): UsePasskeysReturn {
     });
 
     storeCachedKek(result.kek, result.credentialId);
-    setAddSuccess("Additional passkey added successfully!");
     setIsAdding(false);
   }, [dek]);
 
   // Delete passkey operation
   const deletePasskey = useCallback((id: string) => {
     setIsDeleting(true);
-    setDeleteError("");
-    setDeleteSuccess("");
 
-    try {
-      // Delete from Electric collection (will sync to server via onDelete)
-      passkeysCollection.delete(id);
-      setDeleteSuccess("Passkey deleted successfully!");
-    } catch (e) {
-      setDeleteError((e as Error).message);
-    } finally {
-      setIsDeleting(false);
-    }
+    // Delete from Electric collection (will sync to server via onDelete)
+    passkeysCollection.delete(id);
+    setIsDeleting(false);
   }, []);
 
   // Unlock operation
   const unlock = useCallback(
     async (passkeys: Passkey[]) => {
       setIsUnlocking(true);
-      setUnlockError("");
 
       // Convert to StoredPasskey format
       const storedPasskeys: StoredPasskey[] = passkeys.map((p) => ({
@@ -231,7 +198,6 @@ export function usePasskeys(): UsePasskeysReturn {
   const unlockWithSpecificPasskey = useCallback(
     async (passkey: Passkey) => {
       setIsUnlocking(true);
-      setUnlockError("");
 
       // Convert to StoredPasskey format
       const storedPasskey: StoredPasskey = {
@@ -273,38 +239,16 @@ export function usePasskeys(): UsePasskeysReturn {
     tryAutoUnlock,
     triedAutoUnlock,
 
-    // Enroll states
+    // Enroll
     isEnrolling,
-    enrollError,
-    enrollSuccess,
-    resetEnrollState: () => {
-      setEnrollError("");
-      setEnrollSuccess("");
-    },
 
     // Add states
     isAdding,
-    addError,
-    addSuccess,
-    resetAddState: () => {
-      setAddError("");
-      setAddSuccess("");
-    },
 
     // Delete states
     isDeleting,
-    deleteError,
-    deleteSuccess,
-    resetDeleteState: () => {
-      setDeleteError("");
-      setDeleteSuccess("");
-    },
 
     // Unlock states
     isUnlocking,
-    unlockError,
-    resetUnlockState: () => {
-      setUnlockError("");
-    },
   };
 }

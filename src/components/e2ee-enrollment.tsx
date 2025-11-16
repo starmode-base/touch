@@ -5,7 +5,7 @@ import { usePasskeys } from "./hooks/passkeys";
  * E2eeEnrollment component that allows the user to enroll in E2EE
  */
 export function E2eeEnrollment() {
-  const { enroll, isEnrolling, enrollError, enrollSuccess } = usePasskeys();
+  const { enroll, isEnrolling } = usePasskeys();
 
   return (
     <div className="flex flex-col gap-4 rounded border border-slate-200 bg-white p-6">
@@ -17,12 +17,6 @@ export function E2eeEnrollment() {
       <Button onClick={enroll} disabled={isEnrolling}>
         {isEnrolling ? "Setting up..." : "Enable encryption"}
       </Button>
-      {enrollError ? (
-        <div className="text-sm text-red-600">{enrollError}</div>
-      ) : null}
-      {enrollSuccess ? (
-        <div className="text-sm text-green-600">{enrollSuccess}</div>
-      ) : null}
     </div>
   );
 }
@@ -32,7 +26,7 @@ export function E2eeEnrollment() {
  * E2EE setup
  */
 export function E2eeAddPasskey() {
-  const { addPasskey, isAdding, addError, addSuccess } = usePasskeys();
+  const { addPasskey, isAdding } = usePasskeys();
 
   return (
     <div className="flex flex-col gap-2">
@@ -42,10 +36,6 @@ export function E2eeAddPasskey() {
       <Button onClick={addPasskey} disabled={isAdding}>
         {isAdding ? "Adding..." : "Add another passkey"}
       </Button>
-      {addError ? <div className="text-sm text-red-600">{addError}</div> : null}
-      {addSuccess ? (
-        <div className="text-sm text-green-600">{addSuccess}</div>
-      ) : null}
     </div>
   );
 }

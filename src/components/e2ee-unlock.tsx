@@ -4,7 +4,7 @@ import { useAuth } from "./hooks/auth";
 import type { Passkey } from "~/collections/passkeys";
 
 export function E2eeUnlock(props: { passkeys: Passkey[] }) {
-  const { unlock, isUnlocking, unlockError } = usePasskeys();
+  const { unlock, isUnlocking } = usePasskeys();
   const { signOut } = useAuth();
 
   return (
@@ -19,9 +19,6 @@ export function E2eeUnlock(props: { passkeys: Passkey[] }) {
         </Button>
         <Button onClick={signOut}>Sign out</Button>
       </div>
-      {unlockError ? (
-        <div className="text-sm text-red-600">{unlockError}</div>
-      ) : null}
     </div>
   );
 }
