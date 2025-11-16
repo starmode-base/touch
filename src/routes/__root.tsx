@@ -3,8 +3,6 @@ import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import appCss from "~/styles/app.css?url";
 import metadata from "../../metadata.json";
 import { inject } from "@vercel/analytics";
-import { ClerkProvider } from "@clerk/tanstack-react-start";
-import { E2eeProvider } from "~/components/hooks/e2ee";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -46,11 +44,7 @@ function RootDocument(props: React.PropsWithChildren) {
 }
 
 function Providers(props: React.PropsWithChildren) {
-  return (
-    <ClerkProvider>
-      <E2eeProvider>{props.children}</E2eeProvider>
-    </ClerkProvider>
-  );
+  return props.children;
 }
 
 function Shell(props: React.PropsWithChildren) {
