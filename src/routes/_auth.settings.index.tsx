@@ -71,10 +71,7 @@ function ProfilePage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Your passkeys</h2>
-          <Button
-            onClick={handleAddPasskey}
-            disabled={(!dek && triedAutoUnlock) || isAdding}
-          >
+          <Button onClick={handleAddPasskey} disabled={!dek || isAdding}>
             {isAdding ? "Adding..." : "Add passkey"}
           </Button>
         </div>
@@ -145,7 +142,6 @@ function ProfilePage() {
                       onClick={() => {
                         void handleUnlockWithPasskey(passkey);
                       }}
-                      disabled={!!dek}
                     >
                       Unlock
                     </Button>
