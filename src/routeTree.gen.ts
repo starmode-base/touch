@@ -10,9 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as OpportunitiesRouteImport } from './routes/opportunities'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile.index'
+import { Route as OpportunitiesIndexRouteImport } from './routes/opportunities.index'
 import { Route as ContactsIndexRouteImport } from './routes/contacts.index'
 import { Route as ContactsContactRouteImport } from './routes/contacts.$contact'
 import { Route as ApiPasskeysRouteImport } from './routes/api.passkeys'
@@ -25,6 +27,11 @@ import { Route as ApiChromeRouteImport } from './routes/api.chrome'
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpportunitiesRoute = OpportunitiesRouteImport.update({
+  id: '/opportunities',
+  path: '/opportunities',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactsRoute = ContactsRouteImport.update({
@@ -41,6 +48,11 @@ const ProfileIndexRoute = ProfileIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ProfileRoute,
+} as any)
+const OpportunitiesIndexRoute = OpportunitiesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OpportunitiesRoute,
 } as any)
 const ContactsIndexRoute = ContactsIndexRouteImport.update({
   id: '/',
@@ -87,6 +99,7 @@ const ApiChromeRoute = ApiChromeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/contacts': typeof ContactsRouteWithChildren
+  '/opportunities': typeof OpportunitiesRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
@@ -96,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof ContactsContactRoute
   '/contacts/': typeof ContactsIndexRoute
+  '/opportunities/': typeof OpportunitiesIndexRoute
   '/profile/': typeof ProfileIndexRoute
 }
 export interface FileRoutesByTo {
@@ -108,12 +122,14 @@ export interface FileRoutesByTo {
   '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof ContactsContactRoute
   '/contacts': typeof ContactsIndexRoute
+  '/opportunities': typeof OpportunitiesIndexRoute
   '/profile': typeof ProfileIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/contacts': typeof ContactsRouteWithChildren
+  '/opportunities': typeof OpportunitiesRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
@@ -123,6 +139,7 @@ export interface FileRoutesById {
   '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof ContactsContactRoute
   '/contacts/': typeof ContactsIndexRoute
+  '/opportunities/': typeof OpportunitiesIndexRoute
   '/profile/': typeof ProfileIndexRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +147,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/contacts'
+    | '/opportunities'
     | '/profile'
     | '/api/chrome'
     | '/api/contact-activities'
@@ -139,6 +157,7 @@ export interface FileRouteTypes {
     | '/api/passkeys'
     | '/contacts/$contact'
     | '/contacts/'
+    | '/opportunities/'
     | '/profile/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -151,11 +170,13 @@ export interface FileRouteTypes {
     | '/api/passkeys'
     | '/contacts/$contact'
     | '/contacts'
+    | '/opportunities'
     | '/profile'
   id:
     | '__root__'
     | '/'
     | '/contacts'
+    | '/opportunities'
     | '/profile'
     | '/api/chrome'
     | '/api/contact-activities'
@@ -165,12 +186,14 @@ export interface FileRouteTypes {
     | '/api/passkeys'
     | '/contacts/$contact'
     | '/contacts/'
+    | '/opportunities/'
     | '/profile/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ContactsRoute: typeof ContactsRouteWithChildren
+  OpportunitiesRoute: typeof OpportunitiesRouteWithChildren
   ProfileRoute: typeof ProfileRouteWithChildren
   ApiChromeRoute: typeof ApiChromeRoute
   ApiContactActivitiesRoute: typeof ApiContactActivitiesRoute
@@ -187,6 +210,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/opportunities': {
+      id: '/opportunities'
+      path: '/opportunities'
+      fullPath: '/opportunities'
+      preLoaderRoute: typeof OpportunitiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contacts': {
@@ -209,6 +239,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/profile/'
       preLoaderRoute: typeof ProfileIndexRouteImport
       parentRoute: typeof ProfileRoute
+    }
+    '/opportunities/': {
+      id: '/opportunities/'
+      path: '/'
+      fullPath: '/opportunities/'
+      preLoaderRoute: typeof OpportunitiesIndexRouteImport
+      parentRoute: typeof OpportunitiesRoute
     }
     '/contacts/': {
       id: '/contacts/'
@@ -283,6 +320,18 @@ const ContactsRouteWithChildren = ContactsRoute._addFileChildren(
   ContactsRouteChildren,
 )
 
+interface OpportunitiesRouteChildren {
+  OpportunitiesIndexRoute: typeof OpportunitiesIndexRoute
+}
+
+const OpportunitiesRouteChildren: OpportunitiesRouteChildren = {
+  OpportunitiesIndexRoute: OpportunitiesIndexRoute,
+}
+
+const OpportunitiesRouteWithChildren = OpportunitiesRoute._addFileChildren(
+  OpportunitiesRouteChildren,
+)
+
 interface ProfileRouteChildren {
   ProfileIndexRoute: typeof ProfileIndexRoute
 }
@@ -297,6 +346,7 @@ const ProfileRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ContactsRoute: ContactsRouteWithChildren,
+  OpportunitiesRoute: OpportunitiesRouteWithChildren,
   ProfileRoute: ProfileRouteWithChildren,
   ApiChromeRoute: ApiChromeRoute,
   ApiContactActivitiesRoute: ApiContactActivitiesRoute,
