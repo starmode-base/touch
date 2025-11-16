@@ -41,11 +41,7 @@ function ProfilePage() {
       return;
     }
 
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this passkey? You won't be able to decrypt your data on this device anymore.",
-      )
-    ) {
+    if (!window.confirm("Delete this passkey?")) {
       return;
     }
 
