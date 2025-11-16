@@ -40,38 +40,3 @@ export function E2eeGate(props: React.PropsWithChildren) {
 
   return props.children;
 }
-
-export function E2eeGate2(props: React.PropsWithChildren) {
-  const { isDekUnlocked } = useE2ee();
-  const { tryAutoUnlock, triedAutoUnlock } = usePasskeys();
-
-  // Query passkeys from Electric collection
-  const passkeysQuery = useLiveQuery((q) =>
-    q.from({ passkey: passkeysCollection }),
-  );
-
-  const hasPasskeys = passkeysQuery.data.length > 0;
-
-  // Auto-unlock when passkeys are loaded and not already unlocked
-  useEffect(() => {
-    if (hasPasskeys && !isDekUnlocked && !triedAutoUnlock) {
-      void tryAutoUnlock(passkeysQuery.data);
-    }
-  }, [
-    hasPasskeys,
-    isDekUnlocked,
-    triedAutoUnlock,
-    tryAutoUnlock,
-    passkeysQuery.data,
-  ]);
-
-  if (!hasPasskeys) {
-    return <E2eeEnrollment />;
-  }
-
-  // if (!isDekUnlocked && triedAutoUnlock) {
-  //   return <E2eeUnlock passkeys={passkeysQuery.data} />;
-  // }
-
-  return props.children;
-}

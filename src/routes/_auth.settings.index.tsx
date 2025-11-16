@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useLiveQuery } from "@tanstack/react-db";
+import { useEffect } from "react";
 import { Button } from "~/components/atoms";
 import { usePasskeys } from "~/components/hooks/passkeys";
 import { useE2ee } from "~/components/hooks/e2ee";
@@ -19,6 +20,7 @@ function ProfilePage() {
     unlock,
     unlockWithSpecificPasskey,
     triedAutoUnlock,
+    tryAutoUnlock,
     isAdding,
   } = usePasskeys();
 
@@ -27,8 +29,16 @@ function ProfilePage() {
   );
 
   const passkeys = passkeysQuery.data;
+  const hasPasskeys = passkeys.length > 0;
 
   const activeCredentialId = getCachedCredentialId();
+
+  // Auto-unlock when passkeys are loaded and not already unlocked
+  useEffect(() => {
+    if (hasPasskeys && !dek && !triedAutoUnlock) {
+      void tryAutoUnlock(passkeys);
+    }
+  }, [hasPasskeys, dek, triedAutoUnlock, tryAutoUnlock, passkeys]);
 
   const handleAddPasskey = async () => {
     await addPasskey();
@@ -71,7 +81,8 @@ function ProfilePage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Your passkeys</h2>
-          <Button onClick={handleAddPasskey} disabled={!dek || isAdding}>
+
+          <Button onClick={handleAddPasskey} disabled={isAdding}>
             {isAdding ? "Adding..." : "Add passkey"}
           </Button>
         </div>

@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useE2ee } from "./e2ee";
 import { passkeysCollection, type Passkey } from "~/collections/passkeys";
 import {
-  enrollPasskey,
+  generateDek,
   addAdditionalPasskey,
   unlockWithPasskey,
   attemptAutoUnlock,
@@ -15,9 +15,6 @@ import { genSecureToken } from "~/lib/secure-token";
 
 export function usePasskeys() {
   const { setDek, unsetDek, dek } = useE2ee();
-
-  // Enroll states
-  const [isEnrolling, setIsEnrolling] = useState(false);
 
   // Add states
   const [isAdding, setIsAdding] = useState(false);
@@ -57,11 +54,15 @@ export function usePasskeys() {
     [setDek],
   );
 
-  // Enroll operation
-  const enroll = useCallback(async () => {
-    setIsEnrolling(true);
+  // Add passkey operation - works for both first passkey (enrollment) and additional passkeys
+  const addPasskey = useCallback(async () => {
+    setIsAdding(true);
 
-    const result = await enrollPasskey({
+    // If no DEK exists (first passkey), generate one. Otherwise use existing DEK.
+    const dekToWrap = dek ?? generateDek();
+
+    const result = await addAdditionalPasskey({
+      dek: dekToWrap,
       rpId: location.hostname,
       rpName: "Touch",
       userDisplayName: "Touch Encryption Key",
@@ -88,48 +89,14 @@ export function usePasskeys() {
     });
 
     storeCachedKek(result.kek, result.credentialId);
-    setDek(result.dek);
-    setIsEnrolling(false);
-  }, [setDek]);
 
-  // Add passkey operation
-  const addPasskey = useCallback(async () => {
+    // If this was the first passkey, set the DEK in memory
     if (!dek) {
-      throw new Error("DEK must be unlocked to add a passkey");
+      setDek(dekToWrap);
     }
 
-    setIsAdding(true);
-
-    const result = await addAdditionalPasskey({
-      dek,
-      rpId: location.hostname,
-      rpName: "Touch",
-      userDisplayName: "Touch Encryption Key (Additional)",
-      userName: "e2ee-" + new Date().toISOString(),
-    });
-
-    // Insert into Electric collection (will sync to server via onInsert)
-    passkeysCollection.insert({
-      id: genSecureToken(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      user_id: "", // Will be set server-side
-      credential_id: result.credentialId,
-      public_key: result.publicKey,
-      wrapped_dek: result.wrappedDek,
-      kek_salt: result.kekSalt,
-      transports: result.transports,
-      algorithm: result.algorithm,
-      rp_name: result.rpName,
-      rp_id: result.rpId,
-      webauthn_user_id: result.webauthnUserId,
-      webauthn_user_name: result.webauthnUserName,
-      webauthn_user_display_name: result.webauthnUserDisplayName,
-    });
-
-    storeCachedKek(result.kek, result.credentialId);
     setIsAdding(false);
-  }, [dek]);
+  }, [dek, setDek]);
 
   // Delete passkey operation
   const deletePasskey = useCallback((id: string) => {
@@ -196,7 +163,6 @@ export function usePasskeys() {
 
   return {
     // Operations
-    enroll,
     addPasskey,
     deletePasskey,
     unlock,
@@ -207,9 +173,6 @@ export function usePasskeys() {
     // Auto-unlock
     tryAutoUnlock,
     triedAutoUnlock,
-
-    // Enroll
-    isEnrolling,
 
     // Add states
     isAdding,
