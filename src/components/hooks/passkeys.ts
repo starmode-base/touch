@@ -2,8 +2,7 @@ import { useState, useCallback } from "react";
 import { useE2ee } from "./e2ee";
 import { passkeysCollection, type Passkey } from "~/collections/passkeys";
 import {
-  generateDek,
-  addAdditionalPasskey,
+  addPasskey as addPasskeyLib,
   unlockWithPasskey,
   attemptAutoUnlock,
   hasCachedKek,
@@ -48,15 +47,13 @@ export function usePasskeys() {
     [setDek],
   );
 
-  // Add passkey operation - works for both first passkey (enrollment) and additional passkeys
+  // Add passkey operation
+  // Pass null for first passkey (generates new DEK), pass existing DEK for additional passkeys
   const addPasskey = useCallback(async () => {
     setIsAdding(true);
 
-    // If no DEK exists (first passkey), generate one. Otherwise use existing DEK.
-    const dekToWrap = dek ?? generateDek();
-
-    const result = await addAdditionalPasskey({
-      dek: dekToWrap,
+    const result = await addPasskeyLib({
+      dek,
       rpId: location.hostname,
       rpName: "Touch",
       userDisplayName: "Touch Encryption Key",
@@ -83,12 +80,7 @@ export function usePasskeys() {
     });
 
     storeCachedKek(result.kek, result.credentialId);
-
-    // If this was the first passkey, set the DEK in memory
-    if (!dek) {
-      setDek(dekToWrap);
-    }
-
+    setDek(result.dek);
     setIsAdding(false);
   }, [dek, setDek]);
 

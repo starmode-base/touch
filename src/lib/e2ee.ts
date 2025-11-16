@@ -411,12 +411,16 @@ function findPasskeyByCredentialId(
 }
 
 /**
- * Complete passkey enrollment flow
+ * Add a passkey
  *
- * Creates PRF-enabled passkey, generates DEK, wraps it with KEK
- * Uses single WebAuthn prompt by including PRF evaluation in credential creation
+ * Pass null to generate a new DEK (enrollment).
+ * Pass an existing DEK to wrap it with the new passkey (adding additional passkey).
+ *
+ * Creates PRF-enabled passkey and wraps the DEK with new KEK.
+ * Uses single WebAuthn prompt by including PRF evaluation in credential creation.
  */
-export async function enrollPasskey(options: {
+export async function addPasskey(options: {
+  dek: CryptoBytes | null;
   rpId: string;
   rpName: string;
   userName: string;
@@ -436,46 +440,10 @@ export async function enrollPasskey(options: {
   webauthnUserName: string;
   webauthnUserDisplayName: string;
 }> {
-  const dek = generateDek();
+  requireBrowser("addPasskey requires a browser environment");
 
-  const result = await addAdditionalPasskey({
-    dek,
-    rpId: options.rpId,
-    rpName: options.rpName,
-    userName: options.userName,
-    userDisplayName: options.userDisplayName,
-  });
-
-  return { ...result, dek };
-}
-
-/**
- * Add an additional passkey for an existing DEK
- *
- * Creates new PRF-enabled passkey and wraps the existing DEK with new KEK
- * Uses single WebAuthn prompt by including PRF evaluation in credential creation
- */
-export async function addAdditionalPasskey(options: {
-  dek: CryptoBytes;
-  rpId: string;
-  rpName: string;
-  userName: string;
-  userDisplayName: string;
-}): Promise<{
-  credentialId: string;
-  publicKey: string;
-  wrappedDek: string;
-  kekSalt: string;
-  transports: string[];
-  algorithm: number;
-  kek: CryptoBytes;
-  rpName: string;
-  rpId: string;
-  webauthnUserId: string;
-  webauthnUserName: string;
-  webauthnUserDisplayName: string;
-}> {
-  requireBrowser("addAdditionalPasskey requires a browser environment");
+  // Generate new DEK if null (enrollment), otherwise use existing DEK
+  const dek = options.dek ?? generateDek();
 
   // Step 1: Generate constant PRF input
   const prfInput = await getPrfInput(options.rpId);
@@ -541,10 +509,11 @@ export async function addAdditionalPasskey(options: {
   const kekSalt = generateKekSalt();
   const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
 
-  // Step 6: Wrap existing DEK with new KEK
-  const wrappedDek = await wrapDekWithKek(options.dek, kek);
+  // Step 6: Wrap DEK with new KEK
+  const wrappedDek = await wrapDekWithKek(dek, kek);
 
   return {
+    dek,
     credentialId: credential.id,
     publicKey: base64urlEncode(publicKeyBytes),
     wrappedDek,
