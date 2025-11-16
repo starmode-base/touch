@@ -12,33 +12,7 @@ import {
   type StoredPasskey,
 } from "~/lib/e2ee";
 
-interface UsePasskeysReturn {
-  // Operations
-  enroll: () => Promise<void>;
-  addPasskey: () => Promise<void>;
-  deletePasskey: (id: string) => void;
-  unlock: (passkeys: Passkey[]) => Promise<void>;
-  unlockWithSpecificPasskey: (passkey: Passkey) => Promise<void>;
-  lock: () => void;
-
-  // Auto-unlock
-  tryAutoUnlock: (passkeys: Passkey[]) => Promise<void>;
-  triedAutoUnlock: boolean;
-
-  // States for enroll
-  isEnrolling: boolean;
-
-  // States for add
-  isAdding: boolean;
-
-  // States for delete
-  isDeleting: boolean;
-
-  // States for unlock
-  isUnlocking: boolean;
-}
-
-export function usePasskeys(): UsePasskeysReturn {
+export function usePasskeys() {
   const { setDek, unsetDek, dek } = useE2ee();
 
   // Enroll states
