@@ -9,7 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as PrivacryRouteImport } from './routes/privacry'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPasskeysRouteImport } from './routes/api.passkeys'
@@ -26,9 +26,9 @@ import { Route as AuthOpportunitiesIndexRouteImport } from './routes/_auth.oppor
 import { Route as AuthContactsIndexRouteImport } from './routes/_auth.contacts.index'
 import { Route as AuthContactsContactRouteImport } from './routes/_auth.contacts.$contact'
 
-const PrivacryRoute = PrivacryRouteImport.update({
-  id: '/privacry',
-  path: '/privacry',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -109,7 +109,7 @@ const AuthContactsContactRoute = AuthContactsContactRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/privacry': typeof PrivacryRoute
+  '/privacy': typeof PrivacyRoute
   '/contacts': typeof AuthContactsRouteWithChildren
   '/opportunities': typeof AuthOpportunitiesRouteWithChildren
   '/profile': typeof AuthProfileRouteWithChildren
@@ -126,7 +126,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/privacry': typeof PrivacryRoute
+  '/privacy': typeof PrivacyRoute
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
@@ -142,7 +142,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
-  '/privacry': typeof PrivacryRoute
+  '/privacy': typeof PrivacyRoute
   '/_auth/contacts': typeof AuthContactsRouteWithChildren
   '/_auth/opportunities': typeof AuthOpportunitiesRouteWithChildren
   '/_auth/profile': typeof AuthProfileRouteWithChildren
@@ -161,7 +161,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/privacry'
+    | '/privacy'
     | '/contacts'
     | '/opportunities'
     | '/profile'
@@ -178,7 +178,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/privacry'
+    | '/privacy'
     | '/api/chrome'
     | '/api/contact-activities'
     | '/api/contact-role-assignments'
@@ -193,7 +193,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_auth'
-    | '/privacry'
+    | '/privacy'
     | '/_auth/contacts'
     | '/_auth/opportunities'
     | '/_auth/profile'
@@ -212,7 +212,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
-  PrivacryRoute: typeof PrivacryRoute
+  PrivacyRoute: typeof PrivacyRoute
   ApiChromeRoute: typeof ApiChromeRoute
   ApiContactActivitiesRoute: typeof ApiContactActivitiesRoute
   ApiContactRoleAssignmentsRoute: typeof ApiContactRoleAssignmentsRoute
@@ -223,11 +223,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/privacry': {
-      id: '/privacry'
-      path: '/privacry'
-      fullPath: '/privacry'
-      preLoaderRoute: typeof PrivacryRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth': {
@@ -392,7 +392,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
-  PrivacryRoute: PrivacryRoute,
+  PrivacyRoute: PrivacyRoute,
   ApiChromeRoute: ApiChromeRoute,
   ApiContactActivitiesRoute: ApiContactActivitiesRoute,
   ApiContactRoleAssignmentsRoute: ApiContactRoleAssignmentsRoute,

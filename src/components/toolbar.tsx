@@ -48,7 +48,7 @@ export function Toolbar() {
       <div className="flex items-center gap-2">
         <LinkButton to="/contacts">Contacts</LinkButton>
         <LinkButton to="/opportunities">Opportunities</LinkButton>
-        <LinkButton to="/privacry">Privacy Policy</LinkButton>
+        <LinkButton to="/privacy">Privacy Policy</LinkButton>
       </div>
       <div className="flex items-center gap-2">
         <Button
