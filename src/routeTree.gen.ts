@@ -18,10 +18,10 @@ import { Route as ApiContactRolesRouteImport } from './routes/api.contact-roles'
 import { Route as ApiContactRoleAssignmentsRouteImport } from './routes/api.contact-role-assignments'
 import { Route as ApiContactActivitiesRouteImport } from './routes/api.contact-activities'
 import { Route as ApiChromeRouteImport } from './routes/api.chrome'
-import { Route as AuthProfileRouteImport } from './routes/_auth.profile'
+import { Route as AuthSettingsRouteImport } from './routes/_auth.settings'
 import { Route as AuthOpportunitiesRouteImport } from './routes/_auth.opportunities'
 import { Route as AuthContactsRouteImport } from './routes/_auth.contacts'
-import { Route as AuthProfileIndexRouteImport } from './routes/_auth.profile.index'
+import { Route as AuthSettingsIndexRouteImport } from './routes/_auth.settings.index'
 import { Route as AuthOpportunitiesIndexRouteImport } from './routes/_auth.opportunities.index'
 import { Route as AuthContactsIndexRouteImport } from './routes/_auth.contacts.index'
 import { Route as AuthContactsContactRouteImport } from './routes/_auth.contacts.$contact'
@@ -71,9 +71,9 @@ const ApiChromeRoute = ApiChromeRouteImport.update({
   path: '/api/chrome',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthProfileRoute = AuthProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const AuthSettingsRoute = AuthSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthOpportunitiesRoute = AuthOpportunitiesRouteImport.update({
@@ -86,10 +86,10 @@ const AuthContactsRoute = AuthContactsRouteImport.update({
   path: '/contacts',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthProfileIndexRoute = AuthProfileIndexRouteImport.update({
+const AuthSettingsIndexRoute = AuthSettingsIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthProfileRoute,
+  getParentRoute: () => AuthSettingsRoute,
 } as any)
 const AuthOpportunitiesIndexRoute = AuthOpportunitiesIndexRouteImport.update({
   id: '/',
@@ -112,7 +112,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/contacts': typeof AuthContactsRouteWithChildren
   '/opportunities': typeof AuthOpportunitiesRouteWithChildren
-  '/profile': typeof AuthProfileRouteWithChildren
+  '/settings': typeof AuthSettingsRouteWithChildren
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
@@ -122,7 +122,7 @@ export interface FileRoutesByFullPath {
   '/contacts/$contact': typeof AuthContactsContactRoute
   '/contacts/': typeof AuthContactsIndexRoute
   '/opportunities/': typeof AuthOpportunitiesIndexRoute
-  '/profile/': typeof AuthProfileIndexRoute
+  '/settings/': typeof AuthSettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -136,7 +136,7 @@ export interface FileRoutesByTo {
   '/contacts/$contact': typeof AuthContactsContactRoute
   '/contacts': typeof AuthContactsIndexRoute
   '/opportunities': typeof AuthOpportunitiesIndexRoute
-  '/profile': typeof AuthProfileIndexRoute
+  '/settings': typeof AuthSettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -145,7 +145,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/_auth/contacts': typeof AuthContactsRouteWithChildren
   '/_auth/opportunities': typeof AuthOpportunitiesRouteWithChildren
-  '/_auth/profile': typeof AuthProfileRouteWithChildren
+  '/_auth/settings': typeof AuthSettingsRouteWithChildren
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
@@ -155,7 +155,7 @@ export interface FileRoutesById {
   '/_auth/contacts/$contact': typeof AuthContactsContactRoute
   '/_auth/contacts/': typeof AuthContactsIndexRoute
   '/_auth/opportunities/': typeof AuthOpportunitiesIndexRoute
-  '/_auth/profile/': typeof AuthProfileIndexRoute
+  '/_auth/settings/': typeof AuthSettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -164,7 +164,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/contacts'
     | '/opportunities'
-    | '/profile'
+    | '/settings'
     | '/api/chrome'
     | '/api/contact-activities'
     | '/api/contact-role-assignments'
@@ -174,7 +174,7 @@ export interface FileRouteTypes {
     | '/contacts/$contact'
     | '/contacts/'
     | '/opportunities/'
-    | '/profile/'
+    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -188,7 +188,7 @@ export interface FileRouteTypes {
     | '/contacts/$contact'
     | '/contacts'
     | '/opportunities'
-    | '/profile'
+    | '/settings'
   id:
     | '__root__'
     | '/'
@@ -196,7 +196,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/_auth/contacts'
     | '/_auth/opportunities'
-    | '/_auth/profile'
+    | '/_auth/settings'
     | '/api/chrome'
     | '/api/contact-activities'
     | '/api/contact-role-assignments'
@@ -206,7 +206,7 @@ export interface FileRouteTypes {
     | '/_auth/contacts/$contact'
     | '/_auth/contacts/'
     | '/_auth/opportunities/'
-    | '/_auth/profile/'
+    | '/_auth/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -286,11 +286,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChromeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_auth/profile': {
-      id: '/_auth/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthProfileRouteImport
+    '/_auth/settings': {
+      id: '/_auth/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthSettingsRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/opportunities': {
@@ -307,12 +307,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthContactsRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/profile/': {
-      id: '/_auth/profile/'
+    '/_auth/settings/': {
+      id: '/_auth/settings/'
       path: '/'
-      fullPath: '/profile/'
-      preLoaderRoute: typeof AuthProfileIndexRouteImport
-      parentRoute: typeof AuthProfileRoute
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthSettingsIndexRouteImport
+      parentRoute: typeof AuthSettingsRoute
     }
     '/_auth/opportunities/': {
       id: '/_auth/opportunities/'
@@ -363,28 +363,28 @@ const AuthOpportunitiesRouteChildren: AuthOpportunitiesRouteChildren = {
 const AuthOpportunitiesRouteWithChildren =
   AuthOpportunitiesRoute._addFileChildren(AuthOpportunitiesRouteChildren)
 
-interface AuthProfileRouteChildren {
-  AuthProfileIndexRoute: typeof AuthProfileIndexRoute
+interface AuthSettingsRouteChildren {
+  AuthSettingsIndexRoute: typeof AuthSettingsIndexRoute
 }
 
-const AuthProfileRouteChildren: AuthProfileRouteChildren = {
-  AuthProfileIndexRoute: AuthProfileIndexRoute,
+const AuthSettingsRouteChildren: AuthSettingsRouteChildren = {
+  AuthSettingsIndexRoute: AuthSettingsIndexRoute,
 }
 
-const AuthProfileRouteWithChildren = AuthProfileRoute._addFileChildren(
-  AuthProfileRouteChildren,
+const AuthSettingsRouteWithChildren = AuthSettingsRoute._addFileChildren(
+  AuthSettingsRouteChildren,
 )
 
 interface AuthRouteChildren {
   AuthContactsRoute: typeof AuthContactsRouteWithChildren
   AuthOpportunitiesRoute: typeof AuthOpportunitiesRouteWithChildren
-  AuthProfileRoute: typeof AuthProfileRouteWithChildren
+  AuthSettingsRoute: typeof AuthSettingsRouteWithChildren
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthContactsRoute: AuthContactsRouteWithChildren,
   AuthOpportunitiesRoute: AuthOpportunitiesRouteWithChildren,
-  AuthProfileRoute: AuthProfileRouteWithChildren,
+  AuthSettingsRoute: AuthSettingsRouteWithChildren,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)

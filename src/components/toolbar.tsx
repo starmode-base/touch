@@ -61,7 +61,7 @@ export function Toolbar() {
         <Button onClick={auth.signOut} variant="icon">
           <ArrowRightStartOnRectangleIcon className="size-4" />
         </Button>
-        <LinkButton to="/profile" variant="icon">
+        <LinkButton to="/settings" variant="icon">
           <Cog8ToothIcon className="size-4" />
         </LinkButton>
       </div>
