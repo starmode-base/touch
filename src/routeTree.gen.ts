@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfileIndexRouteImport } from './routes/profile.index'
 import { Route as ContactsIndexRouteImport } from './routes/contacts.index'
 import { Route as ContactsContactRouteImport } from './routes/contacts.$contact'
 import { Route as ApiPasskeysRouteImport } from './routes/api.passkeys'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileIndexRoute = ProfileIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProfileRoute,
 } as any)
 const ContactsIndexRoute = ContactsIndexRouteImport.update({
   id: '/',
@@ -81,7 +87,7 @@ const ApiChromeRoute = ApiChromeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/contacts': typeof ContactsRouteWithChildren
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
@@ -90,10 +96,10 @@ export interface FileRoutesByFullPath {
   '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof ContactsContactRoute
   '/contacts/': typeof ContactsIndexRoute
+  '/profile/': typeof ProfileIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/profile': typeof ProfileRoute
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
@@ -102,12 +108,13 @@ export interface FileRoutesByTo {
   '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof ContactsContactRoute
   '/contacts': typeof ContactsIndexRoute
+  '/profile': typeof ProfileIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/contacts': typeof ContactsRouteWithChildren
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
@@ -116,6 +123,7 @@ export interface FileRoutesById {
   '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof ContactsContactRoute
   '/contacts/': typeof ContactsIndexRoute
+  '/profile/': typeof ProfileIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,10 +139,10 @@ export interface FileRouteTypes {
     | '/api/passkeys'
     | '/contacts/$contact'
     | '/contacts/'
+    | '/profile/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/profile'
     | '/api/chrome'
     | '/api/contact-activities'
     | '/api/contact-role-assignments'
@@ -143,6 +151,7 @@ export interface FileRouteTypes {
     | '/api/passkeys'
     | '/contacts/$contact'
     | '/contacts'
+    | '/profile'
   id:
     | '__root__'
     | '/'
@@ -156,12 +165,13 @@ export interface FileRouteTypes {
     | '/api/passkeys'
     | '/contacts/$contact'
     | '/contacts/'
+    | '/profile/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ContactsRoute: typeof ContactsRouteWithChildren
-  ProfileRoute: typeof ProfileRoute
+  ProfileRoute: typeof ProfileRouteWithChildren
   ApiChromeRoute: typeof ApiChromeRoute
   ApiContactActivitiesRoute: typeof ApiContactActivitiesRoute
   ApiContactRoleAssignmentsRoute: typeof ApiContactRoleAssignmentsRoute
@@ -192,6 +202,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/profile/': {
+      id: '/profile/'
+      path: '/'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProfileIndexRouteImport
+      parentRoute: typeof ProfileRoute
     }
     '/contacts/': {
       id: '/contacts/'
@@ -266,10 +283,21 @@ const ContactsRouteWithChildren = ContactsRoute._addFileChildren(
   ContactsRouteChildren,
 )
 
+interface ProfileRouteChildren {
+  ProfileIndexRoute: typeof ProfileIndexRoute
+}
+
+const ProfileRouteChildren: ProfileRouteChildren = {
+  ProfileIndexRoute: ProfileIndexRoute,
+}
+
+const ProfileRouteWithChildren =
+  ProfileRoute._addFileChildren(ProfileRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ContactsRoute: ContactsRouteWithChildren,
-  ProfileRoute: ProfileRoute,
+  ProfileRoute: ProfileRouteWithChildren,
   ApiChromeRoute: ApiChromeRoute,
   ApiContactActivitiesRoute: ApiContactActivitiesRoute,
   ApiContactRoleAssignmentsRoute: ApiContactRoleAssignmentsRoute,
