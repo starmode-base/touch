@@ -18,7 +18,6 @@ function ProfilePage() {
     addPasskey,
     deletePasskey,
     unlock,
-    unlockWithSpecificPasskey,
     triedAutoUnlock,
     tryAutoUnlock,
     isAdding,
@@ -62,7 +61,7 @@ function ProfilePage() {
   };
 
   const handleUnlockWithPasskey = async (passkey: (typeof passkeys)[0]) => {
-    await unlockWithSpecificPasskey(passkey);
+    await unlock([passkey]);
   };
 
   return (

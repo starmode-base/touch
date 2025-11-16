@@ -15,14 +15,8 @@ import { genSecureToken } from "~/lib/secure-token";
 
 export function usePasskeys() {
   const { setDek, unsetDek, dek } = useE2ee();
-
-  // Add states
   const [isAdding, setIsAdding] = useState(false);
-
-  // Unlock states
   const [isUnlocking, setIsUnlocking] = useState(false);
-
-  // Auto-unlock state
   const [triedAutoUnlock, setTriedAutoUnlock] = useState(false);
 
   // Auto-unlock on mount if passkeys exist
@@ -130,31 +124,6 @@ export function usePasskeys() {
     [setDek],
   );
 
-  // Unlock with specific passkey operation
-  const unlockWithSpecificPasskey = useCallback(
-    async (passkey: Passkey) => {
-      setIsUnlocking(true);
-
-      // Convert to StoredPasskey format
-      const storedPasskey: StoredPasskey = {
-        credentialId: passkey.credential_id,
-        wrappedDek: passkey.wrapped_dek,
-        kekSalt: passkey.kek_salt,
-        transports: passkey.transports,
-      };
-
-      const result = await unlockWithPasskey({
-        passkeys: [storedPasskey],
-        rpId: location.hostname,
-      });
-
-      storeCachedKek(result.kek, result.credentialId);
-      setDek(result.dek);
-      setIsUnlocking(false);
-    },
-    [setDek],
-  );
-
   // Lock operation (clear KEK cache + wipe DEK from memory)
   const lock = useCallback(() => {
     clearCachedKek();
@@ -166,7 +135,6 @@ export function usePasskeys() {
     addPasskey,
     deletePasskey,
     unlock,
-    unlockWithSpecificPasskey,
     /** Lock operation (clear KEK cache + wipe DEK from memory) */
     lock,
 
@@ -174,10 +142,8 @@ export function usePasskeys() {
     tryAutoUnlock,
     triedAutoUnlock,
 
-    // Add states
+    // States
     isAdding,
-
-    // Unlock states
     isUnlocking,
   };
 }
