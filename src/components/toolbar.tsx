@@ -44,13 +44,13 @@ export function Toolbar() {
   const { triedAutoUnlock } = usePasskeys();
 
   return (
-    <div className="flex items-center justify-between gap-2 bg-zinc-900 p-1 text-sm shadow">
-      <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between gap-1 bg-zinc-900 p-1 text-sm shadow">
+      <div className="flex items-center gap-1">
         <LinkButton to="/contacts">Contacts</LinkButton>
         <LinkButton to="/opportunities">Opportunities</LinkButton>
         <LinkButton to="/privacy">Privacy Policy</LinkButton>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <Button
           variant="icon"
           onClick={auth.lock}

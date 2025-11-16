@@ -3,24 +3,10 @@ import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import appCss from "~/styles/app.css?url";
 import metadata from "../../metadata.json";
 import { inject } from "@vercel/analytics";
-import {
-  ClerkProvider,
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-} from "@clerk/tanstack-react-start";
-import { syncViewerSF } from "~/server-functions/viewer";
-import { Button } from "~/components/atoms";
+import { ClerkProvider } from "@clerk/tanstack-react-start";
 import { E2eeProvider } from "~/components/hooks/e2ee";
-import { Toolbar } from "~/components/toolbar";
 
 export const Route = createRootRoute({
-  beforeLoad: async () => ({
-    // Ensure the viewer is synced from Clerk to the database. This also makes
-    // the viewer available as context in the loader of descendant routes.
-    viewer: await syncViewerSF(),
-  }),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -70,26 +56,7 @@ function Providers(props: React.PropsWithChildren) {
 function Shell(props: React.PropsWithChildren) {
   return (
     <main className="bg-pattern-lines flex h-dvh flex-col bg-slate-50">
-      <SignedIn>
-        <Toolbar />
-        {props.children}
-      </SignedIn>
-      <SignedOut>
-        <div className="m-auto flex flex-col gap-4 rounded border border-slate-100 bg-white p-8">
-          <div className="text-center text-4xl font-extrabold">
-            {metadata.name}
-          </div>
-          <div className="max-w-xs text-center">{metadata.description}</div>
-          <div className="m-auto flex gap-2">
-            <SignInButton mode="modal">
-              <Button>Sign in</Button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <Button>Sign up</Button>
-            </SignUpButton>
-          </div>
-        </div>
-      </SignedOut>
+      {props.children}
     </main>
   );
 }
