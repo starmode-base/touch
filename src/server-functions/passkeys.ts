@@ -2,7 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { db, schema } from "~/postgres/db";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { z } from "zod";
-import { eq, and, count } from "drizzle-orm";
+import { eq, and, count, inArray } from "drizzle-orm";
+import { generateTxId } from "~/postgres/helpers";
+import { SecureToken } from "~/lib/validators";
 
 /**
  * Store a new passkey for the authenticated user
@@ -51,40 +53,35 @@ export const storePasskeySF = createServerFn({ method: "POST" })
   });
 
 /**
- * Delete a passkey for the authenticated user
+ * Delete passkey
  */
 export const deletePasskeySF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(
-    z.object({
-      credentialId: z.string(),
-    }),
-  )
+  .inputValidator(z.object({ ids: SecureToken.array() }))
   .handler(async ({ data, context }) => {
-    // Check total passkey count for user
-    const [result] = await db()
-      .select({ count: count() })
-      .from(schema.passkeys)
-      .where(eq(schema.passkeys.user_id, context.viewer.id));
+    return db().transaction(async (tx) => {
+      const txid = await generateTxId(tx);
 
-    if (!result || result.count <= 1) {
-      throw new Error("Cannot delete the last passkey");
-    }
+      // Check total passkey count for user
+      const [result] = await tx
+        .select({ count: count() })
+        .from(schema.passkeys)
+        .where(eq(schema.passkeys.user_id, context.viewer.id));
 
-    // Delete the passkey
-    const [deleted] = await db()
-      .delete(schema.passkeys)
-      .where(
-        and(
-          eq(schema.passkeys.user_id, context.viewer.id),
-          eq(schema.passkeys.credential_id, data.credentialId),
-        ),
-      )
-      .returning();
+      if (result?.count === 1) {
+        throw new Error("Cannot delete the last passkey");
+      }
 
-    if (!deleted) {
-      throw new Error("Failed to delete passkey");
-    }
+      // Delete the passkey
+      await tx
+        .delete(schema.passkeys)
+        .where(
+          and(
+            eq(schema.passkeys.user_id, context.viewer.id),
+            inArray(schema.passkeys.id, data.ids),
+          ),
+        );
 
-    return deleted;
+      return txid;
+    });
   });

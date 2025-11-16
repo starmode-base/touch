@@ -16,7 +16,7 @@ interface UsePasskeysReturn {
   // Operations
   enroll: () => Promise<void>;
   addPasskey: () => Promise<void>;
-  deletePasskey: (credentialId: string) => void;
+  deletePasskey: (id: string) => void;
   unlock: (passkeys: Passkey[]) => Promise<void>;
   unlockWithSpecificPasskey: (passkey: Passkey) => Promise<void>;
   lock: () => void;
@@ -184,14 +184,14 @@ export function usePasskeys(): UsePasskeysReturn {
   }, [dek]);
 
   // Delete passkey operation
-  const deletePasskey = useCallback((credentialId: string) => {
+  const deletePasskey = useCallback((id: string) => {
     setIsDeleting(true);
     setDeleteError("");
     setDeleteSuccess("");
 
     try {
       // Delete from Electric collection (will sync to server via onDelete)
-      passkeysCollection.delete(credentialId);
+      passkeysCollection.delete(id);
       setDeleteSuccess("Passkey deleted successfully!");
     } catch (e) {
       setDeleteError((e as Error).message);

@@ -6,7 +6,10 @@ import {
   ArrowRightStartOnRectangleIcon,
   Cog8ToothIcon,
   LockClosedIcon,
+  LockOpenIcon,
 } from "@heroicons/react/24/outline";
+import { useLiveQuery } from "@tanstack/react-db";
+import { passkeysCollection } from "~/collections/passkeys";
 
 function LinkButton(props: LinkComponentProps & { variant?: "icon" }) {
   return (
@@ -41,7 +44,12 @@ function Button(
 export function Toolbar() {
   const auth = useAuth();
   const { isDekUnlocked } = useE2ee();
-  const { triedAutoUnlock } = usePasskeys();
+  const { triedAutoUnlock, unlock } = usePasskeys();
+
+  // Query passkeys from Electric collection
+  const passkeysQuery = useLiveQuery((q) =>
+    q.from({ passkey: passkeysCollection }),
+  );
 
   return (
     <div className="flex items-center justify-between gap-1 bg-zinc-900 p-1 text-sm shadow">
@@ -51,13 +59,19 @@ export function Toolbar() {
         <LinkButton to="/privacy">Privacy Policy</LinkButton>
       </div>
       <div className="flex items-center gap-1">
-        <Button
-          variant="icon"
-          onClick={auth.lock}
-          disabled={!isDekUnlocked && triedAutoUnlock}
-        >
-          <LockClosedIcon className="size-4" />
-        </Button>
+        {isDekUnlocked ? (
+          <Button variant="icon" onClick={auth.lock} disabled={triedAutoUnlock}>
+            <LockOpenIcon className="size-4" />
+          </Button>
+        ) : (
+          <Button
+            variant="icon"
+            onClick={() => unlock(passkeysQuery.data)}
+            disabled={triedAutoUnlock}
+          >
+            <LockClosedIcon className="size-4" />
+          </Button>
+        )}
         <Button onClick={auth.signOut} variant="icon">
           <ArrowRightStartOnRectangleIcon className="size-4" />
         </Button>

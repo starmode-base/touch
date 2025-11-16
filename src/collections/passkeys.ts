@@ -29,7 +29,7 @@ export const passkeysCollection = createCollection(
   electricCollectionOptions({
     id: "passkeys-electric",
     schema: Passkey,
-    getKey: (item) => item.credential_id,
+    getKey: (item) => item.id,
     shapeOptions: {
       url: new URL(
         `/api/passkeys`,
@@ -56,11 +56,11 @@ export const passkeysCollection = createCollection(
       await Promise.all(data.map((item) => storePasskeySF({ data: item })));
     },
     onDelete: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => ({
-        credentialId: item.modified.credential_id,
-      }));
+      const ids = transaction.mutations.map((item) => item.modified.id);
 
-      await Promise.all(data.map((item) => deletePasskeySF({ data: item })));
+      const txid = await deletePasskeySF({ data: { ids } });
+
+      return { txid };
     },
   }),
 );

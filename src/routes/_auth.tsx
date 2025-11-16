@@ -11,6 +11,7 @@ import { syncViewerSF } from "~/server-functions/viewer";
 import { E2eeProvider } from "~/components/hooks/e2ee";
 
 export const Route = createFileRoute("/_auth")({
+  ssr: false,
   beforeLoad: async () => ({
     // Ensure the viewer is synced from Clerk to the database. This also makes
     // the viewer available as context in the loader of descendant routes.

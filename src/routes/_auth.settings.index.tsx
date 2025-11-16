@@ -43,7 +43,7 @@ function ProfilePage() {
     }
   };
 
-  const handleDeletePasskey = (credentialId: string) => {
+  const handleDeletePasskey = (id: string) => {
     if (passkeys.length <= 1) {
       alert("Cannot delete the last passkey");
       return;
@@ -58,7 +58,7 @@ function ProfilePage() {
     }
 
     try {
-      deletePasskey(credentialId);
+      deletePasskey(id);
     } catch (e) {
       console.error("Failed to delete passkey:", e);
     }
@@ -192,7 +192,7 @@ function ProfilePage() {
                     </Button>
                     <Button
                       onClick={() => {
-                        handleDeletePasskey(passkey.credential_id);
+                        handleDeletePasskey(passkey.id);
                       }}
                       disabled={isDeleting}
                     >
