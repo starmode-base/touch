@@ -132,18 +132,26 @@ function ProfilePage() {
                 >
                   <div className="flex flex-col gap-1">
                     <div className="text-sm">
-                      <strong>Name:</strong>{" "}
+                      <strong>User display name:</strong>{" "}
                       {passkey.webauthn_user_display_name}
                       {isActive ? (
                         <span className="ml-2 text-green-700">(active)</span>
                       ) : null}
                     </div>
                     <div className="text-sm">
+                      <strong>User name:</strong> {passkey.webauthn_user_name}
+                    </div>
+                    <div className="text-sm">
+                      <strong>User ID:</strong> {passkey.webauthn_user_id}
+                    </div>
+                    <div className="text-sm">
                       <strong>Environment:</strong> {passkey.rp_id}
                     </div>
                     <div className="text-sm">
-                      <strong>Credential ID:</strong>{" "}
-                      {passkey.credential_id.slice(0, 16)}...
+                      <strong>Relying party:</strong> {passkey.rp_name}
+                    </div>
+                    <div className="text-sm">
+                      <strong>Credential ID:</strong> {passkey.credential_id}
                     </div>
                     <div className="text-sm">
                       <strong>Created:</strong> {passkey.created_at}
