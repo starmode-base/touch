@@ -9,28 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacryRouteImport } from './routes/privacry'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProfileIndexRouteImport } from './routes/profile.index'
 import { Route as ApiPasskeysRouteImport } from './routes/api.passkeys'
 import { Route as ApiContactsRouteImport } from './routes/api.contacts'
 import { Route as ApiContactRolesRouteImport } from './routes/api.contact-roles'
 import { Route as ApiContactRoleAssignmentsRouteImport } from './routes/api.contact-role-assignments'
 import { Route as ApiContactActivitiesRouteImport } from './routes/api.contact-activities'
 import { Route as ApiChromeRouteImport } from './routes/api.chrome'
+import { Route as AuthProfileRouteImport } from './routes/_auth.profile'
 import { Route as AuthOpportunitiesRouteImport } from './routes/_auth.opportunities'
 import { Route as AuthContactsRouteImport } from './routes/_auth.contacts'
+import { Route as AuthProfileIndexRouteImport } from './routes/_auth.profile.index'
 import { Route as AuthOpportunitiesIndexRouteImport } from './routes/_auth.opportunities.index'
 import { Route as AuthContactsIndexRouteImport } from './routes/_auth.contacts.index'
 import { Route as AuthContactsContactRouteImport } from './routes/_auth.contacts.$contact'
 
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PrivacryRoute = PrivacryRouteImport.update({
   id: '/privacry',
   path: '/privacry',
@@ -44,11 +39,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileIndexRoute = ProfileIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProfileRoute,
 } as any)
 const ApiPasskeysRoute = ApiPasskeysRouteImport.update({
   id: '/api/passkeys',
@@ -81,6 +71,11 @@ const ApiChromeRoute = ApiChromeRouteImport.update({
   path: '/api/chrome',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthProfileRoute = AuthProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthOpportunitiesRoute = AuthOpportunitiesRouteImport.update({
   id: '/opportunities',
   path: '/opportunities',
@@ -90,6 +85,11 @@ const AuthContactsRoute = AuthContactsRouteImport.update({
   id: '/contacts',
   path: '/contacts',
   getParentRoute: () => AuthRoute,
+} as any)
+const AuthProfileIndexRoute = AuthProfileIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthProfileRoute,
 } as any)
 const AuthOpportunitiesIndexRoute = AuthOpportunitiesIndexRouteImport.update({
   id: '/',
@@ -110,19 +110,19 @@ const AuthContactsContactRoute = AuthContactsContactRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/privacry': typeof PrivacryRoute
-  '/profile': typeof ProfileRouteWithChildren
   '/contacts': typeof AuthContactsRouteWithChildren
   '/opportunities': typeof AuthOpportunitiesRouteWithChildren
+  '/profile': typeof AuthProfileRouteWithChildren
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
   '/api/contact-roles': typeof ApiContactRolesRoute
   '/api/contacts': typeof ApiContactsRoute
   '/api/passkeys': typeof ApiPasskeysRoute
-  '/profile/': typeof ProfileIndexRoute
   '/contacts/$contact': typeof AuthContactsContactRoute
   '/contacts/': typeof AuthContactsIndexRoute
   '/opportunities/': typeof AuthOpportunitiesIndexRoute
+  '/profile/': typeof AuthProfileIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -133,48 +133,48 @@ export interface FileRoutesByTo {
   '/api/contact-roles': typeof ApiContactRolesRoute
   '/api/contacts': typeof ApiContactsRoute
   '/api/passkeys': typeof ApiPasskeysRoute
-  '/profile': typeof ProfileIndexRoute
   '/contacts/$contact': typeof AuthContactsContactRoute
   '/contacts': typeof AuthContactsIndexRoute
   '/opportunities': typeof AuthOpportunitiesIndexRoute
+  '/profile': typeof AuthProfileIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
   '/privacry': typeof PrivacryRoute
-  '/profile': typeof ProfileRouteWithChildren
   '/_auth/contacts': typeof AuthContactsRouteWithChildren
   '/_auth/opportunities': typeof AuthOpportunitiesRouteWithChildren
+  '/_auth/profile': typeof AuthProfileRouteWithChildren
   '/api/chrome': typeof ApiChromeRoute
   '/api/contact-activities': typeof ApiContactActivitiesRoute
   '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
   '/api/contact-roles': typeof ApiContactRolesRoute
   '/api/contacts': typeof ApiContactsRoute
   '/api/passkeys': typeof ApiPasskeysRoute
-  '/profile/': typeof ProfileIndexRoute
   '/_auth/contacts/$contact': typeof AuthContactsContactRoute
   '/_auth/contacts/': typeof AuthContactsIndexRoute
   '/_auth/opportunities/': typeof AuthOpportunitiesIndexRoute
+  '/_auth/profile/': typeof AuthProfileIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/privacry'
-    | '/profile'
     | '/contacts'
     | '/opportunities'
+    | '/profile'
     | '/api/chrome'
     | '/api/contact-activities'
     | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
     | '/api/passkeys'
-    | '/profile/'
     | '/contacts/$contact'
     | '/contacts/'
     | '/opportunities/'
+    | '/profile/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -185,35 +185,34 @@ export interface FileRouteTypes {
     | '/api/contact-roles'
     | '/api/contacts'
     | '/api/passkeys'
-    | '/profile'
     | '/contacts/$contact'
     | '/contacts'
     | '/opportunities'
+    | '/profile'
   id:
     | '__root__'
     | '/'
     | '/_auth'
     | '/privacry'
-    | '/profile'
     | '/_auth/contacts'
     | '/_auth/opportunities'
+    | '/_auth/profile'
     | '/api/chrome'
     | '/api/contact-activities'
     | '/api/contact-role-assignments'
     | '/api/contact-roles'
     | '/api/contacts'
     | '/api/passkeys'
-    | '/profile/'
     | '/_auth/contacts/$contact'
     | '/_auth/contacts/'
     | '/_auth/opportunities/'
+    | '/_auth/profile/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
   PrivacryRoute: typeof PrivacryRoute
-  ProfileRoute: typeof ProfileRouteWithChildren
   ApiChromeRoute: typeof ApiChromeRoute
   ApiContactActivitiesRoute: typeof ApiContactActivitiesRoute
   ApiContactRoleAssignmentsRoute: typeof ApiContactRoleAssignmentsRoute
@@ -224,13 +223,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/privacry': {
       id: '/privacry'
       path: '/privacry'
@@ -251,13 +243,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/profile/': {
-      id: '/profile/'
-      path: '/'
-      fullPath: '/profile/'
-      preLoaderRoute: typeof ProfileIndexRouteImport
-      parentRoute: typeof ProfileRoute
     }
     '/api/passkeys': {
       id: '/api/passkeys'
@@ -301,6 +286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChromeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/profile': {
+      id: '/_auth/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthProfileRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/opportunities': {
       id: '/_auth/opportunities'
       path: '/opportunities'
@@ -314,6 +306,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/contacts'
       preLoaderRoute: typeof AuthContactsRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/_auth/profile/': {
+      id: '/_auth/profile/'
+      path: '/'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof AuthProfileIndexRouteImport
+      parentRoute: typeof AuthProfileRoute
     }
     '/_auth/opportunities/': {
       id: '/_auth/opportunities/'
@@ -364,34 +363,36 @@ const AuthOpportunitiesRouteChildren: AuthOpportunitiesRouteChildren = {
 const AuthOpportunitiesRouteWithChildren =
   AuthOpportunitiesRoute._addFileChildren(AuthOpportunitiesRouteChildren)
 
+interface AuthProfileRouteChildren {
+  AuthProfileIndexRoute: typeof AuthProfileIndexRoute
+}
+
+const AuthProfileRouteChildren: AuthProfileRouteChildren = {
+  AuthProfileIndexRoute: AuthProfileIndexRoute,
+}
+
+const AuthProfileRouteWithChildren = AuthProfileRoute._addFileChildren(
+  AuthProfileRouteChildren,
+)
+
 interface AuthRouteChildren {
   AuthContactsRoute: typeof AuthContactsRouteWithChildren
   AuthOpportunitiesRoute: typeof AuthOpportunitiesRouteWithChildren
+  AuthProfileRoute: typeof AuthProfileRouteWithChildren
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthContactsRoute: AuthContactsRouteWithChildren,
   AuthOpportunitiesRoute: AuthOpportunitiesRouteWithChildren,
+  AuthProfileRoute: AuthProfileRouteWithChildren,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
-
-interface ProfileRouteChildren {
-  ProfileIndexRoute: typeof ProfileIndexRoute
-}
-
-const ProfileRouteChildren: ProfileRouteChildren = {
-  ProfileIndexRoute: ProfileIndexRoute,
-}
-
-const ProfileRouteWithChildren =
-  ProfileRoute._addFileChildren(ProfileRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
   PrivacryRoute: PrivacryRoute,
-  ProfileRoute: ProfileRouteWithChildren,
   ApiChromeRoute: ApiChromeRoute,
   ApiContactActivitiesRoute: ApiContactActivitiesRoute,
   ApiContactRoleAssignmentsRoute: ApiContactRoleAssignmentsRoute,

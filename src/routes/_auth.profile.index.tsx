@@ -7,7 +7,7 @@ import { passkeysCollection } from "~/collections/passkeys";
 import { getCachedCredentialId } from "~/lib/e2ee";
 import { UserButton } from "@clerk/tanstack-react-start";
 
-export const Route = createFileRoute("/profile/")({
+export const Route = createFileRoute("/_auth/profile/")({
   component: ProfilePage,
 });
 

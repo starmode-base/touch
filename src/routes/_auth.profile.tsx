@@ -2,7 +2,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import invariant from "tiny-invariant";
 import { E2eeGate } from "~/components/e2ee-gate";
 
-export const Route = createFileRoute("/profile")({
+export const Route = createFileRoute("/_auth/profile")({
   ssr: false,
   component: RouteComponent,
   loader: ({ context }) => {
