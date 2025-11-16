@@ -5,6 +5,7 @@ import { usePasskeys } from "~/components/hooks/passkeys";
 import { useE2ee } from "~/components/hooks/e2ee";
 import { passkeysCollection } from "~/collections/passkeys";
 import { getCachedCredentialId } from "~/lib/e2ee";
+import { UserButton } from "@clerk/tanstack-react-start";
 
 export const Route = createFileRoute("/profile/")({
   ssr: false,
@@ -82,7 +83,16 @@ function ProfilePage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
-      <h1 className="text-2xl font-bold">Passkey management</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Passkey management</h1>
+        <UserButton
+          appearance={{
+            elements: {
+              userButtonPopoverActionButton__signOut: { display: "none" },
+            },
+          }}
+        />
+      </div>
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
