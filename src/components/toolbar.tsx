@@ -42,7 +42,7 @@ function Button(
 export function Toolbar() {
   const auth = useAuth();
   const { isDekUnlocked } = useE2ee();
-  const { unlock, passkeys } = usePasskeys();
+  const { passkeys, unlock, canUnlock, lock, canLock } = usePasskeys();
 
   return (
     <div className="flex items-center justify-between gap-1 bg-zinc-900 p-1 text-sm shadow">
@@ -53,11 +53,15 @@ export function Toolbar() {
       </div>
       <div className="flex items-center gap-1">
         {isDekUnlocked ? (
-          <Button variant="icon" onClick={auth.lock}>
+          <Button variant="icon" onClick={lock} disabled={!canLock}>
             <LockOpenIcon className="size-4" />
           </Button>
         ) : (
-          <Button variant="icon" onClick={() => unlock(passkeys)}>
+          <Button
+            variant="icon"
+            onClick={() => unlock(passkeys)}
+            disabled={!canUnlock}
+          >
             <LockClosedIcon className="size-4" />
           </Button>
         )}

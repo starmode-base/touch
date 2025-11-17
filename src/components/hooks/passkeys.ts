@@ -60,7 +60,8 @@ export function useAutoUnlock() {
 
 export function usePasskeys() {
   const { setDek, unsetDek, dek } = useE2ee();
-  const [isAdding, setIsAdding] = useState(false);
+  const [isCreatingPasskey, setIsCreatingPasskey] = useState(false);
+  const [isAddingPasskey, setIsAddingPasskey] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
 
   // Query passkeys from Electric collection
@@ -69,12 +70,11 @@ export function usePasskeys() {
   );
 
   const passkeys = passkeysQuery.data;
+  const hasPasskeys = passkeys.length > 0;
+  const isDekUnlocked = dek !== null;
 
-  // Add passkey operation
-  // Pass null for first passkey (generates new DEK), pass existing DEK for additional passkeys
-  const addPasskey = useCallback(async () => {
-    setIsAdding(true);
-
+  // Core passkey creation logic
+  const createPasskeyInternal = useCallback(async () => {
     const result = await addPasskeyLib({
       dek,
       rpId: location.hostname,
@@ -104,8 +104,21 @@ export function usePasskeys() {
 
     storeCachedKek(result.kek, result.credentialId);
     setDek(result.dek);
-    setIsAdding(false);
   }, [dek, setDek]);
+
+  // Create first passkey (enrollment)
+  const createPasskey = useCallback(async () => {
+    setIsCreatingPasskey(true);
+    await createPasskeyInternal();
+    setIsCreatingPasskey(false);
+  }, [createPasskeyInternal]);
+
+  // Add additional passkey
+  const addPasskey = useCallback(async () => {
+    setIsAddingPasskey(true);
+    await createPasskeyInternal();
+    setIsAddingPasskey(false);
+  }, [createPasskeyInternal]);
 
   // Delete passkey operation
   const deletePasskey = useCallback((id: string) => {
@@ -148,16 +161,29 @@ export function usePasskeys() {
   return {
     // Data
     passkeys,
+    hasPasskeys,
 
-    // Operations
+    // Create first passkey (enrollment)
+    createPasskey,
+    canCreatePasskey: !hasPasskeys,
+    isCreatingPasskey,
+
+    // Add additional passkey
     addPasskey,
-    deletePasskey,
-    unlock,
-    /** Lock operation (clear KEK cache + wipe DEK from memory) */
-    lock,
+    canAddPasskey: hasPasskeys && isDekUnlocked,
+    isAddingPasskey,
 
-    // States
-    isAdding,
+    // Delete passkey
+    deletePasskey,
+    canDeletePasskey: true, // Allow deleting for now, will throw on last one
+
+    // Unlock
+    unlock,
+    canUnlock: hasPasskeys && !isDekUnlocked,
     isUnlocking,
+
+    // Lock
+    lock,
+    canLock: isDekUnlocked,
   };
 }

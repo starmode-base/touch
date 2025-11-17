@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "~/components/atoms";
 import { usePasskeys } from "~/components/hooks/passkeys";
-import { useE2ee } from "~/components/hooks/e2ee";
 import { getCachedCredentialId } from "~/lib/e2ee";
 import { UserButton } from "@clerk/tanstack-react-start";
 
@@ -10,9 +9,18 @@ export const Route = createFileRoute("/_auth/settings/")({
 });
 
 function ProfilePage() {
-  const { dek } = useE2ee();
-  const { passkeys, addPasskey, deletePasskey, unlock, isAdding } =
-    usePasskeys();
+  const {
+    passkeys,
+    createPasskey,
+    canCreatePasskey,
+    isCreatingPasskey,
+    addPasskey,
+    canAddPasskey,
+    isAddingPasskey,
+    deletePasskey,
+    unlock,
+    canUnlock,
+  } = usePasskeys();
 
   const activeCredentialId = getCachedCredentialId();
 
@@ -32,10 +40,14 @@ function ProfilePage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Your passkeys</h2>
-
-          <Button onClick={addPasskey} disabled={!dek || isAdding}>
-            {isAdding ? "Adding..." : "Add passkey"}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={createPasskey} disabled={!canCreatePasskey}>
+              {isCreatingPasskey ? "Creating..." : "Create passkey"}
+            </Button>
+            <Button onClick={addPasskey} disabled={!canAddPasskey}>
+              {isAddingPasskey ? "Adding..." : "Add passkey"}
+            </Button>
+          </div>
         </div>
 
         {passkeys.length === 0 ? (
@@ -90,6 +102,7 @@ function ProfilePage() {
                       onClick={() => {
                         void unlock([passkey]);
                       }}
+                      disabled={!canUnlock}
                     >
                       Unlock
                     </Button>

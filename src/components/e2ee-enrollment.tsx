@@ -5,7 +5,7 @@ import { usePasskeys } from "./hooks/passkeys";
  * E2eeEnrollment component that allows the user to enroll in E2EE
  */
 export function E2eeEnrollment() {
-  const passkeys = usePasskeys();
+  const { createPasskey, canCreatePasskey, isCreatingPasskey } = usePasskeys();
 
   return (
     <div className="flex flex-col gap-4 rounded border border-slate-200 bg-white p-6">
@@ -14,8 +14,8 @@ export function E2eeEnrollment() {
         Protect your data with end-to-end encryption using a passkey. Your data
         will be encrypted on your device before being sent to the server.
       </div>
-      <Button onClick={passkeys.addPasskey} disabled={passkeys.isAdding}>
-        {passkeys.isAdding ? "Setting up..." : "Enable encryption"}
+      <Button onClick={createPasskey} disabled={!canCreatePasskey}>
+        {isCreatingPasskey ? "Setting up..." : "Enable encryption"}
       </Button>
     </div>
   );
