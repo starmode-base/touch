@@ -23,50 +23,6 @@ import { useLiveQuery } from "@tanstack/react-db";
 import { passkeysCollection, type Passkey } from "~/collections/passkeys";
 import { genSecureToken } from "~/lib/secure-token";
 
-/**
- * Auto-unlock hook that attempts to unlock the DEK on mount
- * Should be called once at the root of the authenticated app
- */
-export function useAutoUnlock() {
-  const { dek, setDek, passkeys } = useE2ee();
-  const [triedAutoUnlock, setTriedAutoUnlock] = useState(false);
-
-  const hasPasskeys = passkeys.length > 0;
-
-  useEffect(() => {
-    if (hasPasskeys && !dek && !triedAutoUnlock) {
-      if (hasCachedKek()) {
-        const tryUnlock = async () => {
-          // Convert to StoredPasskey format
-          const storedPasskeys: StoredPasskey[] = passkeys.map((p) => ({
-            credentialId: p.credential_id,
-            wrappedDek: p.wrapped_dek,
-            kekSalt: p.kek_salt,
-            transports: p.transports,
-          }));
-
-          const dekBytes = await attemptAutoUnlock({
-            passkeys: storedPasskeys,
-            rpId: location.hostname,
-          });
-
-          setDek(dekBytes);
-          setTriedAutoUnlock(true);
-        };
-
-        void tryUnlock();
-      } else {
-        // No cached KEK, can't auto-unlock
-        void Promise.resolve().then(() => {
-          setTriedAutoUnlock(true);
-        });
-      }
-    }
-  }, [hasPasskeys, dek, triedAutoUnlock, passkeys, setDek]);
-
-  return { triedAutoUnlock };
-}
-
 interface E2eeContext {
   /** Whether the DEK is unlocked and available in memory */
   isDekUnlocked: boolean;
@@ -99,6 +55,8 @@ interface E2eeContext {
   canUnlock: boolean;
   isUnlocking: boolean;
   canLock: boolean;
+
+  triedAutoUnlock: boolean;
 }
 
 const E2eeContext = createContext<E2eeContext | null>(null);
@@ -243,6 +201,42 @@ export function E2eeProvider(props: React.PropsWithChildren) {
     unsetDek();
   };
 
+  const [triedAutoUnlock, setTriedAutoUnlock] = useState(false);
+
+  /**
+   * Auto-unlock hook that attempts to unlock the DEK on mount
+   */
+  useEffect(() => {
+    if (hasPasskeys && !dek && !triedAutoUnlock) {
+      if (hasCachedKek()) {
+        const tryUnlock = async () => {
+          // Convert to StoredPasskey format
+          const storedPasskeys: StoredPasskey[] = passkeys.map((p) => ({
+            credentialId: p.credential_id,
+            wrappedDek: p.wrapped_dek,
+            kekSalt: p.kek_salt,
+            transports: p.transports,
+          }));
+
+          const dekBytes = await attemptAutoUnlock({
+            passkeys: storedPasskeys,
+            rpId: location.hostname,
+          });
+
+          setDek(dekBytes);
+          setTriedAutoUnlock(true);
+        };
+
+        void tryUnlock();
+      } else {
+        // No cached KEK, can't auto-unlock
+        void Promise.resolve().then(() => {
+          setTriedAutoUnlock(true);
+        });
+      }
+    }
+  }, [hasPasskeys, dek, triedAutoUnlock, passkeys, setDek]);
+
   const clerk = useClerk();
 
   const value: E2eeContext = {
@@ -294,6 +288,8 @@ export function E2eeProvider(props: React.PropsWithChildren) {
       // Sign out from Clerk
       await clerk.signOut();
     },
+
+    triedAutoUnlock,
   };
 
   return (
