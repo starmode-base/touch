@@ -34,7 +34,6 @@ export function useAutoUnlock() {
             wrappedDek: p.wrapped_dek,
             kekSalt: p.kek_salt,
             transports: p.transports,
-            createdAt: p.created_at,
           }));
 
           const dekBytes = await attemptAutoUnlock({
