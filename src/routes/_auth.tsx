@@ -4,7 +4,7 @@ import metadata from "../../metadata.json";
 import { SignInButton, SignUpButton } from "@clerk/tanstack-react-start";
 import { Button } from "~/components/atoms";
 import { syncViewerSF } from "~/server-functions/viewer";
-import { useAutoUnlock } from "~/components/hooks/e2ee";
+import { E2eeProvider } from "~/components/hooks/e2ee";
 
 export const Route = createFileRoute("/_auth")({
   ssr: false,
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_auth")({
 });
 
 function RouteComponent() {
-  useAutoUnlock();
+  // useAutoUnlock();
   const { viewer } = Route.useLoaderData();
 
   if (!viewer) {
@@ -44,8 +44,10 @@ function RouteComponent() {
 
   return (
     <>
-      <Toolbar />
-      <Outlet />
+      <E2eeProvider>
+        <Toolbar />
+        <Outlet />
+      </E2eeProvider>
     </>
   );
 }

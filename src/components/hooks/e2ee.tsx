@@ -24,43 +24,11 @@ import { passkeysCollection, type Passkey } from "~/collections/passkeys";
 import { genSecureToken } from "~/lib/secure-token";
 
 /**
- * High-level auth orchestration hook
- *
- * Provides orchestrated operations that coordinate multiple cleanup actions.
- * For passkey-specific operations (enroll, unlock, etc), use usePasskeys directly.
- */
-function useAuth() {
-  const passkeys = usePasskeys();
-  const clerk = useClerk();
-
-  return {
-    /** Lock E2EE session and clear all encrypted data */
-    lock: async () => {
-      // Clear local store (encrypted and decrypted data)
-      await contactsStore.clear();
-      // Lock passkeys
-      passkeys.lock();
-    },
-
-    /** Sign out and clear everything */
-    signOut: async () => {
-      // Clear local store (encrypted and decrypted data)
-      await contactsStore.clear();
-      // Lock passkeys
-      passkeys.lock();
-      // Sign out from Clerk
-      await clerk.signOut();
-    },
-  };
-}
-
-/**
  * Auto-unlock hook that attempts to unlock the DEK on mount
  * Should be called once at the root of the authenticated app
  */
 export function useAutoUnlock() {
-  const { dek, setDek } = useE2ee();
-  const { passkeys } = usePasskeys();
+  const { dek, setDek, passkeys } = useE2ee();
   const [triedAutoUnlock, setTriedAutoUnlock] = useState(false);
 
   const hasPasskeys = passkeys.length > 0;
@@ -99,8 +67,84 @@ export function useAutoUnlock() {
   return { triedAutoUnlock };
 }
 
-function usePasskeys() {
-  const { setDek, unsetDek, dek } = useE2ee();
+interface E2eeContext {
+  /** Whether the DEK is unlocked and available in memory */
+  isDekUnlocked: boolean;
+  /** The DEK (only available when unlocked) */
+  dek: CryptoBytes | null;
+  /** Store the DEK in memory */
+  setDek: (dek: CryptoBytes) => void;
+  /** Wipe the DEK from memory */
+  unsetDek: () => void;
+
+  // useAuth
+  lock: () => Promise<void>;
+  signOut: () => Promise<void>;
+
+  // usePasskeys
+  passkeys: Passkey[];
+
+  createPasskey: () => Promise<void>;
+  canCreatePasskey: boolean;
+  isCreatingPasskey: boolean;
+
+  addPasskey: () => Promise<void>;
+  canAddPasskey: boolean;
+  isAddingPasskey: boolean;
+
+  deletePasskey: (id: string) => void;
+  canDeletePasskey: boolean;
+
+  unlock: (passkeys: Passkey[]) => Promise<void>;
+  canUnlock: boolean;
+  isUnlocking: boolean;
+  canLock: boolean;
+}
+
+const E2eeContext = createContext<E2eeContext | null>(null);
+
+export function E2eeProvider(props: React.PropsWithChildren) {
+  const [dek, setDekState] = useState<CryptoBytes | null>(null);
+
+  // Wipe DEK on tab close or page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      setDekState(null);
+      clearGlobalDek();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+
+      // Wipe DEK on unmount - just in case beforeunload fires after unmount
+      handleBeforeUnload();
+    };
+  }, []);
+
+  /**
+   * Store the DEK in memory (both React state and global module)
+   */
+  const setDek = useCallback((dekBytes: CryptoBytes) => {
+    if (dekBytes.byteLength !== 32) {
+      throw new Error("dek must be 32 bytes");
+    }
+    setDekState(dekBytes);
+    setGlobalDek(dekBytes);
+  }, []);
+
+  /**
+   * Wipe the DEK from memory (both React state and global module)
+   */
+  const unsetDek = useCallback(() => {
+    setDekState(null);
+    clearGlobalDek();
+  }, []);
+
+  // const auth = useAuth();
+  // const passkeys = usePasskeys();
+
   const [isCreatingPasskey, setIsCreatingPasskey] = useState(false);
   const [isAddingPasskey, setIsAddingPasskey] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
@@ -194,15 +238,21 @@ function usePasskeys() {
   );
 
   // Lock operation (clear KEK cache + wipe DEK from memory)
-  const lock = useCallback(() => {
+  const lock2 = () => {
     clearCachedKek();
     unsetDek();
-  }, [unsetDek]);
+  };
 
-  return {
+  const clerk = useClerk();
+
+  const value: E2eeContext = {
+    isDekUnlocked: dek !== null,
+    dek,
+    setDek,
+    unsetDek,
+
     // Data
     passkeys,
-    hasPasskeys,
 
     // Create first passkey (enrollment)
     createPasskey,
@@ -223,95 +273,27 @@ function usePasskeys() {
     canUnlock: hasPasskeys && !isDekUnlocked,
     isUnlocking,
 
-    // Lock
-    lock,
     canLock: isDekUnlocked,
-  };
-}
 
-interface E2eeContext {
-  /** Whether the DEK is unlocked and available in memory */
-  isDekUnlocked: boolean;
-  /** The DEK (only available when unlocked) */
-  dek: CryptoBytes | null;
-  /** Store the DEK in memory */
-  setDek: (dek: CryptoBytes) => void;
-  /** Wipe the DEK from memory */
-  unsetDek: () => void;
+    //
+    //
+    lock: async () => {
+      // Clear local store (encrypted and decrypted data)
+      await contactsStore.clear();
+      // Lock passkeys
+      clearCachedKek();
+      unsetDek();
+    },
 
-  // useAuth
-  lock: () => Promise<void>;
-  signOut: () => Promise<void>;
-
-  // usePasskeys
-  hasPasskeys: boolean;
-  passkeys: Passkey[];
-  createPasskey: () => Promise<void>;
-  canCreatePasskey: boolean;
-  isCreatingPasskey: boolean;
-  addPasskey: () => Promise<void>;
-  canAddPasskey: boolean;
-  isAddingPasskey: boolean;
-  deletePasskey: (id: string) => void;
-  canDeletePasskey: boolean;
-  unlock: (passkeys: Passkey[]) => Promise<void>;
-  canUnlock: boolean;
-  isUnlocking: boolean;
-  // lock: () => void;
-  canLock: boolean;
-}
-
-const E2eeContext = createContext<E2eeContext | null>(null);
-
-export function E2eeProvider(props: React.PropsWithChildren) {
-  const [dek, setDekState] = useState<CryptoBytes | null>(null);
-
-  // Wipe DEK on tab close or page unload
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      setDekState(null);
-      clearGlobalDek();
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-
-      // Wipe DEK on unmount - just in case beforeunload fires after unmount
-      handleBeforeUnload();
-    };
-  }, []);
-
-  /**
-   * Store the DEK in memory (both React state and global module)
-   */
-  const setDek = (dekBytes: CryptoBytes) => {
-    if (dekBytes.byteLength !== 32) {
-      throw new Error("dek must be 32 bytes");
-    }
-    setDekState(dekBytes);
-    setGlobalDek(dekBytes);
-  };
-
-  /**
-   * Wipe the DEK from memory (both React state and global module)
-   */
-  const unsetDek = () => {
-    setDekState(null);
-    clearGlobalDek();
-  };
-
-  const auth = useAuth();
-  const passkeys = usePasskeys();
-
-  const value: E2eeContext = {
-    isDekUnlocked: dek !== null,
-    dek,
-    setDek,
-    unsetDek,
-    ...passkeys,
-    ...auth,
+    /** Sign out and clear everything */
+    signOut: async () => {
+      // Clear local store (encrypted and decrypted data)
+      await contactsStore.clear();
+      // Lock passkeys
+      lock2();
+      // Sign out from Clerk
+      await clerk.signOut();
+    },
   };
 
   return (
