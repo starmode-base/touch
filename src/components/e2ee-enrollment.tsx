@@ -1,11 +1,11 @@
 import { Button } from "./atoms";
-import { usePasskeys } from "./hooks/passkeys";
+import { useE2ee } from "./hooks/e2ee";
 
 /**
  * E2eeEnrollment component that allows the user to enroll in E2EE
  */
 export function E2eeEnrollment() {
-  const { createPasskey, canCreatePasskey, isCreatingPasskey } = usePasskeys();
+  const { createPasskey, canCreatePasskey, isCreatingPasskey } = useE2ee();
 
   return (
     <div className="flex flex-col gap-4 rounded border border-slate-200 bg-white p-6">

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "~/components/atoms";
-import { usePasskeys } from "~/components/hooks/passkeys";
+import { useE2ee } from "~/components/hooks/e2ee";
 import { getCachedCredentialId } from "~/lib/e2ee";
 import { UserButton } from "@clerk/tanstack-react-start";
 
@@ -20,7 +20,7 @@ function ProfilePage() {
     deletePasskey,
     unlock,
     canUnlock,
-  } = usePasskeys();
+  } = useE2ee();
 
   const activeCredentialId = getCachedCredentialId();
 

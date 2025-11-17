@@ -1,11 +1,9 @@
 import { Button } from "./atoms";
-import { usePasskeys } from "./hooks/passkeys";
-import { useAuth } from "./hooks/auth";
+import { useE2ee } from "./hooks/e2ee";
 import type { Passkey } from "~/collections/passkeys";
 
 export function E2eeUnlock(props: { passkeys: Passkey[] }) {
-  const { unlock, isUnlocking } = usePasskeys();
-  const { signOut } = useAuth();
+  const { signOut, unlock, isUnlocking } = useE2ee();
 
   return (
     <div className="flex flex-col gap-4 rounded border border-slate-200 bg-white p-6">

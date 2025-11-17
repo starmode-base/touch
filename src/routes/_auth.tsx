@@ -4,7 +4,7 @@ import metadata from "../../metadata.json";
 import { SignInButton, SignUpButton } from "@clerk/tanstack-react-start";
 import { Button } from "~/components/atoms";
 import { syncViewerSF } from "~/server-functions/viewer";
-import { useAutoUnlock } from "~/components/hooks/passkeys";
+import { useAutoUnlock } from "~/components/hooks/e2ee";
 
 export const Route = createFileRoute("/_auth")({
   ssr: false,

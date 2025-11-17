@@ -1,12 +1,10 @@
-import { useE2ee } from "./hooks/e2ee";
-import { useAutoUnlock, usePasskeys } from "./hooks/passkeys";
+import { useE2ee, useAutoUnlock } from "./hooks/e2ee";
 import { E2eeEnrollment } from "./e2ee-enrollment";
 import { E2eeUnlock } from "./e2ee-unlock";
 
 export function E2eeGate(props: React.PropsWithChildren) {
-  const { isDekUnlocked } = useE2ee();
+  const { isDekUnlocked, passkeys } = useE2ee();
   const { triedAutoUnlock } = useAutoUnlock();
-  const { passkeys } = usePasskeys();
 
   const hasPasskeys = passkeys.length > 0;
 

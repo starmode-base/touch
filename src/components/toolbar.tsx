@@ -1,7 +1,5 @@
 import { Link, type LinkComponentProps } from "@tanstack/react-router";
-import { useAuth } from "./hooks/auth";
 import { useE2ee } from "./hooks/e2ee";
-import { usePasskeys } from "./hooks/passkeys";
 import {
   ArrowRightStartOnRectangleIcon,
   Cog8ToothIcon,
@@ -40,9 +38,8 @@ function Button(
 }
 
 export function Toolbar() {
-  const auth = useAuth();
-  const { isDekUnlocked } = useE2ee();
-  const { passkeys, unlock, canUnlock, lock, canLock } = usePasskeys();
+  const { isDekUnlocked, signOut, passkeys, unlock, canUnlock, lock, canLock } =
+    useE2ee();
 
   return (
     <div className="flex items-center justify-between gap-1 bg-zinc-900 p-1 text-sm shadow">
@@ -65,7 +62,7 @@ export function Toolbar() {
             <LockClosedIcon className="size-4" />
           </Button>
         )}
-        <Button onClick={auth.signOut} variant="icon">
+        <Button onClick={signOut} variant="icon">
           <ArrowRightStartOnRectangleIcon className="size-4" />
         </Button>
         <LinkButton to="/settings" variant="icon">
