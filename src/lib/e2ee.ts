@@ -654,6 +654,17 @@ export function onDekUnlock(callback: DekUnlockCallback) {
 }
 
 /**
+ * Subscribe function for React's useSyncExternalStore
+ *
+ * Adapts onDekStateChange to the signature expected by useSyncExternalStore.
+ */
+export function subscribeToDekState(callback: () => void) {
+  return onDekStateChange(() => {
+    callback();
+  });
+}
+
+/**
  * Notify all listeners of DEK state change
  */
 function notifyDekStateChange(isUnlocked: boolean) {

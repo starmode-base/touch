@@ -4,11 +4,14 @@ import {
   useState,
   useEffect,
   useCallback,
+  useSyncExternalStore,
 } from "react";
 import {
   setGlobalDek,
   clearGlobalDek,
-  type CryptoBytes,
+  getGlobalDek,
+  hasGlobalDek,
+  subscribeToDekState,
   addPasskey as addPasskeyLib,
   unlockWithPasskey,
   attemptAutoUnlock,
@@ -61,7 +64,13 @@ interface E2eeContext {
 const E2eeContext = createContext<E2eeContext | null>(null);
 
 export function E2eeProvider(props: React.PropsWithChildren) {
-  const [dek, setDekState] = useState<CryptoBytes | null>(null);
+  // Subscribe to global DEK state as single source of truth
+  const isDekUnlocked = useSyncExternalStore(
+    subscribeToDekState,
+    hasGlobalDek,
+    () => false, // Server snapshot - DEK never unlocked on server
+  );
+
   const [isCreatingPasskey, setIsCreatingPasskey] = useState(false);
   const [isAddingPasskey, setIsAddingPasskey] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
@@ -74,32 +83,14 @@ export function E2eeProvider(props: React.PropsWithChildren) {
 
   const passkeys = passkeysQuery.data;
   const hasPasskeys = passkeys.length > 0;
-  const isDekUnlocked = dek !== null;
 
   // Clerk
   const clerk = useClerk();
 
-  /**
-   * Store the DEK in memory (both React state and global module)
-   */
-  const setDek = useCallback((dekBytes: CryptoBytes) => {
-    if (dekBytes.byteLength !== 32) {
-      throw new Error("dek must be 32 bytes");
-    }
-    setDekState(dekBytes);
-    setGlobalDek(dekBytes);
-  }, []);
-
-  /**
-   * Wipe the DEK from memory (both React state and global module)
-   */
-  const unsetDek = useCallback(() => {
-    setDekState(null);
-    clearGlobalDek();
-  }, []);
-
   // Core passkey creation logic
   const createPasskeyInternal = useCallback(async () => {
+    const dek = isDekUnlocked ? getGlobalDek() : null;
+
     const result = await addPasskeyLib({
       dek,
       rpId: location.hostname,
@@ -128,8 +119,8 @@ export function E2eeProvider(props: React.PropsWithChildren) {
     });
 
     storeCachedKek(result.kek, result.credentialId);
-    setDek(result.dek);
-  }, [dek, setDek]);
+    setGlobalDek(result.dek);
+  }, [isDekUnlocked]);
 
   // Create first passkey (enrollment)
   const createPasskey = useCallback(async () => {
@@ -152,43 +143,39 @@ export function E2eeProvider(props: React.PropsWithChildren) {
   }, []);
 
   // Unlock operation
-  const unlock = useCallback(
-    async (passkeys: Passkey[]) => {
-      setIsUnlocking(true);
+  const unlock = useCallback(async (passkeys: Passkey[]) => {
+    setIsUnlocking(true);
 
-      // Convert to StoredPasskey format
-      const storedPasskeys: StoredPasskey[] = passkeys.map((p) => ({
-        credentialId: p.credential_id,
-        wrappedDek: p.wrapped_dek,
-        kekSalt: p.kek_salt,
-        transports: p.transports,
-        createdAt: p.created_at,
-      }));
+    // Convert to StoredPasskey format
+    const storedPasskeys: StoredPasskey[] = passkeys.map((p) => ({
+      credentialId: p.credential_id,
+      wrappedDek: p.wrapped_dek,
+      kekSalt: p.kek_salt,
+      transports: p.transports,
+      createdAt: p.created_at,
+    }));
 
-      const result = await unlockWithPasskey({
-        passkeys: storedPasskeys,
-        rpId: location.hostname,
-      });
+    const result = await unlockWithPasskey({
+      passkeys: storedPasskeys,
+      rpId: location.hostname,
+    });
 
-      storeCachedKek(result.kek, result.credentialId);
-      setDek(result.dek);
-      setIsUnlocking(false);
-    },
-    [setDek],
-  );
+    storeCachedKek(result.kek, result.credentialId);
+    setGlobalDek(result.dek);
+    setIsUnlocking(false);
+  }, []);
 
   const lock = async () => {
     // Clear local store (encrypted and decrypted data)
     await contactsStore.clear();
     // Lock passkeys
     clearCachedKek();
-    unsetDek();
+    clearGlobalDek();
   };
 
   // Wipe DEK on tab close or page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      setDekState(null);
       clearGlobalDek();
     };
 
@@ -196,8 +183,6 @@ export function E2eeProvider(props: React.PropsWithChildren) {
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
-
-      // Wipe DEK on unmount - just in case beforeunload fires after unmount
       handleBeforeUnload();
     };
   }, []);
@@ -206,7 +191,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
    * Auto-unlock hook that attempts to unlock the DEK on mount
    */
   useEffect(() => {
-    if (hasPasskeys && !dek && !triedAutoUnlock) {
+    if (hasPasskeys && !isDekUnlocked && !triedAutoUnlock) {
       if (hasCachedKek()) {
         const tryUnlock = async () => {
           // Convert to StoredPasskey format
@@ -222,7 +207,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
             rpId: location.hostname,
           });
 
-          setDek(dekBytes);
+          setGlobalDek(dekBytes);
           setTriedAutoUnlock(true);
         };
 
@@ -234,10 +219,10 @@ export function E2eeProvider(props: React.PropsWithChildren) {
         });
       }
     }
-  }, [hasPasskeys, dek, triedAutoUnlock, passkeys, setDek]);
+  }, [hasPasskeys, isDekUnlocked, triedAutoUnlock, passkeys]);
 
   const value: E2eeContext = {
-    isDekUnlocked: dek !== null,
+    isDekUnlocked,
 
     // Data
     passkeys,
