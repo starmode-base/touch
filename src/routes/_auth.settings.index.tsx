@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "~/components/atoms";
 import { useE2ee } from "~/components/hooks/e2ee";
-import { getCachedCredentialId } from "~/lib/e2ee-kek-cache";
+import { getCryptoSession } from "~/lib/e2ee-kek-cache";
 import { UserButton } from "@clerk/tanstack-react-start";
 
 export const Route = createFileRoute("/_auth/settings/")({
@@ -22,7 +22,7 @@ function ProfilePage() {
     canUnlock,
   } = useE2ee();
 
-  const activeCredentialId = getCachedCredentialId();
+  const activeCredentialId = getCryptoSession()?.credentialId;
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">

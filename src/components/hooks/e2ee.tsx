@@ -18,10 +18,10 @@ import {
   type StoredPasskey,
 } from "~/lib/e2ee";
 import {
-  hasCachedKek,
-  storeCachedKek,
-  clearCachedKek,
-  getCachedKek,
+  hasCryptoSession,
+  setCryptoSession,
+  clearCryptoSession,
+  getCryptoSession,
 } from "~/lib/e2ee-kek-cache";
 import { useClerk } from "@clerk/tanstack-react-start";
 import { contactsStore } from "~/collections/contacts";
@@ -121,7 +121,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
       webauthn_user_display_name: result.webauthnUserDisplayName,
     });
 
-    storeCachedKek(result.kek, result.credentialId);
+    setCryptoSession(result.kek, result.credentialId);
     setGlobalDek(result.dek);
   }, [isDekUnlocked]);
 
@@ -163,7 +163,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
       rpId: location.hostname,
     });
 
-    storeCachedKek(result.kek, result.credentialId);
+    setCryptoSession(result.kek, result.credentialId);
     setGlobalDek(result.dek);
     setIsUnlocking(false);
   }, []);
@@ -172,7 +172,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
     // Clear local store (encrypted and decrypted data)
     await contactsStore.clear();
     // Lock passkeys
-    clearCachedKek();
+    clearCryptoSession();
     clearGlobalDek();
   };
 
@@ -195,7 +195,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
    */
   useEffect(() => {
     if (hasPasskeys && !isDekUnlocked && !triedAutoUnlock) {
-      if (hasCachedKek()) {
+      if (hasCryptoSession()) {
         const tryUnlock = async () => {
           // Convert to StoredPasskey format
           const storedPasskeys: StoredPasskey[] = passkeys.map((p) => ({
@@ -208,9 +208,9 @@ export function E2eeProvider(props: React.PropsWithChildren) {
           const dekBytes = await attemptAutoUnlock({
             passkeys: storedPasskeys,
             rpId: location.hostname,
-            storeKek: storeCachedKek,
-            clearKek: clearCachedKek,
-            kekObj: getCachedKek(),
+            storeKek: setCryptoSession,
+            clearKek: clearCryptoSession,
+            kekObj: getCryptoSession(),
           });
 
           setGlobalDek(dekBytes);
