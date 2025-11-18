@@ -20,12 +20,12 @@ import {
 } from "~/server-functions/contacts";
 import {
   decryptField,
-  getGlobalDek,
   hasGlobalDek,
   encryptField,
   onDekUnlock,
 } from "~/lib/e2ee";
 import { genSecureToken } from "../lib/secure-token";
+import { getSessionDek } from "~/lib/e2ee-app";
 
 const Contact = z.object({
   id: z.string(),
@@ -149,7 +149,7 @@ async function processDecryptionQueue(): Promise<void> {
     return;
   }
 
-  const dek = getGlobalDek();
+  const dek = await getSessionDek();
   const queuedIds = Array.from(decryptionQueue);
 
   for (const contactId of queuedIds) {
@@ -212,7 +212,7 @@ export const contactsStore = {
     name: string;
     linkedin: string | null;
   }) => {
-    const dek = getGlobalDek();
+    const dek = await getSessionDek();
     const nameEncrypted = await encryptField(data.name, dek);
 
     return contactsCollectionEncrypted.insert({
@@ -227,7 +227,7 @@ export const contactsStore = {
 
   /** Update an existing contact */
   update: async (id: string, data: { name: string; linkedin?: string }) => {
-    const dek = getGlobalDek();
+    const dek = await getSessionDek();
     const nameEncrypted = await encryptField(data.name, dek);
 
     return contactsCollectionEncrypted.update(id, (draft) => {

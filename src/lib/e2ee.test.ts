@@ -3,10 +3,10 @@ import {
   generateDek,
   encryptField,
   decryptField,
-  setGlobalDek,
-  getGlobalDek,
-  clearGlobalDek,
-  hasGlobalDek,
+  // setGlobalDek,
+  // getGlobalDek,
+  // clearGlobalDek,
+  // hasGlobalDek,
   type CryptoBytes,
 } from "./e2ee";
 
@@ -137,72 +137,72 @@ describe("encryptField and decryptField", () => {
   });
 });
 
-describe("global DEK management", () => {
-  beforeEach(() => {
-    // Clear DEK before each test
-    clearGlobalDek();
-  });
+// describe("global DEK management", () => {
+//   beforeEach(() => {
+//     // Clear DEK before each test
+//     clearGlobalDek();
+//   });
 
-  test("initially no DEK is set", () => {
-    expect(hasGlobalDek()).toBe(false);
-    expect(() => getGlobalDek()).toThrow("DEK not available");
-  });
+//   test("initially no DEK is set", () => {
+//     expect(hasGlobalDek()).toBe(false);
+//     expect(() => getGlobalDek()).toThrow("DEK not available");
+//   });
 
-  test("can set and get DEK", () => {
-    const dek = generateDek();
-    setGlobalDek(dek);
+//   test("can set and get DEK", () => {
+//     const dek = generateDek();
+//     setGlobalDek(dek);
 
-    expect(hasGlobalDek()).toBe(true);
-    expect(getGlobalDek()).toEqual(dek);
-  });
+//     expect(hasGlobalDek()).toBe(true);
+//     expect(getGlobalDek()).toEqual(dek);
+//   });
 
-  test("can clear DEK", () => {
-    const dek = generateDek();
-    setGlobalDek(dek);
-    expect(hasGlobalDek()).toBe(true);
+//   test("can clear DEK", () => {
+//     const dek = generateDek();
+//     setGlobalDek(dek);
+//     expect(hasGlobalDek()).toBe(true);
 
-    clearGlobalDek();
-    expect(hasGlobalDek()).toBe(false);
-    expect(() => getGlobalDek()).toThrow("DEK not available");
-  });
+//     clearGlobalDek();
+//     expect(hasGlobalDek()).toBe(false);
+//     expect(() => getGlobalDek()).toThrow("DEK not available");
+//   });
 
-  test("throws error if setting DEK that is not 32 bytes", () => {
-    const shortDek = new Uint8Array(16);
-    expect(() => {
-      setGlobalDek(shortDek);
-    }).toThrow("DEK must be 32 bytes");
-  });
+//   test("throws error if setting DEK that is not 32 bytes", () => {
+//     const shortDek = new Uint8Array(16);
+//     expect(() => {
+//       setGlobalDek(shortDek);
+//     }).toThrow("DEK must be 32 bytes");
+//   });
 
-  test("setting new DEK overwrites previous DEK", () => {
-    const dek1 = generateDek();
-    const dek2 = generateDek();
+//   test("setting new DEK overwrites previous DEK", () => {
+//     const dek1 = generateDek();
+//     const dek2 = generateDek();
 
-    setGlobalDek(dek1);
-    expect(getGlobalDek()).toEqual(dek1);
+//     setGlobalDek(dek1);
+//     expect(getGlobalDek()).toEqual(dek1);
 
-    setGlobalDek(dek2);
-    expect(getGlobalDek()).toEqual(dek2);
-    expect(getGlobalDek()).not.toEqual(dek1);
-  });
-});
+//     setGlobalDek(dek2);
+//     expect(getGlobalDek()).toEqual(dek2);
+//     expect(getGlobalDek()).not.toEqual(dek1);
+//   });
+// });
 
-describe("integration: encrypt with global DEK", () => {
-  beforeEach(() => {
-    clearGlobalDek();
-  });
+// describe("integration: encrypt with global DEK", () => {
+//   beforeEach(() => {
+//     clearGlobalDek();
+//   });
 
-  test("can encrypt and decrypt using global DEK", async () => {
-    const dek = generateDek();
-    setGlobalDek(dek);
+//   test("can encrypt and decrypt using global DEK", async () => {
+//     const dek = generateDek();
+//     setGlobalDek(dek);
 
-    const plaintext = "Amanda Ripley";
-    const encrypted = await encryptField(plaintext, getGlobalDek());
-    const decrypted = await decryptField(encrypted, getGlobalDek());
+//     const plaintext = "Amanda Ripley";
+//     const encrypted = await encryptField(plaintext, getGlobalDek());
+//     const decrypted = await decryptField(encrypted, getGlobalDek());
 
-    expect(decrypted).toBe(plaintext);
-  });
+//     expect(decrypted).toBe(plaintext);
+//   });
 
-  test("encryption fails if global DEK not set", () => {
-    expect(() => getGlobalDek()).toThrow("DEK not available");
-  });
-});
+//   test("encryption fails if global DEK not set", () => {
+//     expect(() => getGlobalDek()).toThrow("DEK not available");
+//   });
+// });

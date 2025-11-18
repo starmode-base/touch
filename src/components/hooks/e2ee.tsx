@@ -9,7 +9,6 @@ import {
 import {
   setGlobalDek,
   clearGlobalDek,
-  getGlobalDek,
   hasGlobalDek,
   subscribeToDekState,
   addPasskey as addPasskeyLib,
@@ -23,6 +22,7 @@ import { contactsStore } from "~/collections/contacts";
 import { useLiveQuery } from "@tanstack/react-db";
 import { passkeysCollection, type Passkey } from "~/collections/passkeys";
 import { genSecureToken } from "~/lib/secure-token";
+import { getSessionDek } from "~/lib/e2ee-app";
 
 interface E2eeContext {
   // Create passkey (enrollment)
@@ -87,7 +87,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
 
   // Core passkey creation logic
   const createPasskeyInternal = useCallback(async () => {
-    const dek = isDekUnlocked ? getGlobalDek() : null;
+    const dek = isDekUnlocked ? await getSessionDek() : null;
 
     const result = await addPasskeyLib({
       dek,

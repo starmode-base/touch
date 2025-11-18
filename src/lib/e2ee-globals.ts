@@ -15,12 +15,8 @@
  * Also sets up DEK state change notifications to the chrome extension via postMessage.
  */
 
-import {
-  hasGlobalDek,
-  getGlobalDek,
-  encryptField,
-  onDekStateChange,
-} from "./e2ee";
+import { hasGlobalDek, encryptField, onDekStateChange } from "./e2ee";
+import { getSessionDek } from "./e2ee-app";
 
 /**
  * Global window interface for E2EE functions exposed to chrome extension
@@ -57,7 +53,7 @@ function setupE2eeGlobals(): void {
       throw new Error("DEK not available. User must unlock E2EE first.");
     }
 
-    const dek = getGlobalDek();
+    const dek = await getSessionDek();
     return encryptField(name, dek);
   };
 }

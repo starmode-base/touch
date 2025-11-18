@@ -5,6 +5,8 @@
  * https://w3c.github.io/webauthn/#prf-extension
  */
 
+// import { getSessionDek } from "./e2ee-app";
+
 /**
  * Type alias for Uint8Array backed by ArrayBuffer (not SharedArrayBuffer)
  * Required for Web Crypto API compatibility
@@ -25,7 +27,7 @@ export function base64urlEncode(buffer: ArrayBuffer | Uint8Array) {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
-function base64urlDecode(base64url: string) {
+export function base64urlDecode(base64url: string) {
   const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
   const padded = base64.padEnd(
     base64.length + ((4 - (base64.length % 4)) % 4),
@@ -186,7 +188,10 @@ async function wrapDekWithKek(dek: CryptoBytes, kek: CryptoBytes) {
  *
  * Takes base64url-encoded wrapped DEK and returns the raw DEK bytes
  */
-async function unwrapDekWithKek(wrappedDekBase64url: string, kek: CryptoBytes) {
+export async function unwrapDekWithKek(
+  wrappedDekBase64url: string,
+  kek: CryptoBytes,
+) {
   if (kek.byteLength !== 32) {
     throw new Error("kek must be 32 bytes");
   }
@@ -334,6 +339,7 @@ export async function attemptAutoUnlock(options: {
   options.storeKek(kek, matchedPasskey.credentialId);
 
   console.log("DEK auto-unlocked successfully via WebAuthn, KEK cached");
+
   return dek;
 }
 
@@ -640,12 +646,15 @@ export function setGlobalDek(dek: CryptoBytes) {
  *
  * Throws if DEK is not available (user must unlock first)
  */
-export function getGlobalDek() {
-  if (!globalDek) {
-    throw new Error("DEK not available. User must unlock E2EE first.");
-  }
-  return globalDek;
-}
+// export function getGlobalDek() {
+//   void getSessionDek();
+
+//   // console.log("getSessionDek", globalDek);
+//   if (!globalDek) {
+//     throw new Error("DEK not available. User must unlock E2EE first.");
+//   }
+//   return globalDek;
+// }
 
 /**
  * Clear the DEK from memory (e.g., on lock)
