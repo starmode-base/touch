@@ -13,7 +13,7 @@ const STORAGE_KEY = "crypto_session";
 /**
  * Get the crypto session from sessionStorage
  */
-export function getCryptoSession(): CryptoSession | null {
+function get(): CryptoSession | null {
   const cached = sessionStorage.getItem(STORAGE_KEY);
   if (!cached) return null;
 
@@ -23,14 +23,14 @@ export function getCryptoSession(): CryptoSession | null {
 /**
  * Check if a crypto session exists in sessionStorage
  */
-export function hasCryptoSession(): boolean {
-  return getCryptoSession() !== null;
+function exists(): boolean {
+  return !!get();
 }
 
 /**
  * Store a crypto session in sessionStorage
  */
-export function setCryptoSession(kek: Uint8Array, credentialId: string) {
+function set(kek: Uint8Array, credentialId: string): void {
   const cached: CryptoSession = {
     kek: base64urlEncode(kek),
     credentialId,
@@ -41,6 +41,13 @@ export function setCryptoSession(kek: Uint8Array, credentialId: string) {
 /**
  * Clear the crypto session from sessionStorage
  */
-export function clearCryptoSession() {
+function clear(): void {
   sessionStorage.removeItem(STORAGE_KEY);
 }
+
+export const cryptoSession = {
+  get,
+  exists,
+  set,
+  clear,
+};
