@@ -227,56 +227,6 @@ export interface StoredPasskey {
   transports: string[];
 }
 
-interface CachedKek {
-  kek: string; // base64url-encoded
-  credentialId: string;
-}
-
-const KEK_STORAGE_KEY = "e2ee_kek";
-
-/**
- * Get the cached KEK from sessionStorage
- */
-function getCachedKek() {
-  const cached = sessionStorage.getItem(KEK_STORAGE_KEY);
-  if (!cached) return null;
-
-  return JSON.parse(cached) as CachedKek;
-}
-
-/**
- * Check if a cached KEK exists
- */
-export function hasCachedKek() {
-  return getCachedKek() !== null;
-}
-
-/**
- * Get the credential ID of the cached KEK
- */
-export function getCachedCredentialId(): string | null {
-  const cached = getCachedKek();
-  return cached?.credentialId ?? null;
-}
-
-/**
- * Store a cached KEK in sessionStorage
- */
-export function storeCachedKek(kek: Uint8Array, credentialId: string) {
-  const cached: CachedKek = {
-    kek: base64urlEncode(kek),
-    credentialId,
-  };
-  sessionStorage.setItem(KEK_STORAGE_KEY, JSON.stringify(cached));
-}
-
-/**
- * Clear the cached KEK from sessionStorage
- */
-export function clearCachedKek() {
-  sessionStorage.removeItem(KEK_STORAGE_KEY);
-}
-
 /**
  * Attempt to auto-unlock the DEK using cached KEK or WebAuthn
  *
@@ -286,28 +236,29 @@ export function clearCachedKek() {
 export async function attemptAutoUnlock(options: {
   passkeys: StoredPasskey[];
   rpId: string;
+  storeKek: (kek: CryptoBytes, credentialId: string) => void;
+  clearKek: () => void;
+  kekObj: { kek: string; credentialId: string } | null;
 }) {
   requireBrowser("attemptAutoUnlock requires a browser environment");
-  const { passkeys, rpId } = options;
+  const { passkeys, rpId, kekObj } = options;
 
   // Step 1: Check for cached KEK in sessionStorage
-  const cachedKek = getCachedKek();
-
-  if (cachedKek) {
+  if (kekObj) {
     console.log("Found cached KEK, unlocking without WebAuthn...");
 
     const matchedPasskey = passkeys.find(
-      (p) => p.credentialId === cachedKek.credentialId,
+      (p) => p.credentialId === kekObj.credentialId,
     );
 
     if (!matchedPasskey) {
       console.log("Cached KEK's passkey not found, clearing cache");
-      clearCachedKek();
+      options.clearKek();
       throw new Error("Cached passkey not found");
     }
 
     // Unwrap DEK with cached KEK
-    const kek = base64urlDecode(cachedKek.kek);
+    const kek = base64urlDecode(kekObj.kek);
     const dek = await unwrapDekWithKek(matchedPasskey.wrappedDek, kek);
 
     console.log(
@@ -380,7 +331,7 @@ export async function attemptAutoUnlock(options: {
   const dek = await unwrapDekWithKek(matchedPasskey.wrappedDek, kek);
 
   // Cache KEK for future reloads in this session
-  storeCachedKek(kek, matchedPasskey.credentialId);
+  options.storeKek(kek, matchedPasskey.credentialId);
 
   console.log("DEK auto-unlocked successfully via WebAuthn, KEK cached");
   return dek;

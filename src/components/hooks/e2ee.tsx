@@ -15,11 +15,14 @@ import {
   addPasskey as addPasskeyLib,
   unlockWithPasskey,
   attemptAutoUnlock,
+  type StoredPasskey,
+} from "~/lib/e2ee";
+import {
   hasCachedKek,
   storeCachedKek,
   clearCachedKek,
-  type StoredPasskey,
-} from "~/lib/e2ee";
+  getCachedKek,
+} from "~/lib/e2ee-kek-cache";
 import { useClerk } from "@clerk/tanstack-react-start";
 import { contactsStore } from "~/collections/contacts";
 import { useLiveQuery } from "@tanstack/react-db";
@@ -205,6 +208,9 @@ export function E2eeProvider(props: React.PropsWithChildren) {
           const dekBytes = await attemptAutoUnlock({
             passkeys: storedPasskeys,
             rpId: location.hostname,
+            storeKek: storeCachedKek,
+            clearKek: clearCachedKek,
+            kekObj: getCachedKek(),
           });
 
           setGlobalDek(dekBytes);
