@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "~/components/atoms";
 import { useE2ee } from "~/components/hooks/e2ee";
-import { cryptoSession } from "~/lib/e2ee-kek-cache";
+import { cryptoSession } from "~/lib/e2ee-session";
 import { UserButton } from "@clerk/tanstack-react-start";
 
 export const Route = createFileRoute("/_auth/settings/")({

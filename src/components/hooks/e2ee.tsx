@@ -17,7 +17,7 @@ import {
   attemptAutoUnlock,
   type StoredPasskey,
 } from "~/lib/e2ee";
-import { cryptoSession } from "~/lib/e2ee-kek-cache";
+import { cryptoSession } from "~/lib/e2ee-session";
 import { useClerk } from "@clerk/tanstack-react-start";
 import { contactsStore } from "~/collections/contacts";
 import { useLiveQuery } from "@tanstack/react-db";
