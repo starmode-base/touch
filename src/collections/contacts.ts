@@ -211,8 +211,9 @@ passkeysCollection.subscribeChanges(() => {
 export const contactsStore = {
   /** Queryable collection */
   collection: contactsCollection,
+
   /** Encrypted collection - don't use this directly */
-  encryptedCollection: contactsCollectionEncrypted,
+  // encryptedCollection: contactsCollectionEncrypted,
 
   /** Insert a new contact */
   insert: async (data: {
@@ -265,9 +266,19 @@ export const contactsStore = {
    */
   clear: async () => {
     // Clear decrypted collection (plaintext)
-    await contactsCollection.cleanup();
+    //
+    // Note: useLiveQuery is subscribing to contactsCollection, and it does not
+    // like the contactsCollection.cleanup() method. So we need to clear it
+    // manually.
+    // await contactsCollection.cleanup();
+    contactsCollection.toArray.forEach((contact) => {
+      contactsCollection.delete(contact.id);
+    });
 
     // Clear encrypted collection (stops Electric sync)
+    //
+    // Note: We are not using useLiveQuery on contactsCollectionEncrypted, so we
+    // can use the contactsCollectionEncrypted.cleanup() method here.
     await contactsCollectionEncrypted.cleanup();
 
     // Clear decryption queue
