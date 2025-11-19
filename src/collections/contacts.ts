@@ -20,7 +20,7 @@ import {
 } from "~/server-functions/contacts";
 import { decryptField, encryptField } from "~/lib/e2ee";
 import { genSecureToken } from "../lib/secure-token";
-import { getSessionDek } from "~/lib/e2ee-app";
+import { getSessionDek } from "~/lib/e2ee-actions";
 import { cryptoSession } from "~/lib/e2ee-session";
 import { passkeysCollection } from "./passkeys";
 

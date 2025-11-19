@@ -15,7 +15,7 @@
  * Also sets up session state change notifications to the chrome extension via postMessage.
  */
 import { encryptField } from "./e2ee";
-import { getSessionDek } from "./e2ee-app";
+import { getSessionDek } from "./e2ee-actions";
 import { cryptoSession } from "./e2ee-session";
 
 /**

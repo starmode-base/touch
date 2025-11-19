@@ -10,7 +10,7 @@ import { contactsStore } from "~/collections/contacts";
 import { useLiveQuery } from "@tanstack/react-db";
 import { passkeysCollection, type Passkey } from "~/collections/passkeys";
 import { genSecureToken } from "~/lib/secure-token";
-import { getSessionDek } from "~/lib/e2ee-app";
+import { getSessionDek } from "~/lib/e2ee-actions";
 
 interface E2eeContext {
   // Create passkey (enrollment)
