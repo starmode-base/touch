@@ -1,22 +1,10 @@
+import { createContext, useContext, useState, useCallback } from "react";
 import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useSyncExternalStore,
-} from "react";
-import {
-  setGlobalDek,
-  clearGlobalDek,
-  hasGlobalDek,
-  subscribeToDekState,
   addPasskey as addPasskeyLib,
   unlockWithPasskey,
-  attemptAutoUnlock,
   type StoredPasskey,
 } from "~/lib/e2ee";
-import { cryptoSession } from "~/lib/e2ee-session";
+import { cryptoSession, useSessionState } from "~/lib/e2ee-session";
 import { useClerk } from "@clerk/tanstack-react-start";
 import { contactsStore } from "~/collections/contacts";
 import { useLiveQuery } from "@tanstack/react-db";
@@ -48,31 +36,22 @@ interface E2eeContext {
   lock: () => Promise<void>;
   canLock: boolean;
 
-  // DEK
-  isDekUnlocked: boolean;
-
   // Sign out
   signOut: () => Promise<void>;
 
   // Passkeys
   passkeys: Passkey[];
-  triedAutoUnlock: boolean;
 }
 
 const E2eeContext = createContext<E2eeContext | null>(null);
 
 export function E2eeProvider(props: React.PropsWithChildren) {
-  // Subscribe to global DEK state as single source of truth
-  const isDekUnlocked = useSyncExternalStore(
-    subscribeToDekState,
-    hasGlobalDek,
-    () => false, // Server snapshot - DEK never unlocked on server
-  );
+  // Subscribe to session state as single source of truth
+  const isSessionUnlocked = useSessionState();
 
   const [isCreatingPasskey, setIsCreatingPasskey] = useState(false);
   const [isAddingPasskey, setIsAddingPasskey] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
-  const [triedAutoUnlock, setTriedAutoUnlock] = useState(false);
 
   // Passkeys
   const passkeysQuery = useLiveQuery((q) =>
@@ -87,7 +66,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
 
   // Core passkey creation logic
   const createPasskeyInternal = useCallback(async () => {
-    const dek = isDekUnlocked ? await getSessionDek() : null;
+    const dek = isSessionUnlocked ? await getSessionDek() : null;
 
     const result = await addPasskeyLib({
       dek,
@@ -117,8 +96,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
     });
 
     cryptoSession.set(result.kek, result.credentialId);
-    setGlobalDek(result.dek);
-  }, [isDekUnlocked]);
+  }, [isSessionUnlocked]);
 
   // Create first passkey (enrollment)
   const createPasskey = useCallback(async () => {
@@ -159,7 +137,6 @@ export function E2eeProvider(props: React.PropsWithChildren) {
     });
 
     cryptoSession.set(result.kek, result.credentialId);
-    setGlobalDek(result.dek);
     setIsUnlocking(false);
   }, []);
 
@@ -168,63 +145,9 @@ export function E2eeProvider(props: React.PropsWithChildren) {
     await contactsStore.clear();
     // Lock passkeys
     cryptoSession.clear();
-    clearGlobalDek();
   };
 
-  // Wipe DEK on tab close or page unload
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      clearGlobalDek();
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      handleBeforeUnload();
-    };
-  }, []);
-
-  /**
-   * Auto-unlock hook that attempts to unlock the DEK on mount
-   */
-  useEffect(() => {
-    if (hasPasskeys && !isDekUnlocked && !triedAutoUnlock) {
-      if (cryptoSession.exists()) {
-        const tryUnlock = async () => {
-          // Convert to StoredPasskey format
-          const storedPasskeys: StoredPasskey[] = passkeys.map((p) => ({
-            credentialId: p.credential_id,
-            wrappedDek: p.wrapped_dek,
-            kekSalt: p.kek_salt,
-            transports: p.transports,
-          }));
-
-          const dekBytes = await attemptAutoUnlock({
-            passkeys: storedPasskeys,
-            rpId: location.hostname,
-            storeKek: cryptoSession.set,
-            clearKek: cryptoSession.clear,
-            kekObj: cryptoSession.get(),
-          });
-
-          setGlobalDek(dekBytes);
-          setTriedAutoUnlock(true);
-        };
-
-        void tryUnlock();
-      } else {
-        // No cached KEK, can't auto-unlock
-        void Promise.resolve().then(() => {
-          setTriedAutoUnlock(true);
-        });
-      }
-    }
-  }, [hasPasskeys, isDekUnlocked, triedAutoUnlock, passkeys]);
-
   const value: E2eeContext = {
-    isDekUnlocked,
-
     // Data
     passkeys,
 
@@ -235,7 +158,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
 
     // Add additional passkey
     addPasskey,
-    canAddPasskey: hasPasskeys && isDekUnlocked,
+    canAddPasskey: hasPasskeys && isSessionUnlocked,
     isAddingPasskey,
 
     // Delete passkey
@@ -244,21 +167,18 @@ export function E2eeProvider(props: React.PropsWithChildren) {
 
     // Unlock DEK
     unlock,
-    canUnlock: hasPasskeys && !isDekUnlocked,
+    canUnlock: hasPasskeys && !isSessionUnlocked,
     isUnlocking,
 
     // Lock DEK
     lock,
-    canLock: isDekUnlocked,
+    canLock: isSessionUnlocked,
 
     // Sign out
     signOut: async () => {
       await lock();
       await clerk.signOut();
     },
-
-    // Tried auto-unlock
-    triedAutoUnlock,
   };
 
   return (

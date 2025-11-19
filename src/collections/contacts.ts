@@ -18,14 +18,11 @@ import {
   deleteContactSF,
   updateContactSF,
 } from "~/server-functions/contacts";
-import {
-  decryptField,
-  hasGlobalDek,
-  encryptField,
-  onDekUnlock,
-} from "~/lib/e2ee";
+import { decryptField, encryptField } from "~/lib/e2ee";
 import { genSecureToken } from "../lib/secure-token";
 import { getSessionDek } from "~/lib/e2ee-app";
+import { cryptoSession } from "~/lib/e2ee-session";
+import { passkeysCollection } from "./passkeys";
 
 const Contact = z.object({
   id: z.string(),
@@ -138,18 +135,20 @@ contactsCollectionEncrypted.subscribeChanges((changes) => {
  *
  * Decrypts all queued contacts if DEK is available. Called:
  * 1. When new events arrive (subscription handler)
- * 2. When DEK unlocks (via onDekUnlock callback)
+ * 2. When session unlocks (via cryptoSession.onUnlock callback)
+ * 3. When passkeys collection first loads
  */
 async function processDecryptionQueue(): Promise<void> {
-  if (!hasGlobalDek()) {
-    return;
-  }
-
   if (decryptionQueue.size === 0) {
     return;
   }
 
   const dek = await getSessionDek();
+  if (!dek) {
+    // Not ready yet (session or passkeys not available)
+    return;
+  }
+
   const queuedIds = Array.from(decryptionQueue);
 
   for (const contactId of queuedIds) {
@@ -192,9 +191,18 @@ async function processDecryptionQueue(): Promise<void> {
   }
 }
 
-// Register queue processor to run when DEK unlocks
-onDekUnlock(() => {
+// Register queue processor to run when session unlocks
+cryptoSession.onUnlock(() => {
   void processDecryptionQueue();
+});
+
+// Register queue processor to run when passkeys collection first loads
+let passkeysReady = false;
+passkeysCollection.subscribeChanges(() => {
+  if (!passkeysReady && passkeysCollection.size > 0) {
+    passkeysReady = true;
+    void processDecryptionQueue();
+  }
 });
 
 /**
@@ -213,6 +221,10 @@ export const contactsStore = {
     linkedin: string | null;
   }) => {
     const dek = await getSessionDek();
+    if (!dek) {
+      throw new Error("Encryption not ready. Please unlock or wait for sync.");
+    }
+
     const nameEncrypted = await encryptField(data.name, dek);
 
     return contactsCollectionEncrypted.insert({
@@ -228,6 +240,10 @@ export const contactsStore = {
   /** Update an existing contact */
   update: async (id: string, data: { name: string; linkedin?: string }) => {
     const dek = await getSessionDek();
+    if (!dek) {
+      throw new Error("Encryption not ready. Please unlock or wait for sync.");
+    }
+
     const nameEncrypted = await encryptField(data.name, dek);
 
     return contactsCollectionEncrypted.update(id, (draft) => {

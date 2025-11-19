@@ -1,9 +1,10 @@
 import { useE2ee } from "./hooks/e2ee";
 import { E2eeEnrollment } from "./e2ee-enrollment";
 import { E2eeUnlock } from "./e2ee-unlock";
+import { cryptoSession } from "~/lib/e2ee-session";
 
 export function E2eeGate(props: React.PropsWithChildren) {
-  const { isDekUnlocked, passkeys, triedAutoUnlock } = useE2ee();
+  const { passkeys } = useE2ee();
 
   const hasPasskeys = passkeys.length > 0;
 
@@ -11,7 +12,7 @@ export function E2eeGate(props: React.PropsWithChildren) {
     return <E2eeEnrollment />;
   }
 
-  if (!isDekUnlocked && triedAutoUnlock) {
+  if (!cryptoSession.exists()) {
     return <E2eeUnlock passkeys={passkeys} />;
   }
 

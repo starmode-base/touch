@@ -1,32 +1,33 @@
 import { passkeysCollection } from "~/collections/passkeys";
 import { cryptoSession } from "./e2ee-session";
-import { base64urlDecode, unwrapDekWithKek } from "./e2ee";
+import { base64urlDecode, unwrapDekWithKek, type CryptoBytes } from "./e2ee";
 
 /**
- * Get the current DEK from sessionStorage
+ * Get the DEK using the current KEK and credential ID from session
+ *
+ * Returns null if session doesn't exist or passkeys collection not ready
  */
-export async function getSessionDek() {
+export async function getSessionDek(): Promise<CryptoBytes | null> {
   const session = cryptoSession.get();
   if (!session) {
-    throw new Error("Crypto session not found");
+    return null;
   }
 
   const passkeys = Array.from(passkeysCollection.entries());
 
-  console.log("session", session);
-  console.log("passkeys", Array.from(passkeysCollection.entries()));
-  console.log("passkeys", passkeys);
+  // Passkeys collection not yet loaded
+  if (passkeys.length === 0) {
+    return null;
+  }
 
   const matchedPasskey = passkeys.find(
     ([, passkey]) => passkey.credential_id === session.credentialId,
   );
 
-  console.log("matchedPasskey", matchedPasskey);
-
+  // Session references a passkey that doesn't exist (cleared from server?)
   if (!matchedPasskey) {
-    console.log("Cached KEK's passkey not found, clearing cache");
     cryptoSession.clear();
-    throw new Error("Cached passkey not found");
+    return null;
   }
 
   // Unwrap DEK with cached KEK

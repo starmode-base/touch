@@ -6,6 +6,7 @@ import {
   LockClosedIcon,
   LockOpenIcon,
 } from "@heroicons/react/24/outline";
+import { useSessionState } from "~/lib/e2ee-session";
 
 function LinkButton(props: LinkComponentProps & { variant?: "icon" }) {
   return (
@@ -38,8 +39,8 @@ function Button(
 }
 
 export function Toolbar() {
-  const { isDekUnlocked, signOut, passkeys, unlock, canUnlock, lock, canLock } =
-    useE2ee();
+  const { signOut, passkeys, unlock, canUnlock, lock, canLock } = useE2ee();
+  const isSessionUnlocked = useSessionState();
 
   return (
     <div className="flex items-center justify-between gap-1 bg-zinc-900 p-1 text-sm shadow">
@@ -49,7 +50,7 @@ export function Toolbar() {
         <LinkButton to="/privacy">Privacy Policy</LinkButton>
       </div>
       <div className="flex items-center gap-1">
-        {isDekUnlocked ? (
+        {isSessionUnlocked ? (
           <Button variant="icon" onClick={lock} disabled={!canLock}>
             <LockOpenIcon className="size-4" />
           </Button>

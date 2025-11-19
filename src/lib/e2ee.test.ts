@@ -3,10 +3,6 @@ import {
   generateDek,
   encryptField,
   decryptField,
-  // setGlobalDek,
-  // getGlobalDek,
-  // clearGlobalDek,
-  // hasGlobalDek,
   type CryptoBytes,
 } from "./e2ee";
 
