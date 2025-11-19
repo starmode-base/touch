@@ -4,15 +4,16 @@
  * Sets up global window functions that allow the chrome extension to interact
  * with E2EE encryption functions from injected scripts.
  *
- * These functions are always available in the tab context where the chrome extension
- * injects scripts. They allow the extension to encrypt contact names using
- * the same encryption logic as the main app.
+ * These functions are always available in the tab context where the chrome
+ * extension injects scripts. They allow the extension to encrypt contact names
+ * using the same encryption logic as the main app.
  *
  * Functions handle session state internally:
  * - isDekUnlocked() returns false if session is not unlocked
  * - encryptContactName() throws if session is locked or encryption not ready
  *
- * Also sets up session state change notifications to the chrome extension via postMessage.
+ * Also sets up session state change notifications to the chrome extension via
+ * postMessage.
  */
 import { encryptField } from "./e2ee";
 import { getSessionDek } from "./e2ee-actions";

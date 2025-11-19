@@ -1,3 +1,6 @@
+/**
+ * E2EE session management
+ */
 import { base64urlEncode } from "./e2ee";
 import { z } from "zod";
 import { useSyncExternalStore } from "react";

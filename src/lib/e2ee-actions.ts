@@ -1,3 +1,9 @@
+/**
+ * E2EE actions
+ *
+ * Application-level functions that coordinate across multiple boundaries
+ * (session, passkeys, stores)
+ */
 import { passkeysCollection } from "~/collections/passkeys";
 import { cryptoSession } from "./e2ee-session";
 import { base64urlDecode, unwrapDekWithKek, type CryptoBytes } from "./e2ee";

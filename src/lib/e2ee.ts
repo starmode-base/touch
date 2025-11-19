@@ -1,4 +1,8 @@
 /**
+ * E2EE encryption utilities
+ *
+ * Helper functions for E2EE encryption operations.
+ *
  * Documentation:
  *
  * https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API/WebAuthn_extensions#prf
