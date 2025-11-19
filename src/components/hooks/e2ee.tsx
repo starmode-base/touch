@@ -137,6 +137,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
     });
 
     cryptoSession.set(result.kek, result.credentialId);
+    contactsStore.startSync();
     setIsUnlocking(false);
   }, []);
 

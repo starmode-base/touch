@@ -265,7 +265,17 @@ export const contactsStore = {
    * the encrypted collection, which will stop Electric sync.
    */
   clear: async () => {
-    // Clear decrypted collection (plaintext)
+    // Stop sync and clear data from the encrypted collection
+    //
+    // Note: We are not using useLiveQuery on contactsCollectionEncrypted, so we
+    // can use the contactsCollectionEncrypted.cleanup() method here.
+    await contactsCollectionEncrypted.cleanup();
+
+    // Clear the decryption queue so no more data is pushed on to
+    // contactsCollection
+    decryptionQueue.clear();
+
+    // Clear the decrypted collection (plaintext)
     //
     // Note: useLiveQuery is subscribing to contactsCollection, and it does not
     // like the contactsCollection.cleanup() method. So we need to clear it
@@ -274,14 +284,10 @@ export const contactsStore = {
     contactsCollection.toArray.forEach((contact) => {
       contactsCollection.delete(contact.id);
     });
+  },
 
-    // Clear encrypted collection (stops Electric sync)
-    //
-    // Note: We are not using useLiveQuery on contactsCollectionEncrypted, so we
-    // can use the contactsCollectionEncrypted.cleanup() method here.
-    await contactsCollectionEncrypted.cleanup();
-
-    // Clear decryption queue
-    decryptionQueue.clear();
+  startSync: () => {
+    contactsCollectionEncrypted.startSyncImmediate();
+    contactsCollection.startSyncImmediate();
   },
 };
