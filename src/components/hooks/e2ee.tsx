@@ -13,12 +13,12 @@ import { genSecureToken } from "~/lib/secure-token";
 import { getSessionDek } from "~/lib/e2ee-actions";
 
 interface E2eeContext {
-  // Create passkey (enrollment)
+  // Create first passkey (enrollment)
   createPasskey: () => Promise<void>;
   canCreatePasskey: boolean;
   isCreatingPasskey: boolean;
 
-  // Add passkey (additional passkey)
+  // Add additional passkey
   addPasskey: () => Promise<void>;
   canAddPasskey: boolean;
   isAddingPasskey: boolean;
@@ -41,7 +41,10 @@ interface E2eeContext {
   // Sign out
   signOut: () => Promise<void>;
 
-  // Passkeys
+  // Session state
+  isSessionUnlocked: boolean;
+
+  // Data
   passkeys: Passkey[];
 }
 
@@ -163,9 +166,6 @@ export function E2eeProvider(props: React.PropsWithChildren) {
   }, [clerk, lock]);
 
   const value: E2eeContext = {
-    // Data
-    passkeys,
-
     // Create first passkey (enrollment)
     createPasskey,
     canCreatePasskey: !hasPasskeys,
@@ -181,18 +181,24 @@ export function E2eeProvider(props: React.PropsWithChildren) {
     canDeletePasskey: true, // Allow deleting for now, will throw on last one
     isDeletingPasskey,
 
-    // Unlock DEK
+    // Unlock session
     unlock,
     canUnlock: hasPasskeys && !isSessionUnlocked,
     isUnlocking,
 
-    // Lock DEK
+    // Lock session
     lock,
     canLock: isSessionUnlocked,
     isLocking,
 
     // Sign out
     signOut,
+
+    // Session state
+    isSessionUnlocked,
+
+    // Data
+    passkeys,
   };
 
   return (

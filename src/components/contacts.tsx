@@ -4,21 +4,26 @@ import { contactRolesCollection } from "~/collections/contact-roles";
 import { contactsStore } from "~/collections/contacts";
 import { ContactCard } from "~/components/atoms";
 import { useMemo } from "react";
+import { useE2ee } from "./hooks/e2ee";
 
 export function Contacts(props: { userId: string }) {
+  const { isSessionUnlocked } = useE2ee();
   const contactRoles = useLiveQuery((q) => {
     return q
       .from({ contactRole: contactRolesCollection })
       .where(({ contactRole }) => eq(contactRole.user_id, props.userId));
   });
 
-  const contacts = useLiveQuery((q) => {
-    return q
-      .from({ contact: contactsStore.collection })
-      .where(({ contact }) => eq(contact.user_id, props.userId))
-      .orderBy(({ contact }) => contact.created_at, "desc")
-      .orderBy(({ contact }) => contact.id, "desc");
-  });
+  const contacts = useLiveQuery(
+    (q) => {
+      return q
+        .from({ contact: contactsStore.collection })
+        .where(({ contact }) => eq(contact.user_id, props.userId))
+        .orderBy(({ contact }) => contact.created_at, "desc")
+        .orderBy(({ contact }) => contact.id, "desc");
+    },
+    [isSessionUnlocked],
+  );
 
   const roleAssignmentsWithRole = useLiveQuery((q) => {
     return q
