@@ -265,25 +265,15 @@ export const contactsStore = {
    * the encrypted collection, which will stop Electric sync.
    */
   clear: async () => {
-    // Stop sync and clear data from the encrypted collection
-    //
-    // Note: We are not using useLiveQuery on contactsCollectionEncrypted, so we
-    // can use the contactsCollectionEncrypted.cleanup() method here.
+    // Clean up the encrypted collection by stopping sync and clearing data
     await contactsCollectionEncrypted.cleanup();
 
-    // Clear the decryption queue so no more data is pushed on to
-    // contactsCollection
+    // Clear any remaining items in the decryption queue so no more data is
+    // pushed on to contactsCollection
     decryptionQueue.clear();
 
-    // Clear the decrypted collection (plaintext)
-    //
-    // Note: useLiveQuery is subscribing to contactsCollection, and it does not
-    // like the contactsCollection.cleanup() method. So we need to clear it
-    // manually.
-    // await contactsCollection.cleanup();
-    contactsCollection.toArray.forEach((contact) => {
-      contactsCollection.delete(contact.id);
-    });
+    // Clean up the decrypted collection by stopping sync and clearing data
+    await contactsCollection.cleanup();
   },
 
   startSync: () => {
