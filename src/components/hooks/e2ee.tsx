@@ -26,15 +26,17 @@ interface E2eeContext {
   // Delete passkey
   deletePasskey: (id: string) => void;
   canDeletePasskey: boolean;
+  isDeletingPasskey: boolean;
 
-  // Unlock DEK
+  // Unlock session
   unlock: (passkeys: Passkey[]) => Promise<void>;
   canUnlock: boolean;
   isUnlocking: boolean;
 
-  // Lock DEK
+  // Lock session
   lock: () => Promise<void>;
   canLock: boolean;
+  isLocking: boolean;
 
   // Sign out
   signOut: () => Promise<void>;
@@ -49,9 +51,12 @@ export function E2eeProvider(props: React.PropsWithChildren) {
   // Subscribe to session state as single source of truth
   const isSessionUnlocked = useSessionState();
 
+  // Passkey action states
   const [isCreatingPasskey, setIsCreatingPasskey] = useState(false);
   const [isAddingPasskey, setIsAddingPasskey] = useState(false);
+  const [isDeletingPasskey, setIsDeletingPasskey] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
+  const [isLocking, setIsLocking] = useState(false);
 
   // Passkeys
   const passkeysQuery = useLiveQuery((q) =>
@@ -114,8 +119,10 @@ export function E2eeProvider(props: React.PropsWithChildren) {
 
   // Delete passkey operation
   const deletePasskey = useCallback((id: string) => {
+    setIsDeletingPasskey(true);
     // Delete from Electric collection (will sync to server via onDelete)
     passkeysCollection.delete(id);
+    setIsDeletingPasskey(false);
   }, []);
 
   // Unlock operation
@@ -141,12 +148,19 @@ export function E2eeProvider(props: React.PropsWithChildren) {
     setIsUnlocking(false);
   }, []);
 
-  const lock = async () => {
+  const lock = useCallback(async () => {
+    setIsLocking(true);
     // Clear local store (encrypted and decrypted data)
     await contactsStore.clear();
     // Lock passkeys
     cryptoSession.clear();
-  };
+    setIsLocking(false);
+  }, []);
+
+  const signOut = useCallback(async () => {
+    await lock();
+    await clerk.signOut();
+  }, [clerk, lock]);
 
   const value: E2eeContext = {
     // Data
@@ -165,6 +179,7 @@ export function E2eeProvider(props: React.PropsWithChildren) {
     // Delete passkey
     deletePasskey,
     canDeletePasskey: true, // Allow deleting for now, will throw on last one
+    isDeletingPasskey,
 
     // Unlock DEK
     unlock,
@@ -174,12 +189,10 @@ export function E2eeProvider(props: React.PropsWithChildren) {
     // Lock DEK
     lock,
     canLock: isSessionUnlocked,
+    isLocking,
 
     // Sign out
-    signOut: async () => {
-      await lock();
-      await clerk.signOut();
-    },
+    signOut,
   };
 
   return (
