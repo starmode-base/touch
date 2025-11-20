@@ -42,7 +42,8 @@ function ProfilePage() {
           <h2 className="text-xl font-semibold">Your passkeys</h2>
           <div className="flex gap-2">
             <Button onClick={createPasskey} disabled={!canCreatePasskey}>
-              {isCreatingPasskey ? "Creating..." : "Create passkey"}
+              {/* {isCreatingPasskey ? "Creating..." : "Create passkey"} */}
+              {isCreatingPasskey ? "Setting up..." : "Enable encryption"}
             </Button>
             <Button onClick={addPasskey} disabled={!canAddPasskey}>
               {isAddingPasskey ? "Adding..." : "Add passkey"}
