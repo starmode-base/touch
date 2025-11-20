@@ -19,7 +19,7 @@ export async function getSessionDek(): Promise<CryptoBytes | null> {
     return null;
   }
 
-  const passkeys = Array.from(passkeysCollection.entries());
+  const passkeys = passkeysCollection.toArray;
 
   // Passkeys collection not yet loaded
   if (passkeys.length === 0) {
@@ -27,18 +27,21 @@ export async function getSessionDek(): Promise<CryptoBytes | null> {
   }
 
   const matchedPasskey = passkeys.find(
-    ([, passkey]) => passkey.credential_id === session.credentialId,
+    (passkey) => passkey.credential_id === session.credentialId,
   );
 
   // Session references a passkey that doesn't exist (cleared from server?)
   if (!matchedPasskey) {
+    console.warn(
+      "Session references a passkey that doesn't exist - clearing session",
+    );
     cryptoSession.clear();
     return null;
   }
 
   // Unwrap DEK with cached KEK
   const kek = base64urlDecode(session.kek);
-  const dek = await unwrapDekWithKek(matchedPasskey[1].wrapped_dek, kek);
+  const dek = await unwrapDekWithKek(matchedPasskey.wrapped_dek, kek);
 
   return dek;
 }
