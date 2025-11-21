@@ -27,7 +27,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@clerk/tanstack-react-start": "^0.27.2",
+    "@clerk/tanstack-react-start": "^0.27.4",
     "@electric-sql/client": "^1.1.5",
     "@heroicons/react": "^2.2.0",
     "@neondatabase/serverless": "^1.0.2",
@@ -50,8 +50,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@tanstack/eslint-plugin-router": "^1.133.19",
-    "@tanstack/nitro-v2-vite-plugin": "^1.133.19",
+    "@tanstack/eslint-plugin-router": "^1.139.0",
+    "@tanstack/nitro-v2-vite-plugin": "^1.139.0",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.6",
     "@types/react-dom": "^19.2.3",
