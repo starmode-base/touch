@@ -36,7 +36,15 @@ function get(): CryptoSession | null {
   const cached = sessionStorage.getItem(STORAGE_KEY);
   if (!cached) return null;
 
-  return CryptoSession.parse(JSON.parse(cached));
+  const parsed = CryptoSession.safeParse(JSON.parse(cached));
+
+  if (!parsed.success) {
+    console.error("Invalid crypto session", parsed.error);
+    sessionStorage.removeItem(STORAGE_KEY);
+    return null;
+  }
+
+  return parsed.data;
 }
 
 /**
