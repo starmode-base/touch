@@ -31,6 +31,8 @@ function notifySessionStateChange(isUnlocked: boolean): void {
  * Get the crypto session from sessionStorage
  */
 function get(): CryptoSession | null {
+  if (typeof window === "undefined") return null;
+
   const cached = sessionStorage.getItem(STORAGE_KEY);
   if (!cached) return null;
 
@@ -48,6 +50,8 @@ function exists(): boolean {
  * Store a crypto session in sessionStorage
  */
 function set(kek: Uint8Array, credentialId: string): void {
+  if (typeof window === "undefined") return;
+
   const cached: CryptoSession = {
     kek: base64urlEncode(kek),
     credentialId,
@@ -60,6 +64,8 @@ function set(kek: Uint8Array, credentialId: string): void {
  * Clear the crypto session from sessionStorage
  */
 function clear(): void {
+  if (typeof window === "undefined") return;
+
   sessionStorage.removeItem(STORAGE_KEY);
   notifySessionStateChange(false);
 }

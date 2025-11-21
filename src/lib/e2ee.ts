@@ -45,12 +45,6 @@ export function base64urlDecode(base64url: string) {
   return bytes;
 }
 
-function requireBrowser(message: string) {
-  if (typeof window === "undefined" || typeof navigator === "undefined") {
-    throw new Error(message);
-  }
-}
-
 function generateRandomBytes(byteLength: number) {
   return crypto.getRandomValues(new Uint8Array(byteLength));
 }
@@ -268,13 +262,12 @@ function findPasskeyByCredentialId(
  * Uses single WebAuthn prompt by including PRF evaluation in credential creation.
  */
 export async function addPasskey(options: {
-  dek: CryptoBytes | null;
+  dek: CryptoBytes;
   rpId: string;
   rpName: string;
   userName: string;
   userDisplayName: string;
 }): Promise<{
-  dek: CryptoBytes;
   credentialId: string;
   publicKey: string;
   wrappedDek: string;
@@ -288,17 +281,11 @@ export async function addPasskey(options: {
   webauthnUserName: string;
   webauthnUserDisplayName: string;
 }> {
-  requireBrowser("addPasskey requires a browser environment");
-
-  // Generate new DEK if null (enrollment), otherwise use existing DEK
-  const dek = options.dek ?? generateDek();
-
   // Step 1: Generate constant PRF input
   const prfInput = await getPrfInput(options.rpId);
 
   // Step 2: Create PRF-enabled passkey with PRF evaluation
   const userId = generateUserId();
-  const userName = "e2ee-" + new Date().toISOString();
   const challenge = generateChallenge();
 
   // -7 for ES256, which is the COSE algorithm identifier
@@ -358,10 +345,9 @@ export async function addPasskey(options: {
   const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
 
   // Step 6: Wrap DEK with new KEK
-  const wrappedDek = await wrapDekWithKek(dek, kek);
+  const wrappedDek = await wrapDekWithKek(options.dek, kek);
 
   return {
-    dek,
     credentialId: credential.id,
     publicKey: base64urlEncode(publicKeyBytes),
     wrappedDek,
@@ -372,7 +358,7 @@ export async function addPasskey(options: {
     rpName: options.rpName,
     rpId: options.rpId,
     webauthnUserId: base64urlEncode(userId),
-    webauthnUserName: userName,
+    webauthnUserName: options.userName,
     webauthnUserDisplayName: options.userDisplayName,
   };
 }
@@ -391,8 +377,6 @@ export async function unlockWithPasskey(options: {
   kekSalt: string;
   kek: CryptoBytes;
 }> {
-  requireBrowser("unlockWithPasskey requires a browser environment");
-
   if (options.passkeys.length === 0) {
     throw new Error("No passkeys found. Please enroll a passkey first.");
   }

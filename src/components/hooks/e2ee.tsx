@@ -1,16 +1,15 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import {
-  addPasskey as addPasskeyLib,
-  unlockWithPasskey,
-  type StoredPasskey,
-} from "~/lib/e2ee";
-import { cryptoSession, useSessionState } from "~/lib/e2ee-session";
+import { useSessionState } from "~/lib/e2ee-session";
 import { useClerk } from "@clerk/tanstack-react-start";
-import { contactsStore } from "~/collections/contacts";
 import { useLiveQuery } from "@tanstack/react-db";
 import { passkeysCollection, type Passkey } from "~/collections/passkeys";
-import { genSecureToken } from "~/lib/secure-token";
-import { getSessionDek } from "~/lib/e2ee-actions";
+import {
+  addPasskeyAction,
+  createPasskeyAction,
+  deletePasskeyAction,
+  lockAction,
+  unlockAction,
+} from "~/lib/e2ee-actions";
 
 interface E2eeContext {
   // Create first passkey (enrollment)
@@ -72,91 +71,37 @@ export function E2eeProvider(props: React.PropsWithChildren) {
   // Clerk
   const clerk = useClerk();
 
-  // Core passkey creation logic
-  const createPasskeyInternal = useCallback(async () => {
-    const dek = isSessionUnlocked ? await getSessionDek() : null;
-
-    const result = await addPasskeyLib({
-      dek,
-      rpId: location.hostname,
-      rpName: "Touch",
-      userDisplayName: "Touch Encryption Key",
-      userName: "e2ee-" + new Date().toISOString(),
-    });
-
-    // Insert into Electric collection (will sync to server via onInsert)
-    passkeysCollection.insert({
-      id: genSecureToken(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      user_id: "", // Will be set server-side
-      credential_id: result.credentialId,
-      public_key: result.publicKey,
-      wrapped_dek: result.wrappedDek,
-      kek_salt: result.kekSalt,
-      transports: result.transports,
-      algorithm: result.algorithm,
-      rp_name: result.rpName,
-      rp_id: result.rpId,
-      webauthn_user_id: result.webauthnUserId,
-      webauthn_user_name: result.webauthnUserName,
-      webauthn_user_display_name: result.webauthnUserDisplayName,
-    });
-
-    cryptoSession.set(result.kek, result.credentialId);
-  }, [isSessionUnlocked]);
-
   // Create first passkey (enrollment)
   const createPasskey = useCallback(async () => {
     setIsCreatingPasskey(true);
-    await createPasskeyInternal();
+    await createPasskeyAction();
     setIsCreatingPasskey(false);
-  }, [createPasskeyInternal]);
+  }, []);
 
   // Add additional passkey
   const addPasskey = useCallback(async () => {
     setIsAddingPasskey(true);
-    await createPasskeyInternal();
+    await addPasskeyAction();
     setIsAddingPasskey(false);
-  }, [createPasskeyInternal]);
+  }, []);
 
   // Delete passkey operation
   const deletePasskey = useCallback((id: string) => {
     setIsDeletingPasskey(true);
-    // Delete from Electric collection (will sync to server via onDelete)
-    passkeysCollection.delete(id);
+    deletePasskeyAction(id);
     setIsDeletingPasskey(false);
   }, []);
 
   // Unlock operation
   const unlock = useCallback(async (passkeys: Passkey[]) => {
     setIsUnlocking(true);
-
-    // Convert to StoredPasskey format
-    const storedPasskeys: StoredPasskey[] = passkeys.map((p) => ({
-      credentialId: p.credential_id,
-      wrappedDek: p.wrapped_dek,
-      kekSalt: p.kek_salt,
-      transports: p.transports,
-      createdAt: p.created_at,
-    }));
-
-    const result = await unlockWithPasskey({
-      passkeys: storedPasskeys,
-      rpId: location.hostname,
-    });
-
-    cryptoSession.set(result.kek, result.credentialId);
-    contactsStore.startSync();
+    await unlockAction(passkeys);
     setIsUnlocking(false);
   }, []);
 
   const lock = useCallback(async () => {
     setIsLocking(true);
-    // Clear local store (encrypted and decrypted data)
-    await contactsStore.clear();
-    // Lock passkeys
-    cryptoSession.clear();
+    await lockAction();
     setIsLocking(false);
   }, []);
 
