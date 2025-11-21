@@ -32,8 +32,8 @@
     "@heroicons/react": "^2.2.0",
     "@neondatabase/serverless": "^1.0.2",
     "@tailwindcss/vite": "^4.1.17",
-    "@tanstack/electric-db-collection": "^0.2.2",
-    "@tanstack/react-db": "^0.1.46",
+    "@tanstack/electric-db-collection": "^0.2.3",
+    "@tanstack/react-db": "^0.1.47",
     "@tanstack/react-router": "1.133.36",
     "@tanstack/react-router-devtools": "1.133.36",
     "@tanstack/react-start": "1.134.0",
@@ -68,8 +68,8 @@
     "sharp": "^0.34.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.47.0",
-    "vite": "^7.2.2",
+    "vite": "^7.2.4",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.10"
+    "vitest": "^4.0.12"
   }
 }
