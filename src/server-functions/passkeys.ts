@@ -54,34 +54,53 @@ export const storePasskeySF = createServerFn({ method: "POST" })
 
 /**
  * Delete passkey
+ *
+ * The last passkey cannot be deleted. Note that users initlally have no
+ * passkeys, but once they create one, they must have at least one. If they
+ * loose their last passkey, they will never be able to dec.
+ */
+export function deletePasskey(ids: string[], viewerId: string) {
+  return db().transaction(async (tx) => {
+    const txid = await generateTxId(tx);
+
+    if (ids.length === 0) {
+      return txid;
+    }
+
+    // Check total passkey count for user
+    const [result] = await tx
+      .select({ count: count() })
+      .from(schema.passkeys)
+      .where(eq(schema.passkeys.user_id, viewerId));
+
+    if ((result?.count ?? 0) <= ids.length) {
+      throw new Error("Cannot delete the last passkey");
+    }
+
+    // Delete the passkey
+    await tx
+      .delete(schema.passkeys)
+      .where(
+        and(
+          eq(schema.passkeys.user_id, viewerId),
+          inArray(schema.passkeys.id, ids),
+        ),
+      );
+
+    return txid;
+  });
+}
+
+/**
+ * Delete passkey server function
+ *
+ * The last passkey cannot be deleted. Note that users initlally have no
+ * passkeys, but once they create one, they must have at least one. If they
+ * loose their last passkey, they will never be able to dec.
  */
 export const deletePasskeySF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
   .inputValidator(z.object({ ids: SecureToken.array() }))
   .handler(async ({ data, context }) => {
-    return db().transaction(async (tx) => {
-      const txid = await generateTxId(tx);
-
-      // Check total passkey count for user
-      const [result] = await tx
-        .select({ count: count() })
-        .from(schema.passkeys)
-        .where(eq(schema.passkeys.user_id, context.viewer.id));
-
-      if (result?.count === 1) {
-        throw new Error("Cannot delete the last passkey");
-      }
-
-      // Delete the passkey
-      await tx
-        .delete(schema.passkeys)
-        .where(
-          and(
-            eq(schema.passkeys.user_id, context.viewer.id),
-            inArray(schema.passkeys.id, data.ids),
-          ),
-        );
-
-      return txid;
-    });
+    return deletePasskey(data.ids, context.viewer.id);
   });
