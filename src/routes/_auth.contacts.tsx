@@ -3,7 +3,7 @@ import { SplitScreen } from "~/components/split-screen";
 import { ContactsPanel } from "~/components/contacts-panel";
 import invariant from "tiny-invariant";
 
-export const Route = createFileRoute("/contacts")({
+export const Route = createFileRoute("/_auth/contacts")({
   ssr: false,
   component: RouteComponent,
   loader: ({ context }) => {

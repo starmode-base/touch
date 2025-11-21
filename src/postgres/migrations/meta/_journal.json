@@ -15,6 +15,20 @@
       "when": 1761766075568,
       "tag": "0001_peaceful_sentry",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762359363375,
+      "tag": "0002_thankful_bastion",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1762359367781,
+      "tag": "0003_late_layla_miller",
+      "breakpoints": true
     }
   ]
 }

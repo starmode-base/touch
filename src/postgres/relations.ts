@@ -1,61 +1,15 @@
 import { relations } from "drizzle-orm/relations";
 import {
   users,
-  contactActivities,
-  contacts,
-  contactRoles,
   opportunities,
   opportunityActivities,
   passkeys,
-  contactRoleAssignments,
-  opportunityContactLinks,
-} from "./schema";
-
-export const contactActivitiesRelations = relations(
-  contactActivities,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [contactActivities.user_id],
-      references: [users.id],
-    }),
-    contact: one(contacts, {
-      fields: [contactActivities.user_id],
-      references: [contacts.id],
-    }),
-  }),
-);
-
-export const usersRelations = relations(users, ({ many }) => ({
-  contactActivities: many(contactActivities),
-  contacts: many(contacts),
-  contactRoles: many(contactRoles),
-  opportunities: many(opportunities),
-  opportunityActivities: many(opportunityActivities),
-  passkeys: many(passkeys),
-  contactRoleAssignments: many(contactRoleAssignments),
-  opportunityContactLinks: many(opportunityContactLinks),
-}));
-
-export const contactsRelations = relations(contacts, ({ one, many }) => ({
-  contactActivities: many(contactActivities),
-  user: one(users, {
-    fields: [contacts.user_id],
-    references: [users.id],
-  }),
-  contactRoleAssignments: many(contactRoleAssignments),
-  opportunityContactLinks: many(opportunityContactLinks),
-}));
-
-export const contactRolesRelations = relations(
+  contacts,
   contactRoles,
-  ({ one, many }) => ({
-    user: one(users, {
-      fields: [contactRoles.user_id],
-      references: [users.id],
-    }),
-    contactRoleAssignments: many(contactRoleAssignments),
-  }),
-);
+  contactActivities,
+  opportunityContactLinks,
+  contactRoleAssignments,
+} from "./schema";
 
 export const opportunitiesRelations = relations(
   opportunities,
@@ -68,6 +22,17 @@ export const opportunitiesRelations = relations(
     opportunityContactLinks: many(opportunityContactLinks),
   }),
 );
+
+export const usersRelations = relations(users, ({ many }) => ({
+  opportunities: many(opportunities),
+  opportunityActivities: many(opportunityActivities),
+  passkeys: many(passkeys),
+  contacts: many(contacts),
+  contactRoles: many(contactRoles),
+  contactActivities: many(contactActivities),
+  opportunityContactLinks: many(opportunityContactLinks),
+  contactRoleAssignments: many(contactRoleAssignments),
+}));
 
 export const opportunityActivitiesRelations = relations(
   opportunityActivities,
@@ -90,20 +55,37 @@ export const passkeysRelations = relations(passkeys, ({ one }) => ({
   }),
 }));
 
-export const contactRoleAssignmentsRelations = relations(
-  contactRoleAssignments,
+export const contactsRelations = relations(contacts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [contacts.user_id],
+    references: [users.id],
+  }),
+  contactActivities: many(contactActivities),
+  opportunityContactLinks: many(opportunityContactLinks),
+  contactRoleAssignments: many(contactRoleAssignments),
+}));
+
+export const contactRolesRelations = relations(
+  contactRoles,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [contactRoles.user_id],
+      references: [users.id],
+    }),
+    contactRoleAssignments: many(contactRoleAssignments),
+  }),
+);
+
+export const contactActivitiesRelations = relations(
+  contactActivities,
   ({ one }) => ({
     user: one(users, {
-      fields: [contactRoleAssignments.user_id],
+      fields: [contactActivities.user_id],
       references: [users.id],
     }),
     contact: one(contacts, {
-      fields: [contactRoleAssignments.user_id],
+      fields: [contactActivities.user_id],
       references: [contacts.id],
-    }),
-    contactRole: one(contactRoles, {
-      fields: [contactRoleAssignments.user_id],
-      references: [contactRoles.id],
     }),
   }),
 );
@@ -122,6 +104,24 @@ export const opportunityContactLinksRelations = relations(
     user: one(users, {
       fields: [opportunityContactLinks.user_id],
       references: [users.id],
+    }),
+  }),
+);
+
+export const contactRoleAssignmentsRelations = relations(
+  contactRoleAssignments,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [contactRoleAssignments.user_id],
+      references: [users.id],
+    }),
+    contact: one(contacts, {
+      fields: [contactRoleAssignments.user_id],
+      references: [contacts.id],
+    }),
+    contactRole: one(contactRoles, {
+      fields: [contactRoleAssignments.user_id],
+      references: [contactRoles.id],
     }),
   }),
 );

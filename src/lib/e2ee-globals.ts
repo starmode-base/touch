@@ -4,23 +4,20 @@
  * Sets up global window functions that allow the chrome extension to interact
  * with E2EE encryption functions from injected scripts.
  *
- * These functions are always available in the tab context where the chrome extension
- * injects scripts. They allow the extension to encrypt contact names using
- * the same encryption logic as the main app.
+ * These functions are always available in the tab context where the chrome
+ * extension injects scripts. They allow the extension to encrypt contact names
+ * using the same encryption logic as the main app.
  *
- * Functions handle DEK availability internally:
- * - isDekUnlocked() returns false if DEK is not available
- * - encryptContactName() throws if DEK is not available
+ * Functions handle session state internally:
+ * - isDekUnlocked() returns false if session is not unlocked
+ * - encryptContactName() throws if session is locked or encryption not ready
  *
- * Also sets up DEK state change notifications to the chrome extension via postMessage.
+ * Also sets up session state change notifications to the chrome extension via
+ * postMessage.
  */
-
-import {
-  hasGlobalDek,
-  getGlobalDek,
-  encryptField,
-  onDekStateChange,
-} from "./e2ee";
+import { encryptField } from "./e2ee";
+import { getSessionDek } from "./e2ee-actions";
+import { cryptoSession } from "./e2ee-session";
 
 /**
  * Global window interface for E2EE functions exposed to chrome extension
@@ -44,20 +41,24 @@ function setupE2eeGlobals(): void {
    * Check if DEK is unlocked and available
    */
   window.isDekUnlocked = (): boolean => {
-    return hasGlobalDek();
+    return cryptoSession.exists();
   };
 
   /**
-   * Encrypt a contact name using the global DEK
+   * Encrypt a contact name using the session DEK
    *
-   * Throws if DEK is not available (user must unlock first)
+   * Throws if DEK is not available (user must unlock first or wait for sync)
    */
   window.encryptContactName = async (name: string): Promise<string> => {
-    if (!hasGlobalDek()) {
+    if (!cryptoSession.exists()) {
       throw new Error("DEK not available. User must unlock E2EE first.");
     }
 
-    const dek = getGlobalDek();
+    const dek = await getSessionDek();
+    if (!dek) {
+      throw new Error("Encryption not ready. Please wait for sync.");
+    }
+
     return encryptField(name, dek);
   };
 }
@@ -67,8 +68,8 @@ if (typeof window !== "undefined") {
   setupE2eeGlobals();
 
   // Set up Chrome extension integration
-  // Listen to DEK state changes and notify the extension
-  onDekStateChange((event) => {
+  // Listen to session state changes and notify the extension
+  cryptoSession.onStateChange((event) => {
     window.postMessage(
       {
         type: "TOUCH_DEK_STATE_CHANGE",

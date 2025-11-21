@@ -13,7 +13,7 @@ export const withNeonTestBranch = makeNeonTesting({
   // yet, it will likely fail. Comment out the `parentBranchId` before merging
   // to main.
 
-  // Ripley's dev branch:
-  // https://console.neon.tech/app/projects/calm-sullaco-40252170/branches/lv-426-star-a7ylaXz8
-  // parentBranchId: "lv-426-star-a7ylaXz8",
+  // Mikael's dev branch:
+  // https://console.neon.tech/app/projects/muddy-star-72330006/branches/br-lingering-mode-ad4utkeo
+  // parentBranchId: "br-lingering-mode-ad4utkeo",
 });

@@ -1,4 +1,8 @@
 /**
+ * E2EE encryption utilities
+ *
+ * Helper functions for E2EE encryption operations.
+ *
  * Documentation:
  *
  * https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API/WebAuthn_extensions#prf
@@ -6,9 +10,15 @@
  */
 
 /**
+ * Type alias for Uint8Array backed by ArrayBuffer (not SharedArrayBuffer)
+ * Required for Web Crypto API compatibility
+ */
+export type CryptoBytes = Uint8Array<ArrayBuffer>;
+
+/**
  * Base64url encoding utilities
  */
-function base64urlEncode(buffer: ArrayBuffer | Uint8Array): string {
+export function base64urlEncode(buffer: ArrayBuffer | Uint8Array) {
   const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
 
   let binary = "";
@@ -19,7 +29,7 @@ function base64urlEncode(buffer: ArrayBuffer | Uint8Array): string {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
-function base64urlDecode(base64url: string): Uint8Array {
+export function base64urlDecode(base64url: string) {
   const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
   const padded = base64.padEnd(
     base64.length + ((4 - (base64.length % 4)) % 4),
@@ -35,188 +45,53 @@ function base64urlDecode(base64url: string): Uint8Array {
   return bytes;
 }
 
-interface KekDerivationOptions {
-  /** Per-user random salt stored server-side (16-64 bytes recommended) */
-  kekSalt: Uint8Array;
-  /** Origin for PRF context binding (e.g., location.origin) */
-  origin: string;
-  /** Optional HKDF info label; defaults to 'kek-v1' */
-  hkdfInfo?: string;
-  /** Optional PRF context label included in the PRF input; defaults to 'kek' */
-  prfContext?: string;
+function generateRandomBytes(byteLength: number) {
+  return crypto.getRandomValues(new Uint8Array(byteLength));
 }
 
-function requireBrowser(message: string): void {
-  if (typeof window === "undefined" || typeof navigator === "undefined") {
-    throw new Error(message);
-  }
+function generateKekSalt() {
+  return generateRandomBytes(32);
 }
 
-export function generateKekSalt(byteLength = 16): Uint8Array {
-  if (byteLength <= 0) {
-    throw new Error("kek salt length must be positive");
-  }
-
-  const salt = new Uint8Array(byteLength);
-  crypto.getRandomValues(salt);
-
-  return salt;
+function generateNonce() {
+  return generateRandomBytes(12);
 }
 
-function ensureArrayBuffer(view: Uint8Array): Uint8Array<ArrayBuffer> {
-  if (!(view.buffer instanceof ArrayBuffer)) {
-    throw new Error("SharedArrayBuffer not supported for crypto operations");
-  }
-
-  return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+function generateChallenge() {
+  return generateRandomBytes(32);
 }
 
-async function sha256(data: Uint8Array): Promise<Uint8Array> {
-  const digest = await crypto.subtle.digest("SHA-256", ensureArrayBuffer(data));
-
-  return new Uint8Array(digest);
-}
-
-function toUint8(arrayBuffer: ArrayBuffer): Uint8Array {
-  return new Uint8Array(arrayBuffer);
+function generateUserId() {
+  return generateRandomBytes(32);
 }
 
 /**
- * Create a PRF-enabled resident credential for E2EE
- *
- * Returns credential details including the public key for future authentication
- * (Option 2 migration), though the public key is not used yet in Option 1 where
- * Clerk handles authentication.
+ * Generate a random 32-byte DEK (Data Encryption Key)
  */
-export async function createPrfPasskey(options: {
-  /** Relying Party ID (required, typically the domain) */
-  rpId: string;
-  rpName?: string;
-  userName?: string;
-  userDisplayName?: string;
-}) {
-  requireBrowser("create prf passkey requires a browser environment");
-
-  if (!options.rpId) {
-    throw new Error("rpId is required");
-  }
-
-  const rpName = options.rpName ?? "Touch";
-  const userName = options.userName ?? "e2ee-" + new Date().toISOString();
-  const userDisplayName = options.userDisplayName ?? "E2EE key";
-
-  const userId = new Uint8Array(32);
-  crypto.getRandomValues(userId);
-
-  const challenge = new Uint8Array(32);
-  crypto.getRandomValues(challenge);
-
-  const prfSeed = new Uint8Array(32);
-  crypto.getRandomValues(prfSeed);
-
-  const credential = await navigator.credentials.create({
-    publicKey: {
-      challenge,
-      rp: {
-        name: rpName,
-        id: options.rpId,
-      },
-      user: {
-        id: userId,
-        name: userName,
-        displayName: userDisplayName,
-      },
-      pubKeyCredParams: [{ type: "public-key", alg: -7 }],
-      authenticatorSelection: {
-        residentKey: "required",
-        userVerification: "required",
-      },
-      extensions: {
-        prf: {
-          eval: {
-            first: prfSeed,
-          },
-        },
-      },
-    },
-  });
-
-  if (!(credential instanceof PublicKeyCredential)) {
-    throw new Error("expected PublicKeyCredential");
-  }
-
-  if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
-    throw new Error("expected AuthenticatorAttestationResponse");
-  }
-
-  // Extract public key (for future authentication in Option 2)
-  const publicKeyBytes = credential.response.getPublicKey();
-  if (!publicKeyBytes) {
-    throw new Error("public key not available in credential response");
-  }
-
-  return {
-    credentialId: base64urlEncode(credential.rawId),
-    publicKey: base64urlEncode(publicKeyBytes),
-    transports: credential.response.getTransports(),
-    algorithm: -7, // ES256
-  };
+export function generateDek() {
+  return generateRandomBytes(32);
 }
 
-async function getWebAuthnPrf(firstInput: Uint8Array): Promise<Uint8Array> {
-  requireBrowser("webauthn prf requires a browser environment");
-
-  const challenge = new Uint8Array(32);
-  crypto.getRandomValues(challenge);
-
-  const publicKey: PublicKeyCredentialRequestOptions = {
-    challenge,
-    userVerification: "required",
-    extensions: {
-      prf: {
-        eval: {
-          first: ensureArrayBuffer(firstInput),
-        },
-      },
-    },
-  };
-
-  const credential = await navigator.credentials.get({ publicKey });
-
-  if (!(credential instanceof PublicKeyCredential)) {
-    throw new Error("expected PublicKeyCredential");
-  }
-
-  const first = credential.getClientExtensionResults().prf?.results?.first;
-
-  if (!(first instanceof ArrayBuffer)) {
-    throw new Error(
-      "webauthn prf not available on this credential or platform",
-    );
-  }
-
-  return toUint8(first);
+async function sha256(data: CryptoBytes) {
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return new Uint8Array(digest);
 }
 
 async function hkdfExtractAndExpand(
-  ikm: Uint8Array,
-  salt: Uint8Array,
-  info: Uint8Array,
+  ikm: CryptoBytes,
+  salt: CryptoBytes,
+  info: CryptoBytes,
   lengthBits: number,
-): Promise<Uint8Array> {
-  const baseKey = await crypto.subtle.importKey(
-    "raw",
-    ensureArrayBuffer(ikm),
-    "HKDF",
-    false,
-    ["deriveBits"],
-  );
+) {
+  const baseKey = await crypto.subtle.importKey("raw", ikm, "HKDF", false, [
+    "deriveBits",
+  ]);
   const bits = await crypto.subtle.deriveBits(
     {
       name: "HKDF",
       hash: "SHA-256",
-      salt: ensureArrayBuffer(salt),
-      info: ensureArrayBuffer(info),
+      salt,
+      info,
     },
     baseKey,
     lengthBits,
@@ -225,55 +100,42 @@ async function hkdfExtractAndExpand(
 }
 
 /**
- * Derive a KEK using WebAuthn PRF output and HKDF-SHA256
+ * Generate constant PRF input for all passkeys
+ *
+ * This input is constant for a given RP ID, allowing single-prompt authentication.
+ * Per-passkey KEK differentiation happens via unique kekSalt values in HKDF.
  */
-export async function deriveKekWithWebAuthn(
-  options: KekDerivationOptions,
-): Promise<{
-  kek: Uint8Array; // 32 bytes
-  prfOutput: Uint8Array; // 32 bytes
-}> {
-  const { kekSalt, origin, hkdfInfo = "kek-v1", prfContext = "kek" } = options;
-
-  if (kekSalt.byteLength < 16) {
-    throw new Error("kekSalt length must be at least 16 bytes");
+async function getPrfInput(rpId: string) {
+  if (!rpId) {
+    throw new Error("rpId is required for PRF context binding");
   }
 
-  if (!origin) {
-    throw new Error("origin is required for PRF context binding");
-  }
-
-  // Bind PRF input to origin and context to avoid cross-origin re-use
-  const prfLabelBytes = new TextEncoder().encode(
-    `${origin}::${prfContext}::v1`,
-  );
-
-  const firstInput = await sha256(prfLabelBytes);
-
-  const prfOutput = await getWebAuthnPrf(firstInput);
-  if (prfOutput.byteLength !== 32) {
-    throw new Error(
-      `unexpected prf output length: expected 32 bytes, got ${prfOutput.byteLength}`,
-    );
-  }
-
-  const infoBytes = new TextEncoder().encode(hkdfInfo);
-  const kek = await hkdfExtractAndExpand(prfOutput, kekSalt, infoBytes, 256);
-
-  return { kek, prfOutput };
-}
-
-export function toHex(u8: Uint8Array) {
-  return Array.from(u8, (b) => b.toString(16).padStart(2, "0")).join("");
+  const prfLabelBytes = new TextEncoder().encode(`${rpId}::kek::v1`);
+  return await sha256(prfLabelBytes);
 }
 
 /**
- * Generate a random 32-byte DEK (Data Encryption Key)
+ * Derive a KEK from PRF output using HKDF-SHA256
+ *
+ * Takes pre-computed PRF output (from WebAuthn) and derives a KEK using the
+ * per-passkey salt. This allows single-prompt authentication while maintaining
+ * unique KEKs per passkey.
  */
-export function generateDek(): Uint8Array {
-  const dek = new Uint8Array(32);
-  crypto.getRandomValues(dek);
-  return dek;
+async function deriveKekFromPrfOutput(
+  prfOutput: CryptoBytes,
+  kekSalt: CryptoBytes,
+  hkdfInfo = "kek-v1",
+) {
+  if (prfOutput.byteLength !== 32) {
+    throw new Error("PRF output must be 32 bytes");
+  }
+
+  if (kekSalt.byteLength < 16) {
+    throw new Error("kekSalt must be at least 16 bytes");
+  }
+
+  const infoBytes = new TextEncoder().encode(hkdfInfo);
+  return await hkdfExtractAndExpand(prfOutput, kekSalt, infoBytes, 256);
 }
 
 /**
@@ -281,10 +143,7 @@ export function generateDek(): Uint8Array {
  *
  * Returns base64url-encoded wrapped DEK (includes nonce + ciphertext + auth tag)
  */
-export async function wrapDekWithKek(
-  dek: Uint8Array,
-  kek: Uint8Array,
-): Promise<string> {
+async function wrapDekWithKek(dek: CryptoBytes, kek: CryptoBytes) {
   if (dek.byteLength !== 32) {
     throw new Error("dek must be 32 bytes");
   }
@@ -294,13 +153,12 @@ export async function wrapDekWithKek(
   }
 
   // Generate random 12-byte nonce for AES-GCM
-  const nonce = new Uint8Array(12);
-  crypto.getRandomValues(nonce);
+  const nonce = generateNonce();
 
   // Import KEK for AES-GCM
   const kekKey = await crypto.subtle.importKey(
     "raw",
-    ensureArrayBuffer(kek),
+    kek,
     { name: "AES-GCM" },
     false,
     ["encrypt"],
@@ -308,9 +166,9 @@ export async function wrapDekWithKek(
 
   // Encrypt DEK with KEK
   const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: ensureArrayBuffer(nonce) },
+    { name: "AES-GCM", iv: nonce },
     kekKey,
-    ensureArrayBuffer(dek),
+    dek,
   );
 
   // Concatenate nonce + ciphertext for storage
@@ -328,8 +186,8 @@ export async function wrapDekWithKek(
  */
 export async function unwrapDekWithKek(
   wrappedDekBase64url: string,
-  kek: Uint8Array,
-): Promise<Uint8Array> {
+  kek: CryptoBytes,
+) {
   if (kek.byteLength !== 32) {
     throw new Error("kek must be 32 bytes");
   }
@@ -344,7 +202,7 @@ export async function unwrapDekWithKek(
   // Import KEK for AES-GCM
   const kekKey = await crypto.subtle.importKey(
     "raw",
-    ensureArrayBuffer(kek),
+    kek,
     { name: "AES-GCM" },
     false,
     ["decrypt"],
@@ -352,9 +210,9 @@ export async function unwrapDekWithKek(
 
   // Decrypt ciphertext to get DEK
   const dekBuffer = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: ensureArrayBuffer(nonce) },
+    { name: "AES-GCM", iv: nonce },
     kekKey,
-    ensureArrayBuffer(ciphertext),
+    ciphertext,
   );
 
   return new Uint8Array(dekBuffer);
@@ -370,194 +228,14 @@ export interface StoredPasskey {
   transports: string[];
 }
 
-interface CachedKek {
-  kek: string; // hex-encoded
-  credentialId: string;
-}
-
-export function hexToUint8Array(hex: string): Uint8Array {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    bytes[i / 2] = Number.parseInt(hex.slice(i, i + 2), 16);
-  }
-  return bytes;
-}
-
-export function base64urlToArrayBuffer(base64url: string): ArrayBuffer {
-  const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64.padEnd(
-    base64.length + ((4 - (base64.length % 4)) % 4),
-    "=",
-  );
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes.buffer;
-}
-
-/**
- * Convert an ArrayBuffer to a base64url string
- */
-export function arrayBufferToBase64url(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  return btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-}
-
-const KEK_STORAGE_KEY = "e2ee_kek";
-
-/**
- * Get the cached KEK from sessionStorage
- */
-function getCachedKek(): CachedKek | null {
-  const cached = sessionStorage.getItem(KEK_STORAGE_KEY);
-  if (!cached) return null;
-
-  try {
-    return JSON.parse(cached) as CachedKek;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Check if a cached KEK exists
- */
-export function hasCachedKek(): boolean {
-  return getCachedKek() !== null;
-}
-
-/**
- * Store a cached KEK in sessionStorage
- */
-export function storeCachedKek(kek: Uint8Array, credentialId: string): void {
-  const cached: CachedKek = {
-    kek: toHex(kek),
-    credentialId,
-  };
-  sessionStorage.setItem(KEK_STORAGE_KEY, JSON.stringify(cached));
-}
-
-/**
- * Clear the cached KEK from sessionStorage
- */
-export function clearCachedKek(): void {
-  sessionStorage.removeItem(KEK_STORAGE_KEY);
-}
-
-/**
- * Attempt to auto-unlock the DEK using cached KEK or WebAuthn
- *
- * Returns the DEK if successful, throws an error if it fails.
- */
-export async function attemptAutoUnlock(
-  passkeys: StoredPasskey[],
-): Promise<Uint8Array> {
-  requireBrowser("attemptAutoUnlock requires a browser environment");
-
-  // Step 1: Check for cached KEK in sessionStorage
-  const cachedKek = getCachedKek();
-
-  if (cachedKek) {
-    console.log("Found cached KEK, unlocking without WebAuthn...");
-
-    const matchedPasskey = passkeys.find(
-      (p) => p.credentialId === cachedKek.credentialId,
-    );
-
-    if (!matchedPasskey) {
-      console.log("Cached KEK's passkey not found, clearing cache");
-      clearCachedKek();
-      throw new Error("Cached passkey not found");
-    }
-
-    // Unwrap DEK with cached KEK
-    const kek = hexToUint8Array(cachedKek.kek);
-    const dek = await unwrapDekWithKek(matchedPasskey.wrappedDek, kek);
-
-    console.log(
-      "DEK unlocked successfully from cached KEK (no WebAuthn prompt)",
-    );
-    return dek;
-  }
-
-  // Step 2: No cached KEK, do WebAuthn authentication
-  console.log("No cached KEK, triggering WebAuthn...");
-
-  if (passkeys.length === 0) {
-    throw new Error("No passkeys found");
-  }
-
-  // Prepare allowCredentials for WebAuthn
-  const allowCredentials = passkeys.map((passkey) => ({
-    id: base64urlToArrayBuffer(passkey.credentialId),
-    type: "public-key" as const,
-    transports: passkey.transports as AuthenticatorTransport[],
-  }));
-
-  // Trigger WebAuthn authentication
-  const challenge = new Uint8Array(32);
-  crypto.getRandomValues(challenge);
-
-  const assertion = await navigator.credentials.get({
-    publicKey: {
-      challenge,
-      allowCredentials,
-      userVerification: "required",
-    },
-  });
-
-  if (!(assertion instanceof PublicKeyCredential)) {
-    throw new Error("expected PublicKeyCredential");
-  }
-
-  // Find matching passkey by credential ID
-  const credentialIdBase64url = btoa(
-    String.fromCharCode(...new Uint8Array(assertion.rawId)),
-  )
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-
-  const matchedPasskey = passkeys.find(
-    (p) => p.credentialId === credentialIdBase64url,
-  );
-
-  if (!matchedPasskey) {
-    throw new Error("Passkey not found in stored passkeys");
-  }
-
-  // Derive KEK using the matched passkey's salt
-  const kekSalt = hexToUint8Array(matchedPasskey.kekSalt);
-  const { kek } = await deriveKekWithWebAuthn({
-    kekSalt,
-    origin: location.origin,
-  });
-
-  // Unwrap DEK with KEK
-  const dek = await unwrapDekWithKek(matchedPasskey.wrappedDek, kek);
-
-  // Cache KEK for future reloads in this session
-  storeCachedKek(kek, matchedPasskey.credentialId);
-
-  console.log("DEK auto-unlocked successfully via WebAuthn, KEK cached");
-  return dek;
-}
-
 /**
  * Prepare allowCredentials array for WebAuthn from stored passkeys
  */
-export function prepareAllowCredentials(
+function prepareAllowCredentials(
   passkeys: StoredPasskey[],
 ): PublicKeyCredentialDescriptor[] {
   return passkeys.map((passkey) => ({
-    id: base64urlToArrayBuffer(passkey.credentialId),
+    id: base64urlDecode(passkey.credentialId).buffer,
     type: "public-key" as const,
     transports: passkey.transports as AuthenticatorTransport[],
   }));
@@ -566,164 +244,164 @@ export function prepareAllowCredentials(
 /**
  * Find a passkey by credential ID
  */
-export function findPasskeyByCredentialId(
+function findPasskeyByCredentialId(
   passkeys: StoredPasskey[],
   credentialId: ArrayBuffer,
 ): StoredPasskey | null {
-  const credentialIdBase64url = arrayBufferToBase64url(credentialId);
+  const credentialIdBase64url = base64urlEncode(credentialId);
   return passkeys.find((p) => p.credentialId === credentialIdBase64url) ?? null;
 }
 
-interface EnrollPasskeyOptions {
+/**
+ * Add a passkey
+ *
+ * Pass null to generate a new DEK (enrollment).
+ * Pass an existing DEK to wrap it with the new passkey (adding additional passkey).
+ *
+ * Creates PRF-enabled passkey and wraps the DEK with new KEK.
+ * Uses single WebAuthn prompt by including PRF evaluation in credential creation.
+ */
+export async function addPasskey(options: {
+  dek: CryptoBytes;
   rpId: string;
   rpName: string;
+  userName: string;
   userDisplayName: string;
-  origin: string;
-}
-
-interface EnrollPasskeyResult {
-  dek: Uint8Array;
+}): Promise<{
   credentialId: string;
   publicKey: string;
   wrappedDek: string;
   kekSalt: string;
   transports: string[];
-  algorithm: string;
-  kek: Uint8Array;
-}
-
-/**
- * Complete passkey enrollment flow
- *
- * Creates PRF-enabled passkey, generates DEK, wraps it with KEK
- */
-export async function enrollPasskey(
-  options: EnrollPasskeyOptions,
-): Promise<EnrollPasskeyResult> {
-  // Step 1: Create PRF-enabled passkey
-  const passkeyResult = await createPrfPasskey({
-    rpId: options.rpId,
-    rpName: options.rpName,
-    userDisplayName: options.userDisplayName,
-  });
-
-  // Step 2: Generate KEK salt
-  const kekSalt = generateKekSalt(32);
-
-  // Step 3: Derive KEK from passkey's PRF output
-  const { kek } = await deriveKekWithWebAuthn({
-    kekSalt,
-    origin: options.origin,
-  });
-
-  // Step 4: Generate random DEK
-  const dek = generateDek();
-
-  // Step 5: Wrap DEK with KEK
-  const wrappedDek = await wrapDekWithKek(dek, kek);
-
-  return {
-    dek,
-    credentialId: passkeyResult.credentialId,
-    publicKey: passkeyResult.publicKey,
-    wrappedDek,
-    kekSalt: toHex(kekSalt),
-    transports: passkeyResult.transports,
-    algorithm: passkeyResult.algorithm.toString(),
-    kek,
-  };
-}
-
-interface AddAdditionalPasskeyOptions {
-  dek: Uint8Array;
-  rpId: string;
+  algorithm: number;
+  kek: CryptoBytes;
   rpName: string;
-  userDisplayName: string;
-  origin: string;
-}
+  rpId: string;
+  webauthnUserId: string;
+  webauthnUserName: string;
+  webauthnUserDisplayName: string;
+}> {
+  // Step 1: Generate constant PRF input
+  const prfInput = await getPrfInput(options.rpId);
 
-interface AddAdditionalPasskeyResult {
-  credentialId: string;
-  publicKey: string;
-  wrappedDek: string;
-  kekSalt: string;
-  transports: string[];
-  algorithm: string;
-  kek: Uint8Array;
-}
+  // Step 2: Create PRF-enabled passkey with PRF evaluation
+  const userId = generateUserId();
+  const challenge = generateChallenge();
 
-/**
- * Add an additional passkey for an existing DEK
- *
- * Creates new PRF-enabled passkey and wraps the existing DEK with new KEK
- */
-export async function addAdditionalPasskey(
-  options: AddAdditionalPasskeyOptions,
-): Promise<AddAdditionalPasskeyResult> {
-  // Step 1: Create new PRF-enabled passkey
-  const passkeyResult = await createPrfPasskey({
-    rpId: options.rpId,
-    rpName: options.rpName,
-    userDisplayName: options.userDisplayName,
+  // -7 for ES256, which is the COSE algorithm identifier
+  const algorithm = -7;
+
+  const credential = await navigator.credentials.create({
+    publicKey: {
+      challenge,
+      rp: {
+        name: options.rpName,
+        id: options.rpId,
+      },
+      user: {
+        id: userId,
+        name: options.userName,
+        displayName: options.userDisplayName,
+      },
+      pubKeyCredParams: [{ type: "public-key", alg: algorithm }],
+      authenticatorSelection: {
+        residentKey: "required",
+        userVerification: "required",
+      },
+      extensions: {
+        prf: {
+          eval: {
+            first: prfInput,
+          },
+        },
+      },
+    },
   });
 
-  // Step 2: Generate new KEK salt for this passkey
-  const kekSalt = generateKekSalt(32);
+  if (!(credential instanceof PublicKeyCredential)) {
+    throw new Error("expected PublicKeyCredential");
+  }
 
-  // Step 3: Derive KEK from new passkey's PRF output
-  const { kek } = await deriveKekWithWebAuthn({
-    kekSalt,
-    origin: options.origin,
-  });
+  if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
+    throw new Error("expected AuthenticatorAttestationResponse");
+  }
 
-  // Step 4: Wrap existing DEK with new KEK
+  // Step 3: Extract PRF output
+  const prfOutput = credential.getClientExtensionResults().prf?.results?.first;
+  if (!(prfOutput instanceof ArrayBuffer)) {
+    throw new Error(
+      "PRF extension not available on this credential or platform",
+    );
+  }
+
+  // Step 4: Extract public key
+  const publicKeyBytes = credential.response.getPublicKey();
+  if (!publicKeyBytes) {
+    throw new Error("public key not available in credential response");
+  }
+
+  // Step 5: Generate new KEK salt and derive KEK
+  const kekSalt = generateKekSalt();
+  const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
+
+  // Step 6: Wrap DEK with new KEK
   const wrappedDek = await wrapDekWithKek(options.dek, kek);
 
   return {
-    credentialId: passkeyResult.credentialId,
-    publicKey: passkeyResult.publicKey,
+    credentialId: credential.id,
+    publicKey: base64urlEncode(publicKeyBytes),
     wrappedDek,
-    kekSalt: toHex(kekSalt),
-    transports: passkeyResult.transports,
-    algorithm: passkeyResult.algorithm.toString(),
+    kekSalt: base64urlEncode(kekSalt),
+    transports: credential.response.getTransports(),
+    algorithm,
     kek,
+    rpName: options.rpName,
+    rpId: options.rpId,
+    webauthnUserId: base64urlEncode(userId),
+    webauthnUserName: options.userName,
+    webauthnUserDisplayName: options.userDisplayName,
   };
-}
-
-interface UnlockWithPasskeyOptions {
-  passkeys: StoredPasskey[];
-  origin: string;
-}
-
-interface UnlockWithPasskeyResult {
-  dek: Uint8Array;
-  credentialId: string;
-  kekSalt: string;
-  kek: Uint8Array;
 }
 
 /**
  * Unlock DEK using WebAuthn passkey authentication
+ *
+ * Uses single WebAuthn prompt by including PRF evaluation in authentication
  */
-export async function unlockWithPasskey(
-  options: UnlockWithPasskeyOptions,
-): Promise<UnlockWithPasskeyResult> {
+export async function unlockWithPasskey(options: {
+  passkeys: StoredPasskey[];
+  rpId: string;
+}): Promise<{
+  dek: CryptoBytes;
+  credentialId: string;
+  kekSalt: string;
+  kek: CryptoBytes;
+}> {
   if (options.passkeys.length === 0) {
     throw new Error("No passkeys found. Please enroll a passkey first.");
   }
 
-  // Step 1: Prepare allowCredentials for WebAuthn
+  // Step 1: Generate constant PRF input
+  const prfInput = await getPrfInput(options.rpId);
+
+  // Step 2: Prepare allowCredentials for WebAuthn
   const allowCredentials = prepareAllowCredentials(options.passkeys);
 
-  // Step 2: Trigger WebAuthn authentication to identify which passkey
-  const challenge = new Uint8Array(32);
-  crypto.getRandomValues(challenge);
+  // Step 3: Single WebAuthn call with PRF evaluation
+  const challenge = generateChallenge();
 
   const assertion = await navigator.credentials.get({
     publicKey: {
       challenge,
       allowCredentials,
       userVerification: "required",
+      extensions: {
+        prf: {
+          eval: {
+            first: prfInput,
+          },
+        },
+      },
     },
   });
 
@@ -731,7 +409,13 @@ export async function unlockWithPasskey(
     throw new Error("expected PublicKeyCredential");
   }
 
-  // Step 3: Find matching passkey by credential ID
+  // Step 4: Extract PRF output
+  const prfOutput = assertion.getClientExtensionResults().prf?.results?.first;
+  if (!(prfOutput instanceof ArrayBuffer)) {
+    throw new Error("PRF extension not available");
+  }
+
+  // Step 5: Find matching passkey by credential ID
   const matchedPasskey = findPasskeyByCredentialId(
     options.passkeys,
     assertion.rawId,
@@ -741,14 +425,11 @@ export async function unlockWithPasskey(
     throw new Error("Passkey not found in stored passkeys");
   }
 
-  // Step 4: Derive KEK using the matched passkey's salt
-  const kekSalt = hexToUint8Array(matchedPasskey.kekSalt);
-  const { kek } = await deriveKekWithWebAuthn({
-    kekSalt,
-    origin: options.origin,
-  });
+  // Step 6: Derive KEK from PRF output + matched passkey's salt
+  const kekSalt = base64urlDecode(matchedPasskey.kekSalt);
+  const kek = await deriveKekFromPrfOutput(new Uint8Array(prfOutput), kekSalt);
 
-  // Step 5: Unwrap DEK with KEK
+  // Step 7: Unwrap DEK with KEK
   const dek = await unwrapDekWithKek(matchedPasskey.wrappedDek, kek);
 
   return {
@@ -760,113 +441,27 @@ export async function unlockWithPasskey(
 }
 
 /**
- * Global DEK storage (memory-only, per-tab)
- *
- * Security: DEK is never persisted to disk or sessionStorage.
- * Each tab must unlock independently. Closing the tab clears the DEK.
- */
-let globalDek: Uint8Array | null = null;
-
-/**
- * DEK state change event
- */
-export interface DekStateChangeEvent {
-  isUnlocked: boolean;
-}
-
-type DekStateChangeListener = (event: DekStateChangeEvent) => void;
-
-const dekStateChangeListeners: DekStateChangeListener[] = [];
-
-/**
- * Register a listener for DEK state changes
- *
- * Returns a cleanup function to remove the listener
- */
-export function onDekStateChange(listener: DekStateChangeListener): () => void {
-  dekStateChangeListeners.push(listener);
-  return () => {
-    const index = dekStateChangeListeners.indexOf(listener);
-    if (index !== -1) {
-      dekStateChangeListeners.splice(index, 1);
-    }
-  };
-}
-
-/**
- * Notify all listeners of DEK state change
- */
-function notifyDekStateChange(isUnlocked: boolean): void {
-  const event: DekStateChangeEvent = { isUnlocked };
-  for (const listener of dekStateChangeListeners) {
-    listener(event);
-  }
-}
-
-/**
- * Store DEK in memory for the current tab session
- */
-export function setGlobalDek(dek: Uint8Array): void {
-  if (dek.byteLength !== 32) {
-    throw new Error("DEK must be 32 bytes");
-  }
-  globalDek = dek;
-  notifyDekStateChange(true);
-}
-
-/**
- * Get the current DEK from memory
- *
- * Throws if DEK is not available (user must unlock first)
- */
-export function getGlobalDek(): Uint8Array {
-  if (!globalDek) {
-    throw new Error("DEK not available. User must unlock E2EE first.");
-  }
-  return globalDek;
-}
-
-/**
- * Clear the DEK from memory (e.g., on lock)
- */
-export function clearGlobalDek(): void {
-  globalDek = null;
-  notifyDekStateChange(false);
-}
-
-/**
- * Check if DEK is available in memory
- */
-export function hasGlobalDek(): boolean {
-  return globalDek !== null;
-}
-
-/**
  * Encrypt a field value using AES-256-GCM
  *
- * Returns base64url(iv || ciphertext) where:
- * - iv: 12-byte random nonce
+ * Returns base64url(nonce || ciphertext) where:
+ * - nonce: 12-byte random nonce
  * - ciphertext: encrypted data + 16-byte auth tag
  *
- * Uses random IV for each encryption, so encrypting the same plaintext twice
+ * Uses random nonce for each encryption, so encrypting the same plaintext twice
  * produces different ciphertext.
  */
-export async function encryptField(
-  plaintext: string,
-  dek: Uint8Array,
-): Promise<string> {
+export async function encryptField(plaintext: string, dek: CryptoBytes) {
   if (dek.byteLength !== 32) {
     throw new Error("DEK must be 32 bytes for AES-256-GCM");
   }
 
-  // Generate random 12-byte IV (nonce) for AES-GCM
-  const iv = new Uint8Array(12);
-  crypto.getRandomValues(iv);
+  // Generate random 12-byte nonce for AES-GCM
+  const nonce = generateNonce();
 
   // Import DEK for AES-GCM encryption
   const key = await crypto.subtle.importKey(
     "raw",
-    ensureArrayBuffer(dek),
+    dek,
     { name: "AES-GCM" },
     false,
     ["encrypt"],
@@ -875,15 +470,15 @@ export async function encryptField(
   // Encrypt plaintext
   const plaintextBytes = new TextEncoder().encode(plaintext);
   const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: ensureArrayBuffer(iv) },
+    { name: "AES-GCM", iv: nonce },
     key,
-    ensureArrayBuffer(plaintextBytes),
+    plaintextBytes,
   );
 
-  // Concatenate iv + ciphertext for storage
-  const encrypted = new Uint8Array(iv.byteLength + ciphertext.byteLength);
-  encrypted.set(iv, 0);
-  encrypted.set(new Uint8Array(ciphertext), iv.byteLength);
+  // Concatenate nonce + ciphertext for storage
+  const encrypted = new Uint8Array(nonce.byteLength + ciphertext.byteLength);
+  encrypted.set(nonce, 0);
+  encrypted.set(new Uint8Array(ciphertext), nonce.byteLength);
 
   return base64urlEncode(encrypted);
 }
@@ -891,12 +486,9 @@ export async function encryptField(
 /**
  * Decrypt a field value using AES-256-GCM
  *
- * Takes base64url(iv || ciphertext) and returns plaintext string
+ * Takes base64url(nonce || ciphertext) and returns plaintext string
  */
-export async function decryptField(
-  encrypted: string,
-  dek: Uint8Array,
-): Promise<string> {
+export async function decryptField(encrypted: string, dek: CryptoBytes) {
   if (dek.byteLength !== 32) {
     throw new Error("DEK must be 32 bytes for AES-256-GCM");
   }
@@ -904,14 +496,14 @@ export async function decryptField(
   // Decode base64url
   const encryptedBytes = base64urlDecode(encrypted);
 
-  // Extract IV (first 12 bytes) and ciphertext (rest)
-  const iv = encryptedBytes.slice(0, 12);
+  // Extract nonce (first 12 bytes) and ciphertext (rest)
+  const nonce = encryptedBytes.slice(0, 12);
   const ciphertext = encryptedBytes.slice(12);
 
   // Import DEK for AES-GCM decryption
   const key = await crypto.subtle.importKey(
     "raw",
-    ensureArrayBuffer(dek),
+    dek,
     { name: "AES-GCM" },
     false,
     ["decrypt"],
@@ -919,9 +511,9 @@ export async function decryptField(
 
   // Decrypt ciphertext
   const plaintextBuffer = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: ensureArrayBuffer(iv) },
+    { name: "AES-GCM", iv: nonce },
     key,
-    ensureArrayBuffer(ciphertext),
+    ciphertext,
   );
 
   // Decode to string

@@ -1,63 +1,149 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import { setGlobalDek, clearGlobalDek } from "~/lib/e2ee";
+import { createContext, useContext, useState, useCallback } from "react";
+import { useSessionState } from "~/lib/e2ee-session";
+import { useClerk } from "@clerk/tanstack-react-start";
+import { useLiveQuery } from "@tanstack/react-db";
+import { passkeysCollection, type Passkey } from "~/collections/passkeys";
+import {
+  addPasskeyAction,
+  createPasskeyAction,
+  deletePasskeyAction,
+  lockAction,
+  unlockAction,
+} from "~/lib/e2ee-actions";
 
 interface E2eeContext {
-  /** Whether the DEK is unlocked and available in memory */
-  isDekUnlocked: boolean;
-  /** The DEK (only available when unlocked) */
-  dek: Uint8Array | null;
-  /** Store the DEK in memory */
-  setDek: (dek: Uint8Array) => void;
-  /** Wipe the DEK from memory */
-  unsetDek: () => void;
+  // Create first passkey (enrollment)
+  createPasskey: () => Promise<void>;
+  canCreatePasskey: boolean;
+  isCreatingPasskey: boolean;
+
+  // Add additional passkey
+  addPasskey: () => Promise<void>;
+  canAddPasskey: boolean;
+  isAddingPasskey: boolean;
+
+  // Delete passkey
+  deletePasskey: (id: string) => void;
+  canDeletePasskey: boolean;
+  isDeletingPasskey: boolean;
+
+  // Unlock session
+  unlock: (passkeys: Passkey[]) => Promise<void>;
+  canUnlock: boolean;
+  isUnlocking: boolean;
+
+  // Lock session
+  lock: () => Promise<void>;
+  canLock: boolean;
+  isLocking: boolean;
+
+  // Sign out
+  signOut: () => Promise<void>;
+
+  // Session state
+  isSessionUnlocked: boolean;
+
+  // Data
+  passkeys: Passkey[];
 }
 
 const E2eeContext = createContext<E2eeContext | null>(null);
 
 export function E2eeProvider(props: React.PropsWithChildren) {
-  const [dek, setDekState] = useState<Uint8Array | null>(null);
+  // Subscribe to session state as single source of truth
+  const isSessionUnlocked = useSessionState();
 
-  // Wipe DEK on tab close or page unload
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      setDekState(null);
-      clearGlobalDek();
-    };
+  // Passkey action states
+  const [isCreatingPasskey, setIsCreatingPasskey] = useState(false);
+  const [isAddingPasskey, setIsAddingPasskey] = useState(false);
+  const [isDeletingPasskey, setIsDeletingPasskey] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [isLocking, setIsLocking] = useState(false);
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+  // Passkeys
+  const passkeysQuery = useLiveQuery((q) =>
+    q.from({ passkey: passkeysCollection }),
+  );
 
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      // Wipe DEK on unmount
-      setDekState(null);
-      clearGlobalDek();
-    };
+  const passkeys = passkeysQuery.data;
+  const hasPasskeys = passkeys.length > 0;
+
+  // Clerk
+  const clerk = useClerk();
+
+  // Create first passkey (enrollment)
+  const createPasskey = useCallback(async () => {
+    setIsCreatingPasskey(true);
+    await createPasskeyAction();
+    setIsCreatingPasskey(false);
   }, []);
 
-  /**
-   * Store the DEK in memory (both React state and global module)
-   */
-  const setDek = (dekBytes: Uint8Array) => {
-    if (dekBytes.byteLength !== 32) {
-      throw new Error("dek must be 32 bytes");
-    }
-    setDekState(dekBytes);
-    setGlobalDek(dekBytes);
-  };
+  // Add additional passkey
+  const addPasskey = useCallback(async () => {
+    setIsAddingPasskey(true);
+    await addPasskeyAction();
+    setIsAddingPasskey(false);
+  }, []);
 
-  /**
-   * Wipe the DEK from memory (both React state and global module)
-   */
-  const unsetDek = () => {
-    setDekState(null);
-    clearGlobalDek();
-  };
+  // Delete passkey operation
+  const deletePasskey = useCallback((id: string) => {
+    setIsDeletingPasskey(true);
+    deletePasskeyAction(id);
+    setIsDeletingPasskey(false);
+  }, []);
+
+  // Unlock operation
+  const unlock = useCallback(async (passkeys: Passkey[]) => {
+    setIsUnlocking(true);
+    await unlockAction(passkeys);
+    setIsUnlocking(false);
+  }, []);
+
+  const lock = useCallback(async () => {
+    setIsLocking(true);
+    await lockAction();
+    setIsLocking(false);
+  }, []);
+
+  const signOut = useCallback(async () => {
+    await lock();
+    await clerk.signOut();
+  }, [clerk, lock]);
 
   const value: E2eeContext = {
-    isDekUnlocked: dek !== null,
-    dek,
-    setDek,
-    unsetDek,
+    // Create first passkey (enrollment)
+    createPasskey,
+    canCreatePasskey: !hasPasskeys,
+    isCreatingPasskey,
+
+    // Add additional passkey
+    addPasskey,
+    canAddPasskey: hasPasskeys && isSessionUnlocked,
+    isAddingPasskey,
+
+    // Delete passkey
+    deletePasskey,
+    canDeletePasskey: true, // Allow deleting for now, will throw on last one
+    isDeletingPasskey,
+
+    // Unlock session
+    unlock,
+    canUnlock: hasPasskeys && !isSessionUnlocked,
+    isUnlocking,
+
+    // Lock session
+    lock,
+    canLock: isSessionUnlocked,
+    isLocking,
+
+    // Sign out
+    signOut,
+
+    // Session state
+    isSessionUnlocked,
+
+    // Data
+    passkeys,
   };
 
   return (
@@ -69,7 +155,7 @@ export function useE2ee() {
   const context = useContext(E2eeContext);
 
   if (!context) {
-    throw new Error("useE2EE must be used within E2EEProvider");
+    throw new Error("useE2ee must be used within E2eeProvider");
   }
 
   return context;

@@ -14,7 +14,7 @@ SUPER IMPORTANT: ALWAYS FOLLOW THESE RULES CAREFULLY UNLESS THE USER EXPLICITLY 
 - MUST use runtime checks for type narrowing (instanceof, typeof, in, Array.isArray, Zod). NEVER use type assertions (`as SomeType`) or type predicates (`value is SomeType`) unless explicitly instructed.
 - MUST fail fast on missing/invalid required data. NEVER invent defaults, speculative fallbacks, or silent recovery.
 - NO `?? ""` or arbitrary fallbacks. Make values required or fail fast if missing.
-- NEVER make parameters/properties optional arbitrarily. Optional/nullable only when absence has domain meaning.
+- NEVER make args/params/props optional unless absence has domain meaning.
 
 # Code style
 
@@ -26,15 +26,17 @@ SUPER IMPORTANT: ALWAYS FOLLOW THESE RULES CAREFULLY UNLESS THE USER EXPLICITLY 
 
 # Testability
 
-- Write code that can be tested without mocks.
-- Create factories for boundary functions to support testing without mocks.
+- Write code that is testable without mocks; create factories at boundaries.
 
 # Testing
 
 CRITICALLY IMPORTANT: Write tests based on expected behavior/requirements, NOT the current implementation. A failing test reveals bugs in the code, which is a good thing.
 
-- Run tests with `vitest run`.
-- Use the Arrange → Act → Assert (AAA) pattern (don't spell it out in code).
+- Assert observable behavior only: API responses, DB state after actions. NEVER inspect internals (private functions, in-memory variables).
+- Query DB in tests when persistence is part of the contract (auth, idempotency, transactions).
+- Tests MUST be deterministic (fixed time/randomness), isolated (no cross-test state; parallel-safe), and minimal (only setup what's needed).
+- Keep setup (data, fixtures, helpers) local to each test file. NO global mutable fixtures.
+- Avoid mocks; mock external boundaries only when necessary.
 - Use one top-level `describe` per function or unit under test.
 - Use `test()` instead of `it()`.
 - Test names should follow a subject-based pattern: start with who/what, then state the expected behavior (e.g., "unauthenticated user is rejected", "administrator can update organization").
@@ -53,6 +55,6 @@ CRITICALLY IMPORTANT: Write tests based on expected behavior/requirements, NOT t
 
 When working with Drizzle ORM and database schemas:
 
-- NEVER create migrations.
+- NEVER create migrations - the user will generate migrations.
 - NEVER modify `src/postgres/relations.ts`.
 - MUST enforce data integrity with database constraints: unique values get unique constraints, required values get NOT NULL. Application code has bugs; database constraints never lie.
