@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { db, schema } from "~/postgres/db";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { z } from "zod";
-import { eq, and, count, inArray } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { generateTxId } from "~/postgres/helpers";
 import { SecureToken } from "~/lib/validators";
 
@@ -59,21 +59,32 @@ export const storePasskeySF = createServerFn({ method: "POST" })
  * passkeys, but once they create one, they must have at least one. If they
  * loose their last passkey, they will never be able to dec.
  */
-export function deletePasskey(ids: string[], viewerId: string) {
+export function deletePasskey(
+  ids: string[],
+  viewerId: string,
+  hooks?: { onTxBegin?: () => Promise<void> | void },
+) {
   return db().transaction(async (tx) => {
     const txid = await generateTxId(tx);
+
+    // Test hook: Synchronizes concurrent transactions to reliably expose race
+    // conditions when row locking is absent
+    if (hooks?.onTxBegin) {
+      await hooks.onTxBegin();
+    }
 
     if (ids.length === 0) {
       return txid;
     }
 
     // Check total passkey count for user
-    const [result] = await tx
-      .select({ count: count() })
+    const rows = await tx
+      .select({ id: schema.passkeys.id })
       .from(schema.passkeys)
-      .where(eq(schema.passkeys.user_id, viewerId));
+      .where(eq(schema.passkeys.user_id, viewerId))
+      .for("update");
 
-    if ((result?.count ?? 0) <= ids.length) {
+    if (rows.length <= ids.length) {
       throw new Error("Cannot delete the last passkey");
     }
 

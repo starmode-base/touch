@@ -3,7 +3,7 @@ import { deletePasskey } from "./passkeys";
 import { withNeonTestBranch } from "~/testing/neon-testing";
 import { db, schema } from "~/postgres/db";
 import { eq } from "drizzle-orm";
-import { seedPasskey, seedUser } from "~/testing/test-helpers";
+import { createBarrier, seedPasskey, seedUser } from "~/testing/test-helpers";
 
 /**
  * Enable Neon Postgres integration tests
@@ -112,5 +112,31 @@ describe("deletePasskey", () => {
       .where(eq(schema.passkeys.user_id, user.id));
     expect(passkeys).toHaveLength(1);
     expect(passkeys[0]?.id).toBe(passkey3.id);
+  });
+
+  test("concurrent deletion of different passkeys leaves at least one passkey", async () => {
+    // Setup: Create a user with exactly two passkeys
+    const user = await seedUser();
+    const passkey1 = await seedPasskey(user.id);
+    const passkey2 = await seedPasskey(user.id);
+
+    // Synchronization: Barrier ensures both transactions are running
+    // concurrently before either proceeds to check/delete. This reliably
+    // exposes the race condition when FOR UPDATE is missing.
+    const barrier = createBarrier(2);
+
+    // Act: Both transactions wait at barrier, then proceed together
+    await Promise.allSettled([
+      deletePasskey([passkey1.id], user.id, { onTxBegin: barrier }),
+      deletePasskey([passkey2.id], user.id, { onTxBegin: barrier }),
+    ]);
+
+    // Assert: Business rule must hold - user must have at least 1 passkey
+    const passkeys = await db()
+      .select()
+      .from(schema.passkeys)
+      .where(eq(schema.passkeys.user_id, user.id));
+
+    expect(passkeys.length).toBeGreaterThanOrEqual(1);
   });
 });

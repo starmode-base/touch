@@ -1,6 +1,29 @@
 import { db, schema } from "~/postgres/db";
 import { genSecureToken } from "~/lib/secure-token";
 
+/**
+ * Helper: Creates a synchronization barrier for N participants
+ *
+ * @param count - The number of participants
+ * @returns A function that can be called to wait for all participants to arrive
+ */
+export function createBarrier(count: number) {
+  let arrived = 0;
+  const waiters: (() => void)[] = [];
+
+  return async () => {
+    arrived++;
+
+    if (arrived === count) {
+      waiters.forEach((resolve) => {
+        resolve();
+      });
+    } else {
+      await new Promise<void>((resolve) => waiters.push(resolve));
+    }
+  };
+}
+
 export async function seedUser() {
   const [user] = await db()
     .insert(schema.users)
