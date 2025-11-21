@@ -3,8 +3,35 @@ import { deletePasskey } from "./passkeys";
 import { withNeonTestBranch } from "~/testing/neon-testing";
 import { db, schema } from "~/postgres/db";
 import { eq } from "drizzle-orm";
+import { genSecureToken } from "~/lib/secure-token";
 
 withNeonTestBranch();
+
+async function scaffoldPasskey(userId: string) {
+  const [passkey] = await db()
+    .insert(schema.passkeys)
+    .values({
+      user_id: userId,
+      credential_id: genSecureToken(),
+      public_key: "public_key_001",
+      wrapped_dek: "wrapped_dek_001",
+      kek_salt: "kek_salt_001",
+      transports: ["internal"],
+      algorithm: -7,
+      rp_name: "Touch",
+      rp_id: "localhost",
+      webauthn_user_id: "webauthn_user_001",
+      webauthn_user_name: "Hicks",
+      webauthn_user_display_name: "Dwayne Hicks",
+    })
+    .returning();
+
+  if (!passkey) {
+    throw new Error("Failed to create passkey");
+  }
+
+  return passkey;
+}
 
 describe("deletePasskey", () => {
   test("user with zero passkeys can delete zero ids", async () => {
@@ -48,27 +75,7 @@ describe("deletePasskey", () => {
       throw new Error("Failed to create user");
     }
 
-    const [passkey] = await db()
-      .insert(schema.passkeys)
-      .values({
-        user_id: user.id,
-        credential_id: "cred_001",
-        public_key: "public_key_001",
-        wrapped_dek: "wrapped_dek_001",
-        kek_salt: "kek_salt_001",
-        transports: ["internal"],
-        algorithm: -7,
-        rp_name: "Touch",
-        rp_id: "localhost",
-        webauthn_user_id: "webauthn_user_001",
-        webauthn_user_name: "Hicks",
-        webauthn_user_display_name: "Dwayne Hicks",
-      })
-      .returning();
-
-    if (!passkey) {
-      throw new Error("Failed to create passkey");
-    }
+    const passkey = await scaffoldPasskey(user.id);
 
     // Act & Assert: Attempt to delete the only passkey should fail
     await expect(deletePasskey([passkey.id], user.id)).rejects.toThrow(
@@ -164,43 +171,8 @@ describe("deletePasskey", () => {
       throw new Error("Failed to create user");
     }
 
-    const [passkey1, passkey2] = await db()
-      .insert(schema.passkeys)
-      .values([
-        {
-          user_id: user.id,
-          credential_id: "cred_bishop_001",
-          public_key: "public_key_bishop_001",
-          wrapped_dek: "wrapped_dek_bishop_001",
-          kek_salt: "kek_salt_bishop_001",
-          transports: ["internal"],
-          algorithm: -7,
-          rp_name: "Touch",
-          rp_id: "localhost",
-          webauthn_user_id: "webauthn_bishop_001",
-          webauthn_user_name: "Bishop",
-          webauthn_user_display_name: "Bishop (Android)",
-        },
-        {
-          user_id: user.id,
-          credential_id: "cred_bishop_002",
-          public_key: "public_key_bishop_002",
-          wrapped_dek: "wrapped_dek_bishop_002",
-          kek_salt: "kek_salt_bishop_002",
-          transports: ["hybrid"],
-          algorithm: -7,
-          rp_name: "Touch",
-          rp_id: "localhost",
-          webauthn_user_id: "webauthn_bishop_002",
-          webauthn_user_name: "Bishop",
-          webauthn_user_display_name: "Bishop (Android)",
-        },
-      ])
-      .returning();
-
-    if (!passkey1 || !passkey2) {
-      throw new Error("Failed to create passkeys");
-    }
+    const passkey1 = await scaffoldPasskey(user.id);
+    const passkey2 = await scaffoldPasskey(user.id);
 
     // Act & Assert: Attempt to delete both passkeys should fail
     await expect(
@@ -229,57 +201,9 @@ describe("deletePasskey", () => {
       throw new Error("Failed to create user");
     }
 
-    const [passkey1, passkey2, passkey3] = await db()
-      .insert(schema.passkeys)
-      .values([
-        {
-          user_id: user.id,
-          credential_id: "cred_hudson_001",
-          public_key: "public_key_hudson_001",
-          wrapped_dek: "wrapped_dek_hudson_001",
-          kek_salt: "kek_salt_hudson_001",
-          transports: ["internal"],
-          algorithm: -7,
-          rp_name: "Touch",
-          rp_id: "localhost",
-          webauthn_user_id: "webauthn_hudson_001",
-          webauthn_user_name: "Hudson",
-          webauthn_user_display_name: "William Hudson",
-        },
-        {
-          user_id: user.id,
-          credential_id: "cred_hudson_002",
-          public_key: "public_key_hudson_002",
-          wrapped_dek: "wrapped_dek_hudson_002",
-          kek_salt: "kek_salt_hudson_002",
-          transports: ["hybrid"],
-          algorithm: -7,
-          rp_name: "Touch",
-          rp_id: "localhost",
-          webauthn_user_id: "webauthn_hudson_002",
-          webauthn_user_name: "Hudson",
-          webauthn_user_display_name: "William Hudson",
-        },
-        {
-          user_id: user.id,
-          credential_id: "cred_hudson_003",
-          public_key: "public_key_hudson_003",
-          wrapped_dek: "wrapped_dek_hudson_003",
-          kek_salt: "kek_salt_hudson_003",
-          transports: ["usb"],
-          algorithm: -7,
-          rp_name: "Touch",
-          rp_id: "localhost",
-          webauthn_user_id: "webauthn_hudson_003",
-          webauthn_user_name: "Hudson",
-          webauthn_user_display_name: "William Hudson",
-        },
-      ])
-      .returning();
-
-    if (!passkey1 || !passkey2 || !passkey3) {
-      throw new Error("Failed to create passkeys");
-    }
+    const passkey1 = await scaffoldPasskey(user.id);
+    const passkey2 = await scaffoldPasskey(user.id);
+    const passkey3 = await scaffoldPasskey(user.id);
 
     // Act: Delete two passkeys
     const txid = await deletePasskey([passkey1.id, passkey2.id], user.id);
