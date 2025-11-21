@@ -1,11 +1,37 @@
-import { describe, test, expect } from "vitest";
+import { describe, test, expect, beforeEach } from "vitest";
 import { deletePasskey } from "./passkeys";
 import { withNeonTestBranch } from "~/testing/neon-testing";
 import { db, schema } from "~/postgres/db";
 import { eq } from "drizzle-orm";
 import { genSecureToken } from "~/lib/secure-token";
 
+/**
+ * Enable Neon Postgres integration tests
+ */
 withNeonTestBranch();
+
+/**
+ * Deleting users is sufficient since the delete cascades to all other tables
+ */
+beforeEach(async () => {
+  await db().delete(schema.users);
+});
+
+async function scaffoldUser() {
+  const [user] = await db()
+    .insert(schema.users)
+    .values({
+      email: "hicks@colonial-marines.mil",
+      clerk_user_id: "hicks_001",
+    })
+    .returning();
+
+  if (!user) {
+    throw new Error("Failed to create user");
+  }
+
+  return user;
+}
 
 async function scaffoldPasskey(userId: string) {
   const [passkey] = await db()
@@ -36,17 +62,7 @@ async function scaffoldPasskey(userId: string) {
 describe("deletePasskey", () => {
   test("user with zero passkeys can delete zero ids", async () => {
     // Setup: Create a user with no passkeys
-    const [user] = await db()
-      .insert(schema.users)
-      .values({
-        email: "ripley@weyland-yutani.com",
-        clerk_user_id: "ripley_001",
-      })
-      .returning();
-
-    if (!user) {
-      throw new Error("Failed to create user");
-    }
+    const user = await scaffoldUser();
 
     // Act: Delete zero ids
     const txid = await deletePasskey([], user.id);
@@ -63,18 +79,7 @@ describe("deletePasskey", () => {
 
   test("user with one passkey cannot delete it", async () => {
     // Setup: Create a user with exactly one passkey
-    const [user] = await db()
-      .insert(schema.users)
-      .values({
-        email: "hicks@colonial-marines.mil",
-        clerk_user_id: "hicks_001",
-      })
-      .returning();
-
-    if (!user) {
-      throw new Error("Failed to create user");
-    }
-
+    const user = await scaffoldUser();
     const passkey = await scaffoldPasskey(user.id);
 
     // Act & Assert: Attempt to delete the only passkey should fail
@@ -93,55 +98,9 @@ describe("deletePasskey", () => {
 
   test("user with two passkeys can delete one", async () => {
     // Setup: Create a user with two passkeys
-    const [user] = await db()
-      .insert(schema.users)
-      .values({
-        email: "newt@hadleys-hope.lv-426",
-        clerk_user_id: "newt_001",
-      })
-      .returning();
-
-    if (!user) {
-      throw new Error("Failed to create user");
-    }
-
-    const [passkey1, passkey2] = await db()
-      .insert(schema.passkeys)
-      .values([
-        {
-          user_id: user.id,
-          credential_id: "cred_newt_001",
-          public_key: "public_key_newt_001",
-          wrapped_dek: "wrapped_dek_newt_001",
-          kek_salt: "kek_salt_newt_001",
-          transports: ["internal"],
-          algorithm: -7,
-          rp_name: "Touch",
-          rp_id: "localhost",
-          webauthn_user_id: "webauthn_newt_001",
-          webauthn_user_name: "Newt",
-          webauthn_user_display_name: "Rebecca Jorden",
-        },
-        {
-          user_id: user.id,
-          credential_id: "cred_newt_002",
-          public_key: "public_key_newt_002",
-          wrapped_dek: "wrapped_dek_newt_002",
-          kek_salt: "kek_salt_newt_002",
-          transports: ["hybrid"],
-          algorithm: -7,
-          rp_name: "Touch",
-          rp_id: "localhost",
-          webauthn_user_id: "webauthn_newt_002",
-          webauthn_user_name: "Newt",
-          webauthn_user_display_name: "Rebecca Jorden",
-        },
-      ])
-      .returning();
-
-    if (!passkey1 || !passkey2) {
-      throw new Error("Failed to create passkeys");
-    }
+    const user = await scaffoldUser();
+    const passkey1 = await scaffoldPasskey(user.id);
+    const passkey2 = await scaffoldPasskey(user.id);
 
     // Act: Delete one passkey
     const txid = await deletePasskey([passkey1.id], user.id);
@@ -159,18 +118,7 @@ describe("deletePasskey", () => {
 
   test("user with two passkeys cannot delete both", async () => {
     // Setup: Create a user with exactly two passkeys
-    const [user] = await db()
-      .insert(schema.users)
-      .values({
-        email: "bishop@synthetics.weyland-yutani.com",
-        clerk_user_id: "bishop_001",
-      })
-      .returning();
-
-    if (!user) {
-      throw new Error("Failed to create user");
-    }
-
+    const user = await scaffoldUser();
     const passkey1 = await scaffoldPasskey(user.id);
     const passkey2 = await scaffoldPasskey(user.id);
 
@@ -189,18 +137,7 @@ describe("deletePasskey", () => {
 
   test("user with three passkeys can delete two", async () => {
     // Setup: Create a user with three passkeys
-    const [user] = await db()
-      .insert(schema.users)
-      .values({
-        email: "hudson@colonial-marines.mil",
-        clerk_user_id: "hudson_001",
-      })
-      .returning();
-
-    if (!user) {
-      throw new Error("Failed to create user");
-    }
-
+    const user = await scaffoldUser();
     const passkey1 = await scaffoldPasskey(user.id);
     const passkey2 = await scaffoldPasskey(user.id);
     const passkey3 = await scaffoldPasskey(user.id);
