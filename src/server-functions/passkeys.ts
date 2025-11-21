@@ -55,9 +55,9 @@ export const storePasskeySF = createServerFn({ method: "POST" })
 /**
  * Delete passkey
  *
- * The last passkey cannot be deleted. Note that users initlally have no
- * passkeys, but once they create one, they must have at least one. If they
- * loose their last passkey, they will never be able to dec.
+ * The last passkey cannot be deleted. Note that users initially have no
+ * passkeys, but once they create one, they must have at least one. If they lose
+ * their last passkey, they will never be able to decrypt their data.
  */
 export function deletePasskey(
   ids: string[],
