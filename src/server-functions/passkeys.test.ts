@@ -3,7 +3,7 @@ import { deletePasskey } from "./passkeys";
 import { withNeonTestBranch } from "~/testing/neon-testing";
 import { db, schema } from "~/postgres/db";
 import { eq } from "drizzle-orm";
-import { genSecureToken } from "~/lib/secure-token";
+import { seedPasskey, seedUser } from "~/testing/test-helpers";
 
 /**
  * Enable Neon Postgres integration tests
@@ -17,52 +17,10 @@ beforeEach(async () => {
   await db().delete(schema.users);
 });
 
-async function scaffoldUser() {
-  const [user] = await db()
-    .insert(schema.users)
-    .values({
-      email: "hicks@colonial-marines.mil",
-      clerk_user_id: "hicks_001",
-    })
-    .returning();
-
-  if (!user) {
-    throw new Error("Failed to create user");
-  }
-
-  return user;
-}
-
-async function scaffoldPasskey(userId: string) {
-  const [passkey] = await db()
-    .insert(schema.passkeys)
-    .values({
-      user_id: userId,
-      credential_id: genSecureToken(),
-      public_key: "public_key_001",
-      wrapped_dek: "wrapped_dek_001",
-      kek_salt: "kek_salt_001",
-      transports: ["internal"],
-      algorithm: -7,
-      rp_name: "Touch",
-      rp_id: "localhost",
-      webauthn_user_id: "webauthn_user_001",
-      webauthn_user_name: "Hicks",
-      webauthn_user_display_name: "Dwayne Hicks",
-    })
-    .returning();
-
-  if (!passkey) {
-    throw new Error("Failed to create passkey");
-  }
-
-  return passkey;
-}
-
 describe("deletePasskey", () => {
   test("user with zero passkeys can delete zero ids", async () => {
     // Setup: Create a user with no passkeys
-    const user = await scaffoldUser();
+    const user = await seedUser();
 
     // Act: Delete zero ids
     const txid = await deletePasskey([], user.id);
@@ -79,8 +37,8 @@ describe("deletePasskey", () => {
 
   test("user with one passkey cannot delete it", async () => {
     // Setup: Create a user with exactly one passkey
-    const user = await scaffoldUser();
-    const passkey = await scaffoldPasskey(user.id);
+    const user = await seedUser();
+    const passkey = await seedPasskey(user.id);
 
     // Act & Assert: Attempt to delete the only passkey should fail
     await expect(deletePasskey([passkey.id], user.id)).rejects.toThrow(
@@ -98,9 +56,9 @@ describe("deletePasskey", () => {
 
   test("user with two passkeys can delete one", async () => {
     // Setup: Create a user with two passkeys
-    const user = await scaffoldUser();
-    const passkey1 = await scaffoldPasskey(user.id);
-    const passkey2 = await scaffoldPasskey(user.id);
+    const user = await seedUser();
+    const passkey1 = await seedPasskey(user.id);
+    const passkey2 = await seedPasskey(user.id);
 
     // Act: Delete one passkey
     const txid = await deletePasskey([passkey1.id], user.id);
@@ -118,9 +76,9 @@ describe("deletePasskey", () => {
 
   test("user with two passkeys cannot delete both", async () => {
     // Setup: Create a user with exactly two passkeys
-    const user = await scaffoldUser();
-    const passkey1 = await scaffoldPasskey(user.id);
-    const passkey2 = await scaffoldPasskey(user.id);
+    const user = await seedUser();
+    const passkey1 = await seedPasskey(user.id);
+    const passkey2 = await seedPasskey(user.id);
 
     // Act & Assert: Attempt to delete both passkeys should fail
     await expect(
@@ -137,10 +95,10 @@ describe("deletePasskey", () => {
 
   test("user with three passkeys can delete two", async () => {
     // Setup: Create a user with three passkeys
-    const user = await scaffoldUser();
-    const passkey1 = await scaffoldPasskey(user.id);
-    const passkey2 = await scaffoldPasskey(user.id);
-    const passkey3 = await scaffoldPasskey(user.id);
+    const user = await seedUser();
+    const passkey1 = await seedPasskey(user.id);
+    const passkey2 = await seedPasskey(user.id);
+    const passkey3 = await seedPasskey(user.id);
 
     // Act: Delete two passkeys
     const txid = await deletePasskey([passkey1.id, passkey2.id], user.id);
