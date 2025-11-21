@@ -114,6 +114,30 @@ describe("deletePasskey", () => {
     expect(passkeys[0]?.id).toBe(passkey3.id);
   });
 
+  test("user with three passkeys can delete two - ignoring unknown passkey IDs", async () => {
+    // Setup: Create a user with three passkeys
+    const user = await seedUser();
+    const passkey1 = await seedPasskey(user.id);
+    const passkey2 = await seedPasskey(user.id);
+    const passkey3 = await seedPasskey(user.id);
+
+    // Act: Delete two passkeys (ignoring unknown passkey ID)
+    const txid = await deletePasskey(
+      [passkey1.id, "unknown", passkey2.id],
+      user.id,
+    );
+
+    // Assert: Operation succeeds, one passkey remains
+    expect(txid).toBeDefined();
+
+    const passkeys = await db()
+      .select()
+      .from(schema.passkeys)
+      .where(eq(schema.passkeys.user_id, user.id));
+    expect(passkeys).toHaveLength(1);
+    expect(passkeys[0]?.id).toBe(passkey3.id);
+  });
+
   test("concurrent deletion of different passkeys leaves at least one passkey", async () => {
     // Setup: Create a user with exactly two passkeys
     const user = await seedUser();

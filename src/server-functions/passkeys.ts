@@ -84,7 +84,11 @@ export function deletePasskey(
       .where(eq(schema.passkeys.user_id, viewerId))
       .for("update");
 
-    if (rows.length <= ids.length) {
+    // Filter out rows that are not in the ids array (eg provided IDs that do
+    // not exist in the database)
+    const rowsToDelete = rows.filter((row) => ids.includes(row.id));
+
+    if (rows.length - rowsToDelete.length < 1) {
       throw new Error("Cannot delete the last passkey");
     }
 
