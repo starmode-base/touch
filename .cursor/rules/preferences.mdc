@@ -55,6 +55,6 @@ CRITICALLY IMPORTANT: Write tests based on expected behavior/requirements, NOT t
 
 When working with Drizzle ORM and database schemas:
 
-- NEVER create migrations.
+- NEVER create migrations - the user will generate migrations.
 - NEVER modify `src/postgres/relations.ts`.
 - MUST enforce data integrity with database constraints: unique values get unique constraints, required values get NOT NULL. Application code has bugs; database constraints never lie.
