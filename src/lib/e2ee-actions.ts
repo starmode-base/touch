@@ -126,7 +126,6 @@ export async function unlockAction(passkeys: Passkey[]) {
     wrappedDek: p.wrapped_dek,
     kekSalt: p.kek_salt,
     transports: p.transports,
-    createdAt: p.created_at,
   }));
 
   const result = await unlockWithPasskey({
