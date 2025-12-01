@@ -1,6 +1,6 @@
 import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from "@electric-sql/client";
 import { ensureEnv } from "~/lib/env";
-import { syncViewer, type Viewer } from "~/lib/auth-clerk";
+import { syncViewer, type Viewer } from "~/lib/auth";
 
 const ELECTRIC_SOURCE_ID = ensureEnv("ELECTRIC_SOURCE_ID");
 const ELECTRIC_SOURCE_SECRET = ensureEnv("ELECTRIC_SOURCE_SECRET");

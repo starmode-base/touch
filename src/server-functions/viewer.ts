@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { syncViewer } from "~/lib/auth-clerk";
+import { syncViewer } from "~/lib/auth";
 // import {
 //   // getRequest,
 //   // getCookie,
