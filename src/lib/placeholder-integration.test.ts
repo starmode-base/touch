@@ -30,7 +30,7 @@ test("Drizzle ORM WebSocket database operations", async () => {
 
   await db().insert(schema.users).values({
     email: "ellen.ripley@example.com",
-    clerk_user_id: "qSX0fLb39fQz8GqRvk9D",
+    name: "Ellen Ripley",
   });
 
   const users = await db().select().from(schema.users);

@@ -1,6 +1,6 @@
 import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from "@electric-sql/client";
 import { ensureEnv } from "~/lib/env";
-import { syncViewer, type Viewer } from "~/lib/auth";
+import { getViewer, type Viewer } from "~/lib/auth";
 
 const ELECTRIC_SOURCE_ID = ensureEnv("ELECTRIC_SOURCE_ID");
 const ELECTRIC_SOURCE_SECRET = ensureEnv("ELECTRIC_SOURCE_SECRET");
@@ -41,7 +41,7 @@ export const proxyElectricRequest = async (args: {
   /** https://electric-sql.com/docs/guides/shapes#where-clause */
   where: (viewer: Viewer) => string;
 }) => {
-  const viewer = await syncViewer();
+  const viewer = await getViewer();
 
   if (!viewer) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {

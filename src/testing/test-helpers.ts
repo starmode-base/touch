@@ -29,7 +29,7 @@ export async function seedUser() {
     .insert(schema.users)
     .values({
       email: "hicks@colonial-marines.mil",
-      clerk_user_id: "hicks_001",
+      name: "Dwayne Hicks",
     })
     .returning();
 

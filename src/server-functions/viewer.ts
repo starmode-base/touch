@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { syncViewer } from "~/lib/auth";
+import { getViewer } from "~/lib/auth";
 
 export const syncViewerSF = createServerFn().handler(() => {
-  return syncViewer();
+  return getViewer();
 });
