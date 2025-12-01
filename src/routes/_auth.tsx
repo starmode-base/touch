@@ -4,7 +4,7 @@ import metadata from "../../metadata.json";
 import { Button } from "~/components/atoms";
 import { syncViewerSF } from "~/server-functions/viewer";
 import { E2eeProvider } from "~/components/hooks/e2ee";
-import { sendVerificationOTP, signIn, signUp, verifyOTP } from "~/lib/sign-up";
+import { sendVerificationOTP, verifyOTP } from "~/lib/sign-up";
 import { useState } from "react";
 import { authClient } from "~/lib/auth-client";
 
@@ -23,7 +23,6 @@ export const Route = createFileRoute("/_auth")({
 
 function RouteComponent() {
   const [email, setEmail] = useState("mikael+test@lirbank.com");
-  const [password, setPassword] = useState("password");
   const [otp, setOtp] = useState("");
 
   const { data: session } = authClient.useSession();
@@ -45,22 +44,8 @@ function RouteComponent() {
               setEmail(e.target.value);
             }}
           />
-        </div>
-        <div className="m-auto flex gap-2">
-          <input
-            className="rounded-md border border-slate-300 p-2"
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-            }}
-          />
-          <Button onClick={() => signUp(email, password)}>
-            Sign up with email
-          </Button>
-          <Button onClick={() => signIn(email, password)}>
-            Sign in with email
+          <Button onClick={() => sendVerificationOTP(email)}>
+            Send verification OTP
           </Button>
         </div>
         <div className="m-auto flex gap-2">
@@ -73,20 +58,8 @@ function RouteComponent() {
               setOtp(e.target.value);
             }}
           />
-          <Button onClick={() => sendVerificationOTP(email)}>
-            Send verification OTP
-          </Button>
           <Button onClick={() => verifyOTP(email, otp)}>
             Sign in with OTP
-          </Button>
-        </div>
-        <div className="m-auto flex gap-2">
-          <Button
-            onClick={() => {
-              void authClient.signOut();
-            }}
-          >
-            Sign out
           </Button>
         </div>
       </div>
