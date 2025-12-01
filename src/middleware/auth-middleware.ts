@@ -1,5 +1,5 @@
 import { createMiddleware } from "@tanstack/react-start";
-import { syncViewer } from "~/lib/auth";
+import { syncViewer } from "~/lib/auth-clerk";
 
 /**
  * Middleware to ensure the viewer is signed in and has a viewer record in the
