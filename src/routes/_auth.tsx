@@ -5,6 +5,8 @@ import { SignInButton, SignUpButton } from "@clerk/tanstack-react-start";
 import { Button } from "~/components/atoms";
 import { syncViewerSF } from "~/server-functions/viewer";
 import { E2eeProvider } from "~/components/hooks/e2ee";
+import { signIn, signUp } from "~/lib/sign-up";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_auth")({
   ssr: false,
@@ -22,6 +24,8 @@ export const Route = createFileRoute("/_auth")({
 function RouteComponent() {
   // useAutoUnlock();
   const { viewer } = Route.useLoaderData();
+  const [email, setEmail] = useState("mikael+test@lirbank.com");
+  const [password, setPassword] = useState("password");
 
   if (!viewer) {
     return (
@@ -31,6 +35,30 @@ function RouteComponent() {
         </div>
         <div className="max-w-xs text-center">{metadata.description}</div>
         <div className="m-auto flex gap-2">
+          <input
+            className="rounded-md border border-slate-300 p-2"
+            placeholder="Email"
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+            }}
+          />
+          <input
+            className="rounded-md border border-slate-300 p-2"
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+            }}
+          />
+          <Button onClick={() => signUp(email, password)}>
+            Sign up with email
+          </Button>
+          <Button onClick={() => signIn(email, password)}>
+            Sign in with email
+          </Button>
           <SignInButton mode="modal">
             <Button>Sign in</Button>
           </SignInButton>

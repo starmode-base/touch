@@ -36,6 +36,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
+export * from "../../auth-schema";
+
 /** Primary key */
 const primaryKeyField = () =>
   text()

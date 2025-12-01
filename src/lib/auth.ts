@@ -8,5 +8,22 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    autoSignIn: false,
+    requireEmailVerification: true,
+  },
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url, token }, request) => {
+      console.log("sendVerificationEmail⚡️", user);
+      console.log("sendVerificationEmail⚡️", url);
+      console.log("sendVerificationEmail⚡️", token);
+
+      // await sendEmail({
+      //   to: user.email,
+      //   subject: "Verify your email address",
+      //   text: `Click the link to verify your email: ${url}`,
+      // });
+
+      return Promise.resolve();
+    },
   },
 });
