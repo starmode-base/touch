@@ -21,7 +21,7 @@ export default defineConfig({
     neonTesting(),
   ],
   test: {
-    setupFiles: ["vitest.clerk.setup.ts"],
+    // setupFiles: ["vitest.clerk.setup.ts"],
     testTimeout: 10000,
   },
 });

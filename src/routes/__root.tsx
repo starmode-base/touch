@@ -3,7 +3,6 @@ import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import appCss from "~/styles/app.css?url";
 import metadata from "../../metadata.json";
 import { inject } from "@vercel/analytics";
-import { ClerkProvider } from "@clerk/tanstack-react-start";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -45,7 +44,7 @@ function RootDocument(props: React.PropsWithChildren) {
 }
 
 function Providers(props: React.PropsWithChildren) {
-  return <ClerkProvider>{props.children}</ClerkProvider>;
+  return <>{props.children}</>;
 }
 
 function Shell(props: React.PropsWithChildren) {

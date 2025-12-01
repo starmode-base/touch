@@ -1,7 +1,8 @@
-import { auth } from "@clerk/tanstack-react-start/server";
 import { eq, sql } from "drizzle-orm";
 import { db, schema } from "~/postgres/db";
 import { memoizeAsync } from "./memoize";
+import { auth } from "./auth";
+import { getRequestHeaders } from "@tanstack/react-start/server";
 
 /**
  * Viewer type
@@ -12,24 +13,18 @@ export interface Viewer {
 }
 
 /**
- * Fetch the clerk user from the Clerk API
+ * Get the the user session
  */
-const getClerkUser = async () => {
-  const { sessionClaims, userId, isAuthenticated } = await auth();
+const getSession = async () => {
+  const session = await auth.api.getSession({
+    headers: getRequestHeaders(),
+  });
 
-  if (!isAuthenticated) {
+  if (!session) {
     return null;
   }
 
-  if (typeof sessionClaims.email !== "string") {
-    console.warn(
-      "No email found in claims, see https://clerk.com/docs/backend-requests/custom-session-token",
-    );
-
-    return null;
-  }
-
-  return { id: userId, email: sessionClaims.email };
+  return { id: session.user.id, email: session.user.email };
 };
 
 /**
@@ -100,7 +95,7 @@ const getViewerMemoized = memoizeAsync(getViewer, 5000, (userId) => userId);
 const upsertViewerMemoized = memoizeAsync(
   upsertViewer,
   5000,
-  (clerkUser) => clerkUser.id + clerkUser.email,
+  (session) => session.id + session.email,
 );
 
 /**
@@ -109,7 +104,7 @@ const upsertViewerMemoized = memoizeAsync(
  * Returns the viewer object, or null if the user is not signed in
  */
 export async function syncViewer(): Promise<Viewer | null> {
-  const clerkUser = await getClerkUser();
+  const clerkUser = await getSession();
 
   if (!clerkUser) {
     return null;

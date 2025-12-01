@@ -1,7 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { Toolbar } from "~/components/toolbar";
 import metadata from "../../metadata.json";
-import { SignInButton, SignUpButton } from "@clerk/tanstack-react-start";
 import { Button } from "~/components/atoms";
 import { syncViewerSF } from "~/server-functions/viewer";
 import { E2eeProvider } from "~/components/hooks/e2ee";
@@ -23,32 +22,19 @@ export const Route = createFileRoute("/_auth")({
 });
 
 function RouteComponent() {
-  // useAutoUnlock();
-  const { viewer } = Route.useLoaderData();
   const [email, setEmail] = useState("mikael+test@lirbank.com");
   const [password, setPassword] = useState("password");
   const [otp, setOtp] = useState("");
 
-  const {
-    data: session,
-    // isPending, //loading state
-    // error, //error object
-    // refetch, //refetch the session
-  } = authClient.useSession();
+  const { data: session } = authClient.useSession();
 
-  // console.log("session", session);
-  // console.log("isPending", isPending);
-  // console.log("error", error);
-  // console.log("refetch", refetch);
-
-  if (!viewer) {
+  if (!session) {
     return (
       <div className="m-auto flex flex-col gap-4 rounded border border-slate-100 bg-white p-8">
         <div className="text-center text-4xl font-extrabold">
           {metadata.name}
         </div>
         <div className="max-w-xs text-center">{metadata.description}</div>
-        <div>Signed in as: {session?.user.email}</div>
         <div className="m-auto flex gap-2">
           <input
             className="rounded-md border border-slate-300 p-2"
@@ -102,14 +88,6 @@ function RouteComponent() {
           >
             Sign out
           </Button>
-        </div>
-        <div className="m-auto flex gap-2">
-          <SignInButton mode="modal">
-            <Button>Sign in with Clerk</Button>
-          </SignInButton>
-          <SignUpButton mode="modal">
-            <Button>Sign up with Clerk</Button>
-          </SignUpButton>
         </div>
       </div>
     );
