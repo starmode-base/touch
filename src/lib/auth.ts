@@ -3,13 +3,13 @@ import { db, schema } from "~/postgres/db";
 import { memoizeAsync } from "./memoize";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
+// import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP } from "better-auth/plugins";
 
 export const auth = betterAuth({
-  database: drizzleAdapter(db(), {
-    provider: "pg",
-  }),
+  // database: drizzleAdapter(db(), {
+  //   provider: "pg",
+  // }),
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
