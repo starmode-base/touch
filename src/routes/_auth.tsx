@@ -5,7 +5,7 @@ import { SignInButton, SignUpButton } from "@clerk/tanstack-react-start";
 import { Button } from "~/components/atoms";
 import { syncViewerSF } from "~/server-functions/viewer";
 import { E2eeProvider } from "~/components/hooks/e2ee";
-import { signIn, signUp } from "~/lib/sign-up";
+import { sendVerificationOTP, signIn, signUp, verifyOTP } from "~/lib/sign-up";
 import { useState } from "react";
 
 export const Route = createFileRoute("/_auth")({
@@ -26,6 +26,7 @@ function RouteComponent() {
   const { viewer } = Route.useLoaderData();
   const [email, setEmail] = useState("mikael+test@lirbank.com");
   const [password, setPassword] = useState("password");
+  const [otp, setOtp] = useState("");
 
   if (!viewer) {
     return (
@@ -44,6 +45,8 @@ function RouteComponent() {
               setEmail(e.target.value);
             }}
           />
+        </div>
+        <div className="m-auto flex gap-2">
           <input
             className="rounded-md border border-slate-300 p-2"
             type="password"
@@ -59,11 +62,30 @@ function RouteComponent() {
           <Button onClick={() => signIn(email, password)}>
             Sign in with email
           </Button>
+        </div>
+        <div className="m-auto flex gap-2">
+          <input
+            className="rounded-md border border-slate-300 p-2"
+            type="text"
+            placeholder="OTP"
+            value={otp}
+            onChange={(e) => {
+              setOtp(e.target.value);
+            }}
+          />
+          <Button onClick={() => sendVerificationOTP(email)}>
+            Send verification OTP
+          </Button>
+          <Button onClick={() => verifyOTP(email, otp)}>
+            Sign in with OTP
+          </Button>
+        </div>
+        <div className="m-auto flex gap-2">
           <SignInButton mode="modal">
-            <Button>Sign in</Button>
+            <Button>Sign in with Clerk</Button>
           </SignInButton>
           <SignUpButton mode="modal">
-            <Button>Sign up</Button>
+            <Button>Sign up with Clerk</Button>
           </SignUpButton>
         </div>
       </div>

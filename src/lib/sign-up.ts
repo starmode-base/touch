@@ -81,3 +81,29 @@ export async function signIn(email: string, password: string) {
 
   return data;
 }
+
+export async function sendVerificationOTP(email: string) {
+  const { data, error } = await authClient.emailOtp.sendVerificationOtp({
+    email, // required
+    type: "sign-in", // required
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+export async function verifyOTP(email: string, otp: string) {
+  const { data, error } = await authClient.signIn.emailOtp({
+    email, // required
+    otp, // required
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
