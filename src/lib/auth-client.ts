@@ -19,10 +19,7 @@ export async function sendVerificationOTP(email: string) {
 }
 
 export async function verifyOTP(email: string, otp: string) {
-  const { data, error } = await authClient.signIn.emailOtp({
-    email,
-    otp,
-  });
+  const { data, error } = await authClient.signIn.emailOtp({ email, otp });
 
   if (error) {
     throw new Error(error.message);

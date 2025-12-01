@@ -2,28 +2,18 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { Toolbar } from "~/components/toolbar";
 import metadata from "../../metadata.json";
 import { Button } from "~/components/atoms";
-import { syncViewerSF } from "~/server-functions/viewer";
 import { E2eeProvider } from "~/components/hooks/e2ee";
 import { useState } from "react";
 import { authClient, sendVerificationOTP, verifyOTP } from "~/lib/auth-client";
 
 export const Route = createFileRoute("/_auth")({
   ssr: false,
-  beforeLoad: async () => ({
-    // Ensure the viewer is synced from Clerk to the database. This also makes
-    // the viewer available as context in the loader of descendant routes.
-    viewer: await syncViewerSF(),
-  }),
-  loader: ({ context }) => {
-    return context;
-  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const [email, setEmail] = useState("mikael+test@lirbank.com");
   const [otp, setOtp] = useState("");
-
   const { data: session } = authClient.useSession();
 
   if (!session) {
