@@ -55,7 +55,7 @@ export interface Viewer {
 /**
  * Get the viewer (the current user)
  */
-const getSession = memoizeAsync(
+const getUserByCookie = memoizeAsync(
   async (cookie: string) => {
     if (!cookie) {
       return null;
@@ -82,12 +82,13 @@ const getSession = memoizeAsync(
  */
 export async function getViewer(): Promise<Viewer | null> {
   const cookie = getCookie("better-auth.session_token");
+  console.log("cookie!!!", cookie);
 
   if (!cookie) {
     return null;
   }
 
-  const user = await getSession(cookie);
+  const user = await getUserByCookie(cookie);
 
   if (!user) {
     return null;
@@ -101,8 +102,8 @@ export async function getViewer(): Promise<Viewer | null> {
  *
  * IMPORTANT: Call this after operations that change fields returned by syncViewer().
  */
-export function clearViewerCache(userId: string) {
-  getSession.clear(userId);
+export function clearViewerCache(cookie: string) {
+  getUserByCookie.clear(cookie);
 }
 
 /**
@@ -111,5 +112,5 @@ export function clearViewerCache(userId: string) {
  * For test cleanup only. Call after deleting users from the database.
  */
 export function clearAllViewerCaches() {
-  getSession.clear();
+  getUserByCookie.clear();
 }
