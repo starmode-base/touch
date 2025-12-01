@@ -10,8 +10,8 @@
         "@heroicons/react": "^2.2.0",
         "@neondatabase/serverless": "^1.0.2",
         "@tailwindcss/vite": "^4.1.17",
-        "@tanstack/electric-db-collection": "^0.2.9",
-        "@tanstack/react-db": "^0.1.52",
+        "@tanstack/electric-db-collection": "^0.2.10",
+        "@tanstack/react-db": "^0.1.53",
         "@tanstack/react-router": "1.133.36",
         "@tanstack/react-router-devtools": "1.133.36",
         "@tanstack/react-start": "1.134.0",
@@ -458,13 +458,13 @@
 
     "@tailwindcss/vite": ["@tailwindcss/vite@4.1.17", "", { "dependencies": { "@tailwindcss/node": "4.1.17", "@tailwindcss/oxide": "4.1.17", "tailwindcss": "4.1.17" }, "peerDependencies": { "vite": "^5.2.0 || ^6 || ^7" } }, "sha512-4+9w8ZHOiGnpcGI6z1TVVfWaX/koK7fKeSYF3qlYg2xpBtbteP2ddBxiarL+HVgfSJGeK5RIxRQmKm4rTJJAwA=="],
 
-    "@tanstack/db": ["@tanstack/db@0.5.8", "", { "dependencies": { "@standard-schema/spec": "^1.0.0", "@tanstack/db-ivm": "0.1.13", "@tanstack/pacer-lite": "^0.1.0" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-X6z/OFTzQ8tyOKiWCEqQPSH/w+pmEWack+EMPweAyssXvT6qbfBayRxSoKl93ZTTdgWHBpGlQE75+vVkT1Szqw=="],
+    "@tanstack/db": ["@tanstack/db@0.5.9", "", { "dependencies": { "@standard-schema/spec": "^1.0.0", "@tanstack/db-ivm": "0.1.13", "@tanstack/pacer-lite": "^0.1.0" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-cgM5uf5g4tcmum4xTU0cxkvU8YaXuTWDE6QIknOFyeYQdiHrsRyqN+ygFm+l1W/+t66atoUfZ+Jv7CU2PCLANw=="],
 
     "@tanstack/db-ivm": ["@tanstack/db-ivm@0.1.13", "", { "dependencies": { "fractional-indexing": "^3.2.0", "sorted-btree": "^1.8.1" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-sBOWGY4tqMEym2ewjdWrDb5c5c8akvgnEbGVPAtkfFS3QVV0zfVb5RJAkAc8GSxb3ByVfYjyaShVr0kMJhMuow=="],
 
     "@tanstack/directive-functions-plugin": ["@tanstack/directive-functions-plugin@1.133.19", "", { "dependencies": { "@babel/code-frame": "7.27.1", "@babel/core": "^7.27.7", "@babel/traverse": "^7.27.7", "@babel/types": "^7.27.7", "@tanstack/router-utils": "1.133.19", "babel-dead-code-elimination": "^1.0.10", "pathe": "^2.0.3", "tiny-invariant": "^1.3.3" }, "peerDependencies": { "vite": ">=6.0.0 || >=7.0.0" } }, "sha512-U6nBlxxc624Q7Yta3UUe805WJfi0R029N/vUOVNxggZ432nt+0Hx7gLQO2P9zIUt+N6VYPuyKLKq047bxCJWOw=="],
 
-    "@tanstack/electric-db-collection": ["@tanstack/electric-db-collection@0.2.9", "", { "dependencies": { "@electric-sql/client": "^1.1.5", "@standard-schema/spec": "^1.0.0", "@tanstack/db": "0.5.8", "@tanstack/store": "^0.8.0", "debug": "^4.4.3" } }, "sha512-4pvjvJhgNvAXoBF3Rzo/sJEtpqems3+iyraAg4Msc+zNdBC6NWhKNd7m7UHKirBM1al0BW52W/veL2XSsjJSRQ=="],
+    "@tanstack/electric-db-collection": ["@tanstack/electric-db-collection@0.2.10", "", { "dependencies": { "@electric-sql/client": "^1.2.0", "@standard-schema/spec": "^1.0.0", "@tanstack/db": "0.5.9", "@tanstack/store": "^0.8.0", "debug": "^4.4.3" } }, "sha512-q2zHXOlEYjg4E/QmG74TLNxXlEwt20FwuUPv3QWb8OSk7j9OWwNGd1Sw+SqZIIDA73DiJ+xIm3ywxftaf4aDNA=="],
 
     "@tanstack/eslint-plugin-router": ["@tanstack/eslint-plugin-router@1.139.0", "", { "dependencies": { "@typescript-eslint/utils": "^8.23.0" }, "peerDependencies": { "eslint": "^8.57.0 || ^9.0.0" } }, "sha512-1lNmOtQF6VzDiGYulpYpdX/K8odTjmU5QJ3Mj/U05NDyzXj4aBBBo8y13PnnafOpsKm9sKar5xtMSjOnFCur3A=="],
 
@@ -474,7 +474,7 @@
 
     "@tanstack/pacer-lite": ["@tanstack/pacer-lite@0.1.0", "", {}, "sha512-a5A0PI0H4npUy7u3VOjOhdynXnRBna+mDvpt8ghDCVzS3Tgn8DlGzHlRqS2rKJP8ZcLuVO2qxlIIblhcoaiv8Q=="],
 
-    "@tanstack/react-db": ["@tanstack/react-db@0.1.52", "", { "dependencies": { "@tanstack/db": "0.5.8", "use-sync-external-store": "^1.6.0" }, "peerDependencies": { "react": ">=16.8.0" } }, "sha512-luzzEe7Asb47gHMmONnsfmBX2ljtdkD7T6a+n/6Z+dbFQjqAqI9NNA9ewlchPjOXbkrjqTs4Wv7qKjbtdqGaVQ=="],
+    "@tanstack/react-db": ["@tanstack/react-db@0.1.53", "", { "dependencies": { "@tanstack/db": "0.5.9", "use-sync-external-store": "^1.6.0" }, "peerDependencies": { "react": ">=16.8.0" } }, "sha512-SX8gm5xPbTAWG4L8MiFnQXzsgvchwCmevep0NpYL6TGA3SP/4xqK391kGTegoBc0iGkQ5swuNA7Gptl2W1o8Aw=="],
 
     "@tanstack/react-router": ["@tanstack/react-router@1.133.36", "", { "dependencies": { "@tanstack/history": "1.133.28", "@tanstack/react-store": "^0.8.0", "@tanstack/router-core": "1.133.36", "isbot": "^5.1.22", "tiny-invariant": "^1.3.3", "tiny-warning": "^1.0.3" }, "peerDependencies": { "react": ">=18.0.0 || >=19.0.0", "react-dom": ">=18.0.0 || >=19.0.0" } }, "sha512-pT4d2uEucDQ3SAIQ0pLUw6RUKwkB5pHzpBB6otaoKpO0cAwHkRPi+p59DivuzSANJLHLVEiXyJCCk72EeHMRxA=="],
 
