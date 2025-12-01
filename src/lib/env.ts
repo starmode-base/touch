@@ -117,6 +117,7 @@ export const ensureEnv = createEnsureEnv({
     "NEON_PROJECT_ID",
     "ELECTRIC_SOURCE_ID",
     "ELECTRIC_SOURCE_SECRET",
+    "BETTER_AUTH_SECRET",
   ],
   defaults: {
     VERCEL_ENV: "development",

@@ -5,6 +5,8 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP } from "better-auth/plugins";
 import { lazySingleton } from "~/lib/singleton";
+import { createHmac, timingSafeEqual } from "crypto";
+import { ensureEnv } from "./env";
 
 // Lazy initialization to avoid calling db() at module load time (breaks tests)
 export const auth = lazySingleton(() =>
@@ -17,6 +19,10 @@ export const auth = lazySingleton(() =>
     },
     session: {
       modelName: "sessions",
+      // cookieCache: {
+      //   enabled: true,
+      //   strategy: "compact",
+      // },
     },
     verification: {
       modelName: "otps",
@@ -43,6 +49,47 @@ export const auth = lazySingleton(() =>
     ],
   }),
 );
+
+/**
+ * Verify a Better Auth session cookie signature
+ *
+ * @param cookie - The full cookie value (token.signature)
+ * @param secret - Your BETTER_AUTH_SECRET
+ * @returns The token if valid, null if invalid
+ */
+export function verifySessionCookie(
+  cookie: string,
+  secret: string,
+): string | null {
+  const [token, signature] = cookie.split(".");
+
+  if (!token || !signature) {
+    return null;
+  }
+
+  // Better Auth uses HMAC-SHA256, then base64url encodes the result
+  const expectedSignature = createHmac("sha256", secret)
+    .update(token)
+    .digest("base64url");
+
+  // Use timing-safe comparison to prevent timing attacks
+  try {
+    const sigBuffer = Buffer.from(signature, "base64url");
+    const expectedBuffer = Buffer.from(expectedSignature, "base64url");
+
+    if (sigBuffer.length !== expectedBuffer.length) {
+      return null;
+    }
+
+    if (timingSafeEqual(sigBuffer, expectedBuffer)) {
+      return token;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
 
 /**
  * Viewer type
@@ -82,11 +129,14 @@ const getUserByCookie = memoizeAsync(
  */
 export async function getViewer(): Promise<Viewer | null> {
   const cookie = getCookie("better-auth.session_token");
-  console.log("cookie!!!", cookie);
+  console.log("cookie⚡️", cookie);
 
   if (!cookie) {
     return null;
   }
+
+  const token = verifySessionCookie(cookie, ensureEnv("BETTER_AUTH_SECRET"));
+  console.log("token⚡️", token);
 
   const user = await getUserByCookie(cookie);
 
