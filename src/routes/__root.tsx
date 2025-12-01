@@ -3,6 +3,7 @@ import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import appCss from "~/styles/app.css?url";
 import metadata from "../../metadata.json";
 import { inject } from "@vercel/analytics";
+import "~/lib/e2ee-globals";
 
 export const Route = createRootRoute({
   head: () => ({
