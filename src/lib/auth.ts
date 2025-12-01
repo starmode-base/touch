@@ -12,6 +12,7 @@ export const auth = betterAuth({
     requireEmailVerification: true,
   },
   emailVerification: {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     sendVerificationEmail: async ({ user, url, token }, request) => {
       console.log("sendVerificationEmail⚡️", user);
       console.log("sendVerificationEmail⚡️", url);
