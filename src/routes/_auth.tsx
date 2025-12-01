@@ -7,6 +7,7 @@ import { syncViewerSF } from "~/server-functions/viewer";
 import { E2eeProvider } from "~/components/hooks/e2ee";
 import { sendVerificationOTP, signIn, signUp, verifyOTP } from "~/lib/sign-up";
 import { useState } from "react";
+import { authClient } from "~/lib/auth-client";
 
 export const Route = createFileRoute("/_auth")({
   ssr: false,
@@ -28,6 +29,18 @@ function RouteComponent() {
   const [password, setPassword] = useState("password");
   const [otp, setOtp] = useState("");
 
+  const {
+    data: session,
+    // isPending, //loading state
+    // error, //error object
+    // refetch, //refetch the session
+  } = authClient.useSession();
+
+  // console.log("session", session);
+  // console.log("isPending", isPending);
+  // console.log("error", error);
+  // console.log("refetch", refetch);
+
   if (!viewer) {
     return (
       <div className="m-auto flex flex-col gap-4 rounded border border-slate-100 bg-white p-8">
@@ -35,6 +48,7 @@ function RouteComponent() {
           {metadata.name}
         </div>
         <div className="max-w-xs text-center">{metadata.description}</div>
+        <div>Signed in as: {session?.user.email}</div>
         <div className="m-auto flex gap-2">
           <input
             className="rounded-md border border-slate-300 p-2"
@@ -78,6 +92,15 @@ function RouteComponent() {
           </Button>
           <Button onClick={() => verifyOTP(email, otp)}>
             Sign in with OTP
+          </Button>
+        </div>
+        <div className="m-auto flex gap-2">
+          <Button
+            onClick={() => {
+              void authClient.signOut();
+            }}
+          >
+            Sign out
           </Button>
         </div>
         <div className="m-auto flex gap-2">
