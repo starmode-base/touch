@@ -15,5 +15,5 @@ export const withNeonTestBranch = makeNeonTesting({
 
   // Mikael's dev branch:
   // https://console.neon.tech/app/projects/muddy-star-72330006/branches/br-lingering-mode-ad4utkeo
-  // parentBranchId: "br-lingering-mode-ad4utkeo",
+  parentBranchId: "br-lingering-mode-ad4utkeo",
 });
