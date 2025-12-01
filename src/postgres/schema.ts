@@ -62,41 +62,30 @@ const baseSchema = {
 /**
  * Users table
  */
-// export const users_ = pgTable("users", {
-//   ...baseSchema,
-//   /**
-//    * User email address copied from Clerk's primary email
-//    *
-//    * Intentionally not unique in this table because Clerk enforces uniqueness
-//    * and emails can change. Cached here for display and convenience.
-//    */
-//   email: text().notNull(),
-//   /** Stable unique user identifier from Clerk */
-//   clerk_user_id: text().notNull().unique(),
-// });
-
 export const users = pgTable("users", {
   id: primaryKeyField(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
+  name: text().notNull(),
+  email: text().notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
-  image: text("image"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
+  image: text(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" })
     .defaultNow()
-    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .$onUpdate(() => sql`now()`)
     .notNull(),
 });
 
 export const sessions = pgTable(
   "sessions",
   {
-    id: text("id").primaryKey(),
+    id: primaryKeyField(),
     expiresAt: timestamp("expires_at").notNull(),
     token: text("token").notNull().unique(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .$onUpdate(() => /* @__PURE__ */ new Date())
+    createdAt: timestamp("created_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .$onUpdate(() => sql`now()`)
       .notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
@@ -110,7 +99,7 @@ export const sessions = pgTable(
 export const accounts = pgTable(
   "accounts",
   {
-    id: text("id").primaryKey(),
+    id: primaryKeyField(),
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),
     userId: text("user_id")
@@ -119,13 +108,19 @@ export const accounts = pgTable(
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     idToken: text("id_token"),
-    accessTokenExpiresAt: timestamp("access_token_expires_at"),
-    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at", {
+      mode: "string",
+    }),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", {
+      mode: "string",
+    }),
     scope: text("scope"),
     password: text("password"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .$onUpdate(() => /* @__PURE__ */ new Date())
+    createdAt: timestamp("created_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .$onUpdate(() => sql`now()`)
       .notNull(),
   },
   (table) => [index("accounts_userId_idx").on(table.userId)],
@@ -134,14 +129,15 @@ export const accounts = pgTable(
 export const otps = pgTable(
   "otps",
   {
-    id: text("id").primaryKey(),
+    id: primaryKeyField(),
     identifier: text("identifier").notNull(),
     value: text("value").notNull(),
-    expiresAt: timestamp("expires_at").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
+    expiresAt: timestamp("expires_at", { mode: "string" }).notNull(),
+    createdAt: timestamp("created_at", { mode: "string" })
       .defaultNow()
-      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .$onUpdate(() => sql`now()`)
       .notNull(),
   },
   (table) => [index("otps_identifier_idx").on(table.identifier)],

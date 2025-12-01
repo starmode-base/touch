@@ -43,6 +43,13 @@
       "when": 1764568993263,
       "tag": "0005_perfect_komodo",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1764572650539,
+      "tag": "0006_free_sue_storm",
+      "breakpoints": true
     }
   ]
 }
