@@ -4,9 +4,8 @@ import metadata from "../../metadata.json";
 import { Button } from "~/components/atoms";
 import { syncViewerSF } from "~/server-functions/viewer";
 import { E2eeProvider } from "~/components/hooks/e2ee";
-import { sendVerificationOTP, verifyOTP } from "~/lib/auth-actions";
 import { useState } from "react";
-import { authClient } from "~/lib/auth-client";
+import { authClient, sendVerificationOTP, verifyOTP } from "~/lib/auth-client";
 
 export const Route = createFileRoute("/_auth")({
   ssr: false,
