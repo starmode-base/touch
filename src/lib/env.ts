@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 const vercelEnvs = [
   /**
    * Client and server environment variables
