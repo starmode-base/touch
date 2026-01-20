@@ -2,7 +2,7 @@ import { makeNeonTesting } from "neon-testing";
 import { ensureEnv } from "../lib/env";
 
 // Export a configured lifecycle function to use in test files
-export const withNeonTestBranch = makeNeonTesting({
+export const neonTesting = makeNeonTesting({
   apiKey: ensureEnv("NEON_API_KEY"),
   projectId: ensureEnv("NEON_PROJECT_ID"),
   // Recommended for Neon WebSocket drivers to automatically close connections
