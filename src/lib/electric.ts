@@ -1,6 +1,6 @@
 import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from "@electric-sql/client";
 import { syncViewer, type Viewer } from "~/lib/auth";
-import { env } from "cloudflare:workers";
+import { ensureEnv } from "./env";
 
 /**
  * Prepares the Electric SQL proxy URL from a request URL
@@ -20,6 +20,7 @@ function prepareElectricUrl(requestUrl: string): URL {
     }
   });
 
+  const env = ensureEnv();
   originUrl.searchParams.set("source_id", env.ELECTRIC_SOURCE_ID);
   originUrl.searchParams.set("source_secret", env.ELECTRIC_SOURCE_SECRET);
 
