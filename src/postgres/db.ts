@@ -2,10 +2,10 @@ import { drizzle } from "drizzle-orm/neon-serverless";
 import { lazySingleton } from "neon-testing/utils";
 import * as schema from "./schema";
 import * as relations from "./relations";
-import { env } from "cloudflare:workers";
+import { ensureEnv } from "~/lib/env";
 
 const db = lazySingleton(() => {
-  return drizzle(env.DATABASE_URL, {
+  return drizzle(ensureEnv().DATABASE_URL, {
     // casing: "snake_case",
     schema: { ...schema, ...relations },
   });
