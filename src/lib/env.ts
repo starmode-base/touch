@@ -9,10 +9,7 @@ export const ensureEnv = () => {
     typeof process?.env?.DATABASE_URL,
   );
   // @ts-ignore
-  console.log(
-    "ensureEnv|env.DATABASE_URL",
-    typeof env !== "undefined" && typeof env?.DATABASE_URL,
-  );
+  console.log("ensureEnv|env.DATABASE_URL", env && typeof env?.DATABASE_URL);
 
   return z
     .object({
