@@ -1,10 +1,10 @@
 import { makeNeonTesting } from "neon-testing";
-import { ensureEnv } from "../lib/env";
+import { env } from "cloudflare:workers";
 
 // Export a configured lifecycle function to use in test files
 export const withNeonTestBranch = makeNeonTesting({
-  apiKey: ensureEnv("NEON_API_KEY"),
-  projectId: ensureEnv("NEON_PROJECT_ID"),
+  apiKey: env.NEON_API_KEY,
+  projectId: env.NEON_PROJECT_ID,
   // Recommended for Neon WebSocket drivers to automatically close connections
   autoCloseWebSockets: true,
 
