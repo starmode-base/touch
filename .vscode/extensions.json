@@ -8,5 +8,5 @@
     "oven.bun-vscode",
     "vitest.explorer"
   ],
-  "unwantedRecommendations": ["ms-azuretools.vscode-containers"]
+  "unwantedRecommendations": []
 }
