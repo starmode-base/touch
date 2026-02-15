@@ -3,9 +3,9 @@
   "name": "touch",
   "main": "@tanstack/react-start/server-entry",
   "compatibility_date": "2026-02-10",
-  //   "observability": {
-  //     "enabled": true,
-  //   },
+  "observability": {
+    "enabled": true,
+  },
   "compatibility_flags": ["nodejs_compat"],
   "account_id": "2d2d507f9bf33bb828cbe7407de74630",
 }
