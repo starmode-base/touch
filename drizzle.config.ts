@@ -3,6 +3,12 @@ import { defineConfig } from "drizzle-kit";
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is required for drizzle-kit");
 
+console.log("process.env.DATABASE_URL", process.env.DATABASE_URL);
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+console.log("env.DATABASE_URL", env.DATABASE_URL);
+
 export default defineConfig({
   out: "./src/postgres/migrations",
   schema: "./src/postgres/schema.ts",
