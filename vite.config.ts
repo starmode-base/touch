@@ -12,6 +12,12 @@ export default defineConfig({
   server: {
     port: metadata.dev.port,
   },
+  build: {
+    rollupOptions: {
+      // cloudflare:workers is a runtime module provided by the Workers environment
+      external: ["cloudflare:workers"],
+    },
+  },
   plugins: [
     // Cloudflare plugin rejects resolve.external; Vitest's SSR env sets it for Node built-ins.
     // Exclude when running tests so Vitest can start.
