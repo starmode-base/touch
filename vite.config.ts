@@ -5,17 +5,20 @@ import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import metadata from "./metadata.json";
 import { neonTesting } from "neon-testing/vite";
-import { nitroV2Plugin } from "@tanstack/nitro-v2-vite-plugin";
+// import { nitroV2Plugin } from "@tanstack/nitro-v2-vite-plugin";
+import { cloudflare } from "@cloudflare/vite-plugin";
 
 export default defineConfig({
   server: {
     port: metadata.dev.port,
   },
   plugins: [
+    cloudflare({ viteEnvironment: { name: "ssr" } }),
+
     tsConfigPaths(),
     tanstackStart(),
     // https://tanstack.com/start/latest/docs/framework/react/guide/hosting#nitro
-    nitroV2Plugin(),
+    // nitroV2Plugin(),
     viteReact(),
     tailwindcss(),
     neonTesting(),
