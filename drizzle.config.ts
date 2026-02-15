@@ -8,7 +8,7 @@ console.log("process.env.DATABASE_URL", typeof process?.env?.DATABASE_URL);
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-console.log("env.DATABASE_URL", typeof env?.DATABASE_URL);
+console.log("env.DATABASE_URL", env && typeof env?.DATABASE_URL);
 
 export default defineConfig({
   out: "./src/postgres/migrations",

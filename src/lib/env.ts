@@ -10,7 +10,7 @@ export const ensureEnv = () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 
-  console.log("ensureEnv|env.DATABASE_URL", typeof env?.DATABASE_URL);
+  console.log("ensureEnv|env.DATABASE_URL", env && typeof env?.DATABASE_URL);
 
   return z
     .object({
