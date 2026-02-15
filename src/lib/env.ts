@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { env } from "cloudflare:workers";
 import { z } from "zod";
@@ -7,9 +8,7 @@ export const ensureEnv = () => {
     "ensureEnv|process.env.DATABASE_URL",
     typeof process?.env?.DATABASE_URL,
   );
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-
   console.log("ensureEnv|env.DATABASE_URL", env && typeof env?.DATABASE_URL);
 
   return z
