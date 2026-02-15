@@ -7,14 +7,12 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev:cf": "wrangler dev",
-    "deploy:cf": "wrangler deploy",
     "dev": "vite dev",
-    "build": "prettier --check . && eslint --max-warnings 0 && vite build && tsc --noEmit && drizzle-kit migrate && vitest run",
-    "start_": "PORT=$(scripts/start.ts) node -r dotenv/config .output/server/index.mjs",
+    "build": "vite build && tsc --noEmit",
     "preview": "vite preview",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types",
     "format": "prettier --write .",
-    "cf-typegen": "wrangler types && prettier --write worker-configuration.d.ts",
     "lint": "eslint --max-warnings 0 --fix",
     "test": "vitest",
     "env:pull": "bunx vercel@latest env pull .env",
