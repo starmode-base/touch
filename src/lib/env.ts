@@ -23,6 +23,7 @@ export const ensureEnv = () => {
         //   NEON_PROJECT_ID: z.string(),
         ELECTRIC_SOURCE_ID: z.string(),
         ELECTRIC_SOURCE_SECRET: z.string(),
+        BETTER_AUTH_SECRET: z.string(),
       })
       // @ts-ignore
       .parse(env)

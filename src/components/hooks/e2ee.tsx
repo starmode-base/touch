@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { useSessionState } from "~/lib/e2ee-session";
-import { useClerk } from "@clerk/tanstack-react-start";
+import { authClient } from "~/lib/auth-client";
 import { useLiveQuery } from "@tanstack/react-db";
 import { passkeysCollection, type Passkey } from "~/collections/passkeys";
 import {
@@ -68,9 +68,6 @@ export function E2eeProvider(props: React.PropsWithChildren) {
   const passkeys = passkeysQuery.data;
   const hasPasskeys = passkeys.length > 0;
 
-  // Clerk
-  const clerk = useClerk();
-
   // Create first passkey (enrollment)
   const createPasskey = useCallback(async () => {
     setIsCreatingPasskey(true);
@@ -107,8 +104,8 @@ export function E2eeProvider(props: React.PropsWithChildren) {
 
   const signOut = useCallback(async () => {
     await lock();
-    await clerk.signOut();
-  }, [clerk, lock]);
+    await authClient.signOut();
+  }, [lock]);
 
   const value: E2eeContext = {
     // Create first passkey (enrollment)

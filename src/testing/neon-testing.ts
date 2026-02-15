@@ -9,7 +9,7 @@ if (!apiKey || !projectId) {
 }
 
 // Export a configured lifecycle function to use in test files
-export const withNeonTestBranch = makeNeonTesting({
+export const neonTesting = makeNeonTesting({
   apiKey,
   projectId,
   // Recommended for Neon WebSocket drivers to automatically close connections
@@ -22,5 +22,5 @@ export const withNeonTestBranch = makeNeonTesting({
 
   // Mikael's dev branch:
   // https://console.neon.tech/app/projects/muddy-star-72330006/branches/br-lingering-mode-ad4utkeo
-  // parentBranchId: "br-lingering-mode-ad4utkeo",
+  parentBranchId: "br-lingering-mode-ad4utkeo",
 });

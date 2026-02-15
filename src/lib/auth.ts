@@ -1,7 +1,95 @@
-import { auth } from "@clerk/tanstack-react-start/server";
-import { eq, sql } from "drizzle-orm";
-import { db, schema } from "~/postgres/db";
+import { db } from "~/postgres/db";
 import { memoizeAsync } from "./memoize";
+import { getCookie, getRequestHeaders } from "@tanstack/react-start/server";
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { emailOTP } from "better-auth/plugins";
+import { lazySingleton } from "~/lib/singleton";
+import { createHmac, timingSafeEqual } from "crypto";
+import { ensureEnv } from "./env";
+
+// Lazy initialization to avoid calling db() at module load time (breaks tests)
+export const auth = lazySingleton(() =>
+  betterAuth({
+    database: drizzleAdapter(db(), {
+      provider: "pg",
+    }),
+    user: {
+      modelName: "users",
+    },
+    session: {
+      modelName: "sessions",
+      // cookieCache: {
+      //   enabled: true,
+      //   strategy: "compact",
+      // },
+    },
+    verification: {
+      modelName: "otps",
+    },
+    account: {
+      modelName: "accounts",
+    },
+    plugins: [
+      emailOTP({
+        async sendVerificationOTP({ email, otp, type }) {
+          if (type === "sign-in") {
+            console.log("sign-in⚡️", type, email, otp);
+            // Send the OTP for sign in
+          } else if (type === "email-verification") {
+            console.log("email-verification⚡️", type, email, otp);
+            // Send the OTP for email verification
+          } else {
+            console.log("forget-password⚡️", type, email, otp);
+            // Send the OTP for password reset
+          }
+          return Promise.resolve();
+        },
+      }),
+    ],
+  }),
+);
+
+/**
+ * Verify a Better Auth session cookie signature
+ *
+ * @param cookie - The full cookie value (token.signature)
+ * @param secret - Your BETTER_AUTH_SECRET
+ * @returns The token if valid, null if invalid
+ */
+export function verifySessionCookie(
+  cookie: string,
+  secret: string,
+): string | null {
+  const [token, signature] = cookie.split(".");
+
+  if (!token || !signature) {
+    return null;
+  }
+
+  // Better Auth uses HMAC-SHA256, then base64url encodes the result
+  const expectedSignature = createHmac("sha256", secret)
+    .update(token)
+    .digest("base64url");
+
+  // Use timing-safe comparison to prevent timing attacks
+  try {
+    const sigBuffer = Buffer.from(signature, "base64url");
+    const expectedBuffer = Buffer.from(expectedSignature, "base64url");
+
+    if (sigBuffer.length !== expectedBuffer.length) {
+      return null;
+    }
+
+    if (timingSafeEqual(sigBuffer, expectedBuffer)) {
+      return token;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
 
 /**
  * Viewer type
@@ -12,95 +100,27 @@ export interface Viewer {
 }
 
 /**
- * Fetch the clerk user from the Clerk API
- */
-const getClerkUser = async () => {
-  const { sessionClaims, userId, isAuthenticated } = await auth();
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  if (typeof sessionClaims.email !== "string") {
-    console.warn(
-      "No email found in claims, see https://clerk.com/docs/backend-requests/custom-session-token",
-    );
-
-    return null;
-  }
-
-  return { id: userId, email: sessionClaims.email };
-};
-
-/**
  * Get the viewer (the current user)
  */
-async function getViewer(userId: string): Promise<Viewer | null> {
-  const user = await db().query.users.findFirst({
-    where: eq(schema.users.id, userId),
-    columns: {
-      id: true,
-      email: true,
-    },
-  });
+const getUserByCookie = memoizeAsync(
+  async (cookie: string) => {
+    if (!cookie) {
+      return null;
+    }
 
-  if (!user) {
-    return null;
-  }
+    const session = await auth().api.getSession({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      headers: getRequestHeaders(),
+    });
 
-  const viewer = {
-    id: user.id,
-    email: user.email,
-  };
+    if (!session) {
+      return null;
+    }
 
-  return viewer;
-}
-
-/**
- * Upsert the viewer in the database from the Clerk API
- *
- * This syncs the user's email from Clerk to our database.
- * Returns the internal user ID.
- */
-async function upsertViewer(clerkUser: {
-  id: string;
-  email: string;
-}): Promise<string> {
-  const [user] = await db()
-    .insert(schema.users)
-    .values({
-      clerk_user_id: clerkUser.id,
-      email: clerkUser.email,
-    })
-    .onConflictDoUpdate({
-      target: [schema.users.clerk_user_id],
-      set: {
-        email: clerkUser.email,
-        // Only update the updatedAt field if the email is different
-        updated_at: sql`case when excluded.email is distinct from ${schema.users.email} then now() else ${schema.users.updated_at} end`,
-      },
-    })
-    .returning({ id: schema.users.id });
-
-  if (!user) {
-    throw new Error("Failed to sync user");
-  }
-
-  return user.id;
-}
-
-/**
- * Memoize the getViewer function
- */
-const getViewerMemoized = memoizeAsync(getViewer, 5000, (userId) => userId);
-
-/**
- * Memoize the upsertViewer function
- */
-const upsertViewerMemoized = memoizeAsync(
-  upsertViewer,
+    return session.user;
+  },
   5000,
-  (clerkUser) => clerkUser.id + clerkUser.email,
+  (cookie) => cookie,
 );
 
 /**
@@ -108,17 +128,24 @@ const upsertViewerMemoized = memoizeAsync(
  *
  * Returns the viewer object, or null if the user is not signed in
  */
-export async function syncViewer(): Promise<Viewer | null> {
-  const clerkUser = await getClerkUser();
+export async function getViewer(): Promise<Viewer | null> {
+  const cookie = getCookie("better-auth.session_token");
+  console.log("cookie⚡️", cookie);
 
-  if (!clerkUser) {
+  if (!cookie) {
     return null;
   }
 
-  const userId = await upsertViewerMemoized(clerkUser);
-  const viewer = await getViewerMemoized(userId);
+  const token = verifySessionCookie(cookie, ensureEnv().BETTER_AUTH_SECRET);
+  console.log("token⚡️", token);
 
-  return viewer;
+  const user = await getUserByCookie(cookie);
+
+  if (!user) {
+    return null;
+  }
+
+  return user;
 }
 
 /**
@@ -126,8 +153,8 @@ export async function syncViewer(): Promise<Viewer | null> {
  *
  * IMPORTANT: Call this after operations that change fields returned by syncViewer().
  */
-export function clearViewerCache(userId: string) {
-  getViewerMemoized.clear(userId);
+export function clearViewerCache(cookie: string) {
+  getUserByCookie.clear(cookie);
 }
 
 /**
@@ -136,6 +163,5 @@ export function clearViewerCache(userId: string) {
  * For test cleanup only. Call after deleting users from the database.
  */
 export function clearAllViewerCaches() {
-  getViewerMemoized.clear();
-  upsertViewerMemoized.clear();
+  getUserByCookie.clear();
 }

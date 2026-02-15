@@ -24,6 +24,7 @@ import { Route as AuthContactsRouteImport } from './routes/_auth.contacts'
 import { Route as AuthSettingsIndexRouteImport } from './routes/_auth.settings.index'
 import { Route as AuthOpportunitiesIndexRouteImport } from './routes/_auth.opportunities.index'
 import { Route as AuthContactsIndexRouteImport } from './routes/_auth.contacts.index'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthContactsContactRouteImport } from './routes/_auth.contacts.$contact'
 
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -101,6 +102,11 @@ const AuthContactsIndexRoute = AuthContactsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthContactsRoute,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthContactsContactRoute = AuthContactsContactRouteImport.update({
   id: '/$contact',
   path: '/$contact',
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/api/contacts': typeof ApiContactsRoute
   '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof AuthContactsContactRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/contacts/': typeof AuthContactsIndexRoute
   '/opportunities/': typeof AuthOpportunitiesIndexRoute
   '/settings/': typeof AuthSettingsIndexRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/api/contacts': typeof ApiContactsRoute
   '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof AuthContactsContactRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/contacts': typeof AuthContactsIndexRoute
   '/opportunities': typeof AuthOpportunitiesIndexRoute
   '/settings': typeof AuthSettingsIndexRoute
@@ -153,6 +161,7 @@ export interface FileRoutesById {
   '/api/contacts': typeof ApiContactsRoute
   '/api/passkeys': typeof ApiPasskeysRoute
   '/_auth/contacts/$contact': typeof AuthContactsContactRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/contacts/': typeof AuthContactsIndexRoute
   '/_auth/opportunities/': typeof AuthOpportunitiesIndexRoute
   '/_auth/settings/': typeof AuthSettingsIndexRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/api/contacts'
     | '/api/passkeys'
     | '/contacts/$contact'
+    | '/api/auth/$'
     | '/contacts/'
     | '/opportunities/'
     | '/settings/'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/api/contacts'
     | '/api/passkeys'
     | '/contacts/$contact'
+    | '/api/auth/$'
     | '/contacts'
     | '/opportunities'
     | '/settings'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/api/contacts'
     | '/api/passkeys'
     | '/_auth/contacts/$contact'
+    | '/api/auth/$'
     | '/_auth/contacts/'
     | '/_auth/opportunities/'
     | '/_auth/settings/'
@@ -219,6 +231,7 @@ export interface RootRouteChildren {
   ApiContactRolesRoute: typeof ApiContactRolesRoute
   ApiContactsRoute: typeof ApiContactsRoute
   ApiPasskeysRoute: typeof ApiPasskeysRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -328,6 +341,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthContactsIndexRouteImport
       parentRoute: typeof AuthContactsRoute
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth/contacts/$contact': {
       id: '/_auth/contacts/$contact'
       path: '/$contact'
@@ -399,17 +419,17 @@ const rootRouteChildren: RootRouteChildren = {
   ApiContactRolesRoute: ApiContactRolesRoute,
   ApiContactsRoute: ApiContactsRoute,
   ApiPasskeysRoute: ApiPasskeysRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
+import type { createStart } from '@tanstack/react-start'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

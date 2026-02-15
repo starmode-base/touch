@@ -1,7 +1,9 @@
 import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from "@electric-sql/client";
-import { syncViewer, type Viewer } from "~/lib/auth";
-// import { ensureEnv } from "./env";
 import { env } from "cloudflare:workers";
+import { getViewer, type Viewer } from "~/lib/auth";
+
+// const ELECTRIC_SOURCE_ID = ensureEnv("ELECTRIC_SOURCE_ID");
+// const ELECTRIC_SOURCE_SECRET = ensureEnv("ELECTRIC_SOURCE_SECRET");
 
 /**
  * Prepares the Electric SQL proxy URL from a request URL
@@ -40,7 +42,7 @@ export const proxyElectricRequest = async (args: {
   /** https://electric-sql.com/docs/guides/shapes#where-clause */
   where: (viewer: Viewer) => string;
 }) => {
-  const viewer = await syncViewer();
+  const viewer = await getViewer();
 
   if (!viewer) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
