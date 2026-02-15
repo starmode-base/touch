@@ -5,9 +5,7 @@ import { db, schema } from "~/postgres/db";
 import { eq } from "drizzle-orm";
 import { createBarrier, seedPasskey, seedUser } from "~/testing/test-helpers";
 
-/**
- * Enable Neon Postgres integration tests
- */
+/** Enable Neon Postgres integration tests */
 neonTesting();
 
 /**
