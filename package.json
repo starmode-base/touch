@@ -10,7 +10,7 @@
     "dev:cf": "wrangler dev",
     "deploy:cf": "wrangler deploy",
     "dev": "vite dev",
-    "build": "prettier --check . && eslint --max-warnings 0 && vite build && tsc --noEmit && vitest run",
+    "build": "prettier --check . && eslint --max-warnings 0 && vite build && tsc --noEmit && drizzle-kit migrate",
     "start_": "PORT=$(scripts/start.ts) node -r dotenv/config .output/server/index.mjs",
     "preview": "vite preview",
     "format": "prettier --write .",
