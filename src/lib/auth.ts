@@ -109,6 +109,7 @@ const getUserByCookie = memoizeAsync(
     }
 
     const session = await auth().api.getSession({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       headers: getRequestHeaders(),
     });
 
@@ -135,7 +136,7 @@ export async function getViewer(): Promise<Viewer | null> {
     return null;
   }
 
-  const token = verifySessionCookie(cookie, ensureEnv("BETTER_AUTH_SECRET"));
+  const token = verifySessionCookie(cookie, ensureEnv().BETTER_AUTH_SECRET);
   console.log("token⚡️", token);
 
   const user = await getUserByCookie(cookie);

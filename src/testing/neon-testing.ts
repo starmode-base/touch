@@ -1,10 +1,17 @@
 import { makeNeonTesting } from "neon-testing";
-import { ensureEnv } from "../lib/env";
+
+const apiKey = process.env.NEON_API_KEY;
+const projectId = process.env.NEON_PROJECT_ID;
+if (!apiKey || !projectId) {
+  throw new Error(
+    "NEON_API_KEY and NEON_PROJECT_ID are required for neon-testing",
+  );
+}
 
 // Export a configured lifecycle function to use in test files
 export const neonTesting = makeNeonTesting({
-  apiKey: ensureEnv("NEON_API_KEY"),
-  projectId: ensureEnv("NEON_PROJECT_ID"),
+  apiKey,
+  projectId,
   // Recommended for Neon WebSocket drivers to automatically close connections
   autoCloseWebSockets: true,
 
