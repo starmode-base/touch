@@ -13,8 +13,12 @@ export default defineConfig({
     port: metadata.dev.port,
   },
   plugins: [
-    cloudflare({ viteEnvironment: { name: "ssr" } }),
-
+    // Cloudflare plugin rejects resolve.external; Vitest's SSR env sets it for Node built-ins.
+    // Exclude when running tests so Vitest can start.
+    // cloudflare({ viteEnvironment: { name: "ssr" } }),
+    ...(process.env.VITEST !== "true"
+      ? [cloudflare({ viteEnvironment: { name: "ssr" } })]
+      : []),
     tsConfigPaths(),
     tanstackStart(),
     // https://tanstack.com/start/latest/docs/framework/react/guide/hosting#nitro
