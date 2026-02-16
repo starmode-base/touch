@@ -1,39 +1,55 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-import appCss from "~/styles/app.css?url";
-import metadata from "../../metadata.json";
-import { inject } from "@vercel/analytics";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+
+import Header from "../components/Header";
+
+import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: metadata.name },
-      { name: "description", content: metadata.description },
-      { name: "og:title", content: metadata.name },
-      { name: "og:description", content: metadata.description },
-      { name: "og:image", content: metadata.shareCardImage },
+      {
+        charSet: "utf-8",
+      },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1",
+      },
+      {
+        title: "TanStack Start Starter",
+      },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: metadata.browserIcon },
+      {
+        rel: "stylesheet",
+        href: appCss,
+      },
     ],
   }),
   shellComponent: RootDocument,
 });
 
-function RootDocument(props: React.PropsWithChildren) {
-  // https://vercel.com/docs/analytics/quickstart
-  inject();
-
+function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html>
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body>
-        {props.children}
-        {/* <TanStackRouterDevtools position="bottom-left" /> */}
+        <Header />
+        {children}
+        <TanStackDevtools
+          config={{
+            position: "bottom-right",
+          }}
+          plugins={[
+            {
+              name: "Tanstack Router",
+              render: <TanStackRouterDevtoolsPanel />,
+            },
+          ]}
+        />
         <Scripts />
       </body>
     </html>
