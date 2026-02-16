@@ -1,19 +1,20 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "touch-chrome",
       "dependencies": {
-        "zod": "^4.1.12",
+        "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@types/chrome": "^0.1.27",
+        "@types/chrome": "^0.1.36",
         "typescript": "^5.9.3",
       },
     },
   },
   "packages": {
-    "@types/chrome": ["@types/chrome@0.1.27", "", { "dependencies": { "@types/filesystem": "*", "@types/har-format": "*" } }, "sha512-pkkCb0Ft8X+Igi751POzT+YqchSxUCtB6s4Gs6ttgSj8qzJga/qlJMgSW1mKxuQTW4i0sTqQbqVtzXDS5AU+4A=="],
+    "@types/chrome": ["@types/chrome@0.1.36", "", { "dependencies": { "@types/filesystem": "*", "@types/har-format": "*" } }, "sha512-BvHbuyGttYXnGt5Gpwa4769KIinKHY1iLjlAPrrMBS2GI9m/XNMPtdsq0NgQalyuUdxvlMN/0OyGw0shFVIoUQ=="],
 
     "@types/filesystem": ["@types/filesystem@0.0.36", "", { "dependencies": { "@types/filewriter": "*" } }, "sha512-vPDXOZuannb9FZdxgHnqSwAG/jvdGM8Wq+6N4D/d80z+D4HWH+bItqsZaVRQykAn6WEVeEkLm2oQigyHtgb0RA=="],
 
@@ -23,6 +24,6 @@
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
-    "zod": ["zod@4.1.12", "", {}, "sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ=="],
+    "zod": ["zod@4.3.6", "", {}, "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg=="],
   }
 }

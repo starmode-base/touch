@@ -9,10 +9,10 @@
     "clean:hard": "rm -rf node_modules tsconfig.tsbuildinfo background.js content-script.js bun.lock && bun install"
   },
   "devDependencies": {
-    "@types/chrome": "^0.1.27",
+    "@types/chrome": "^0.1.36",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "zod": "^4.1.12"
+    "zod": "^4.3.6"
   }
 }
