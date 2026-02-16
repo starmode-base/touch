@@ -1,8 +1,8 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { Toolbar } from "~/components/toolbar";
+// import { Toolbar } from "~/components/toolbar";
 import metadata from "../../metadata.json";
 import { Button } from "~/components/atoms";
-import { E2eeProvider } from "~/components/hooks/e2ee";
+// import { E2eeProvider } from "~/components/hooks/e2ee";
 import { useState } from "react";
 import { authClient, sendVerificationOTP, verifyOTP } from "~/lib/auth-client";
 
@@ -57,10 +57,10 @@ function RouteComponent() {
 
   return (
     <>
-      <E2eeProvider>
-        <Toolbar />
-        <Outlet />
-      </E2eeProvider>
+      {/* <E2eeProvider> */}
+      {/* <Toolbar /> */}
+      <Outlet />
+      {/* </E2eeProvider> */}
     </>
   );
 }

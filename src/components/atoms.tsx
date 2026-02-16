@@ -1,7 +1,6 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
 import {
   CalendarIcon,
-  PencilIcon,
   TrashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -165,9 +164,6 @@ export function ContactCard(props: {
         >
           <TrashIcon className="size-4" />
         </button>
-        <Link to="/contacts/$contact" params={{ contact: props.id }}>
-          <PencilIcon className="size-4" />
-        </Link>
       </div>
     </div>
   );

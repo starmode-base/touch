@@ -1,9 +1,9 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 // import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import appCss from "~/styles/app.css?url";
+import appCss from "../styles.css?url";
 import metadata from "../../metadata.json";
-import { inject } from "@vercel/analytics";
-import "~/lib/e2ee-globals";
+// import { inject } from "@vercel/analytics";
+// import "~/lib/e2ee-globals";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -26,7 +26,7 @@ export const Route = createRootRoute({
 
 function RootDocument(props: React.PropsWithChildren) {
   // https://vercel.com/docs/analytics/quickstart
-  inject();
+  // inject();
 
   return (
     <Providers>

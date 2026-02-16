@@ -1,27 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Button } from "~/components/atoms";
-import { useE2ee } from "~/components/hooks/e2ee";
-import { cryptoSession } from "~/lib/e2ee-session";
+// import { Button } from "~/components/atoms";
+// import { useE2ee } from "~/components/hooks/e2ee";
+// import { cryptoSession } from "~/lib/e2ee-session";
 
 export const Route = createFileRoute("/_auth/settings/")({
   component: ProfilePage,
 });
 
 function ProfilePage() {
-  const {
-    passkeys,
-    createPasskey,
-    canCreatePasskey,
-    isCreatingPasskey,
-    addPasskey,
-    canAddPasskey,
-    isAddingPasskey,
-    deletePasskey,
-    unlock,
-    canUnlock,
-  } = useE2ee();
+  // const {
+  //   passkeys,
+  //   createPasskey,
+  //   canCreatePasskey,
+  //   isCreatingPasskey,
+  //   addPasskey,
+  //   canAddPasskey,
+  //   isAddingPasskey,
+  //   deletePasskey,
+  //   unlock,
+  //   canUnlock,
+  // } = useE2ee();
 
-  const activeCredentialId = cryptoSession.get()?.credentialId;
+  // const activeCredentialId = cryptoSession.get()?.credentialId;
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
@@ -33,17 +33,17 @@ function ProfilePage() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Your passkeys</h2>
           <div className="flex gap-2">
-            <Button onClick={createPasskey} disabled={!canCreatePasskey}>
-              {/* {isCreatingPasskey ? "Creating..." : "Create passkey"} */}
-              {isCreatingPasskey ? "Setting up..." : "Enable encryption"}
-            </Button>
-            <Button onClick={addPasskey} disabled={!canAddPasskey}>
+            {/* <Button onClick={createPasskey} disabled={!canCreatePasskey}> */}
+            {/* {isCreatingPasskey ? "Creating..." : "Create passkey"} */}
+            {/* {isCreatingPasskey ? "Setting up..." : "Enable encryption"} */}
+            {/* </Button> */}
+            {/* <Button onClick={addPasskey} disabled={!canAddPasskey}>
               {isAddingPasskey ? "Adding..." : "Add passkey"}
-            </Button>
+            </Button> */}
           </div>
         </div>
 
-        {passkeys.length === 0 ? (
+        {/* {passkeys.length === 0 ? (
           <div className="rounded bg-gray-100 p-4">No passkeys found</div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -122,7 +122,7 @@ function ProfilePage() {
               );
             })}
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

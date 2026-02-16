@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { SplitScreen } from "~/components/split-screen";
-import { ContactsPanel } from "~/components/contacts-panel";
+// import { ContactsPanel } from "~/components/contacts-panel";
 import invariant from "tiny-invariant";
 import { authClient } from "~/lib/auth-client";
 
@@ -22,10 +22,12 @@ export const Route = createFileRoute("/_auth/contacts")({
 
 function RouteComponent() {
   const { viewer } = Route.useLoaderData();
+  console.log("viewer", viewer);
 
   return (
     <SplitScreen>
-      <ContactsPanel userId={viewer.id} />
+      <div>123</div>
+      {/* <ContactsPanel userId={viewer.id} /> */}
       <Outlet />
     </SplitScreen>
   );
