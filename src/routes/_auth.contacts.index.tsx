@@ -6,6 +6,6 @@ export const Route = createFileRoute("/_auth/contacts/")({
 
 function RouteComponent() {
   return (
-    <div className="flex flex-1 items-center justify-center">SIDE PANEL</div>
+    <div className="flex flex-1 items-center justify-center">SIDE PANEL 2</div>
   );
 }
