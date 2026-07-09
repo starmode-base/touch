@@ -44,6 +44,9 @@ const contactsCollectionEncrypted = createCollection(
     queryKey: ["contacts"],
     queryFn: () => listContactsSF(),
     queryClient,
+    // Only sync in the browser: during SSR there is no Start context for
+    // server-function RPC calls
+    enabled: typeof window !== "undefined",
     schema: Contact,
     getKey: (item) => item.id,
 

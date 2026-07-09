@@ -5,11 +5,19 @@
  * https://github.com/clerk/clerk-tanstack-react-start-quickstart
  */
 import { clerkMiddleware } from "@clerk/tanstack-react-start/server";
-import { createStart } from "@tanstack/react-start";
+import { createCsrfMiddleware, createStart } from "@tanstack/react-start";
 import "~/lib/e2ee-globals";
+
+/**
+ * Protect server functions (same-origin RPC endpoints) from cross-site
+ * requests
+ */
+const csrfMiddleware = createCsrfMiddleware({
+  filter: (ctx) => ctx.handlerType === "serverFn",
+});
 
 export const startInstance = createStart(() => {
   return {
-    requestMiddleware: [clerkMiddleware()],
+    requestMiddleware: [csrfMiddleware, clerkMiddleware()],
   };
 });

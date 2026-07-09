@@ -13,6 +13,9 @@ export const contactActivitiesCollection = createCollection(
     queryKey: ["contact-activities"],
     queryFn: () => listContactActivitiesSF(),
     queryClient,
+    // Only sync in the browser: during SSR there is no Start context for
+    // server-function RPC calls
+    enabled: typeof window !== "undefined",
     schema: z.object({
       id: z.string(),
       created_at: z.string(),
