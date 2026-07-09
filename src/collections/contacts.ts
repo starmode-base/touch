@@ -230,7 +230,10 @@ export const contactsStore = {
   },
 
   /** Update an existing contact */
-  update: async (id: string, data: { name: string; linkedin?: string }) => {
+  update: async (
+    id: string,
+    data: { name: string; linkedin?: string | undefined },
+  ) => {
     const dek = await getSessionDek();
     if (!dek) {
       throw new Error("Encryption not ready. Please unlock or wait for sync.");
