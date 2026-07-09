@@ -7,19 +7,16 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev:cf": "wrangler dev",
-    "deploy:cf": "wrangler deploy",
     "dev": "vite dev",
     "build": "prettier --check . && eslint --max-warnings 0 && vite build && tsc --noEmit && drizzle-kit migrate && vitest run",
-    "start_": "PORT=$(scripts/start.ts) node -r dotenv/config .output/server/index.mjs",
+    "start": "PORT=$(scripts/start.ts) node -r dotenv/config .output/server/index.mjs",
     "preview": "vite preview",
     "format": "prettier --write .",
-    "cf-typegen": "wrangler types && prettier --write worker-configuration.d.ts",
     "lint": "eslint --max-warnings 0 --fix",
     "test": "vitest",
     "env:pull": "bunx vercel@latest env pull .env",
-    "clean:soft": "rm -rf node_modules tsconfig.tsbuildinfo .nitro .output .tanstack dist .wrangler && bun install",
-    "clean:hard": "rm -rf node_modules tsconfig.tsbuildinfo .nitro .output .tanstack dist .wrangler bun.lock && bun install",
+    "clean:soft": "rm -rf node_modules tsconfig.tsbuildinfo .nitro .output .tanstack dist && bun install",
+    "clean:hard": "rm -rf node_modules tsconfig.tsbuildinfo .nitro .output .tanstack dist bun.lock && bun install",
     "db:generate": "drizzle-kit generate",
     "db:generate:custom": "drizzle-kit generate --custom",
     "db:drop": "drizzle-kit drop",
@@ -52,7 +49,6 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.25.0",
     "@eslint/js": "^9.39.2",
     "@tanstack/eslint-plugin-router": "^1.155.0",
     "@tanstack/nitro-v2-vite-plugin": "^1.154.7",
@@ -74,7 +70,6 @@
     "typescript-eslint": "^8.55.0",
     "vite": "^7.3.1",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.0.18",
-    "wrangler": "^4.65.0"
+    "vitest": "^4.0.18"
   }
 }

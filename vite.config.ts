@@ -5,30 +5,19 @@ import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import metadata from "./metadata.json";
 import { neonTesting } from "neon-testing/vite";
-import { cloudflare } from "@cloudflare/vite-plugin";
+import { nitroV2Plugin } from "@tanstack/nitro-v2-vite-plugin";
 
 export default defineConfig({
   server: {
     port: metadata.dev.port,
   },
   plugins: [
-    // Cloudflare plugin rejects resolve.external; Vitest's SSR env sets it for Node built-ins.
-    // Exclude when running tests so Vitest can start.
-    // cloudflare({ viteEnvironment: { name: "ssr" } }),
-    // ...(process.env.VITEST !== "true"
-    //   ? [cloudflare({ viteEnvironment: { name: "ssr" } })]
-    //   : []),
-    // tsConfigPaths(),
-    // tanstackStart(),
-    // // https://tanstack.com/start/latest/docs/framework/react/guide/hosting#nitro
-    // // nitroV2Plugin(),
-    // viteReact(),
-    // tailwindcss(),
-    tailwindcss(),
-    tsConfigPaths({ projects: ["./tsconfig.json"] }),
-    cloudflare({ viteEnvironment: { name: "ssr" } }),
+    tsConfigPaths(),
     tanstackStart(),
+    // https://tanstack.com/start/latest/docs/framework/react/guide/hosting#nitro
+    nitroV2Plugin(),
     viteReact(),
+    tailwindcss(),
     neonTesting(),
   ],
   // TODO: Remove this once Clerk has removed SWR

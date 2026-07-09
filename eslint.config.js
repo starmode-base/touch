@@ -25,7 +25,6 @@ export default defineConfig([
       "dist/*",
       "chrome/*",
       "**/*.{js,mjs,cjs,jsx}",
-      "worker-configuration.d.ts",
     ],
   },
 

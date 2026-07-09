@@ -2,12 +2,12 @@ import { drizzle } from "drizzle-orm/neon-serverless";
 import { lazySingleton } from "neon-testing/utils";
 import * as schema from "./schema";
 import * as relations from "./relations";
-// import { ensureEnv } from "~/lib/env";
-// import { env } from "cloudflare:workers";
+import invariant from "tiny-invariant";
 
 const db = lazySingleton(() => {
-  // console.log("env.DATABASE_URL", env.DATABASE_URL);
-  return drizzle(process.env.DATABASE_URL, {
+  const url = process.env.DATABASE_URL;
+  invariant(url, "DATABASE_URL is required");
+  return drizzle(url, {
     // casing: "snake_case",
     schema: { ...schema, ...relations },
   });
