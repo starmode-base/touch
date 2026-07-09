@@ -62,3 +62,15 @@ export const deleteContactRoleAssignmentSF = createServerFn({ method: "POST" })
       return { txid };
     });
   });
+
+/**
+ * List contact role assignments
+ */
+export const listContactRoleAssignmentsSF = createServerFn({ method: "GET" })
+  .middleware([ensureViewerMiddleware])
+  .handler(async ({ context }) => {
+    return db()
+      .select()
+      .from(schema.contactRoleAssignments)
+      .where(eq(schema.contactRoleAssignments.user_id, context.viewer.id));
+  });

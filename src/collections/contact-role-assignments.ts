@@ -1,18 +1,22 @@
-import { electricCollectionOptions } from "@tanstack/electric-db-collection";
 import { createCollection } from "@tanstack/react-db";
+import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import z from "zod";
+import { queryClient } from "~/lib/query-client";
 import {
   createContactRoleAssignmentSF,
   deleteContactRoleAssignmentSF,
+  listContactRoleAssignmentsSF,
 } from "~/server-functions/contact-role-assignments";
 
 /**
- * Contact role assignments collection (Electric)
+ * Contact role assignments collection
  */
-
 export const contactRoleAssignmentsCollection = createCollection(
-  electricCollectionOptions({
-    id: "contact-role-assignments-electric",
+  queryCollectionOptions({
+    id: "contact-role-assignments",
+    queryKey: ["contact-role-assignments"],
+    queryFn: () => listContactRoleAssignmentsSF(),
+    queryClient,
     schema: z.object({
       contact_id: z.string(),
       contact_role_id: z.string(),
@@ -21,23 +25,15 @@ export const contactRoleAssignmentsCollection = createCollection(
     getKey: (item) => {
       return item.contact_id + "|" + item.contact_role_id;
     },
-    shapeOptions: {
-      url: new URL(
-        `/api/contact-role-assignments`,
-        window.location.origin,
-      ).toString(),
-    },
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
         contactId: item.modified.contact_id,
         contactRoleId: item.modified.contact_role_id,
       }));
 
-      const txid = await Promise.all(
+      await Promise.all(
         data.map((item) => createContactRoleAssignmentSF({ data: item })),
       );
-
-      return { txid: txid.map((item) => item.txid) };
     },
     onDelete: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
@@ -45,11 +41,9 @@ export const contactRoleAssignmentsCollection = createCollection(
         contactRoleId: item.modified.contact_role_id,
       }));
 
-      const txid = await Promise.all(
+      await Promise.all(
         data.map((item) => deleteContactRoleAssignmentSF({ data: item })),
       );
-
-      return { txid: txid.map((item) => item.txid) };
     },
   }),
 );

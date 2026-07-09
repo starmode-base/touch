@@ -119,3 +119,15 @@ export const deletePasskeySF = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     return deletePasskey(data.ids, context.viewer.id);
   });
+
+/**
+ * List passkeys
+ */
+export const listPasskeysSF = createServerFn({ method: "GET" })
+  .middleware([ensureViewerMiddleware])
+  .handler(async ({ context }) => {
+    return db()
+      .select()
+      .from(schema.passkeys)
+      .where(eq(schema.passkeys.user_id, context.viewer.id));
+  });

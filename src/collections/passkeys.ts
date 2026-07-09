@@ -1,7 +1,12 @@
 import { createCollection } from "@tanstack/react-db";
-import { electricCollectionOptions } from "@tanstack/electric-db-collection";
+import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import z from "zod";
-import { storePasskeySF, deletePasskeySF } from "~/server-functions/passkeys";
+import { queryClient } from "~/lib/query-client";
+import {
+  storePasskeySF,
+  deletePasskeySF,
+  listPasskeysSF,
+} from "~/server-functions/passkeys";
 
 const Passkey = z.object({
   id: z.string(),
@@ -23,21 +28,16 @@ const Passkey = z.object({
 export type Passkey = z.infer<typeof Passkey>;
 
 /**
- * Passkeys collection (Electric)
+ * Passkeys collection
  */
 export const passkeysCollection = createCollection(
-  electricCollectionOptions({
-    id: "passkeys-electric",
+  queryCollectionOptions({
+    id: "passkeys",
+    queryKey: ["passkeys"],
+    queryFn: () => listPasskeysSF(),
+    queryClient,
     schema: Passkey,
     getKey: (item) => item.id,
-    shapeOptions: {
-      url: new URL(
-        `/api/passkeys`,
-        typeof window !== "undefined"
-          ? window.location.origin
-          : "http://localhost",
-      ).toString(),
-    },
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
         credentialId: item.modified.credential_id,
@@ -58,9 +58,7 @@ export const passkeysCollection = createCollection(
     onDelete: async ({ transaction }) => {
       const ids = transaction.mutations.map((item) => item.modified.id);
 
-      const txid = await deletePasskeySF({ data: { ids } });
-
-      return { txid };
+      await deletePasskeySF({ data: { ids } });
     },
   }),
 );

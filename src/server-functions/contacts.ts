@@ -239,3 +239,15 @@ export const deleteContactSF = createServerFn({ method: "POST" })
       return txid;
     });
   });
+
+/**
+ * List contacts
+ */
+export const listContactsSF = createServerFn({ method: "GET" })
+  .middleware([ensureViewerMiddleware])
+  .handler(async ({ context }) => {
+    return db()
+      .select()
+      .from(schema.contacts)
+      .where(eq(schema.contacts.user_id, context.viewer.id));
+  });
