@@ -36,6 +36,9 @@ export const passkeysCollection = createCollection(
     queryKey: ["passkeys"],
     queryFn: () => listPasskeysSF(),
     queryClient,
+    // Only sync in the browser: during SSR there is no Start context for
+    // server-function RPC calls
+    enabled: typeof window !== "undefined",
     schema: Passkey,
     getKey: (item) => item.id,
     onInsert: async ({ transaction }) => {

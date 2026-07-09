@@ -18,7 +18,7 @@ export const createContactRoleAssignmentInputSchema = z.object({
  */
 export const createContactRoleAssignmentSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(createContactRoleAssignmentInputSchema)
+  .validator(createContactRoleAssignmentInputSchema)
   .handler(async ({ data, context }) => {
     await db().insert(schema.contactRoleAssignments).values({
       contact_id: data.contactId,
@@ -32,7 +32,7 @@ export const createContactRoleAssignmentSF = createServerFn({ method: "POST" })
  */
 export const deleteContactRoleAssignmentSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(
+  .validator(
     z.object({
       contactId: SecureToken,
       contactRoleId: SecureToken,

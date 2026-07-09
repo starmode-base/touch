@@ -44,6 +44,9 @@ const contactsCollectionEncrypted = createCollection(
     queryKey: ["contacts"],
     queryFn: () => listContactsSF(),
     queryClient,
+    // Only sync in the browser: during SSR there is no Start context for
+    // server-function RPC calls
+    enabled: typeof window !== "undefined",
     schema: Contact,
     getKey: (item) => item.id,
 
@@ -227,7 +230,10 @@ export const contactsStore = {
   },
 
   /** Update an existing contact */
-  update: async (id: string, data: { name: string; linkedin?: string }) => {
+  update: async (
+    id: string,
+    data: { name: string; linkedin?: string | undefined },
+  ) => {
     const dek = await getSessionDek();
     if (!dek) {
       throw new Error("Encryption not ready. Please unlock or wait for sync.");

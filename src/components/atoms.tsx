@@ -83,9 +83,9 @@ function Chip(props: {
 
 export function ContactCard(props: {
   name: string;
-  linkedin?: string;
+  linkedin?: string | undefined;
   onDelete: () => void;
-  onUpdate: (args: { name: string; linkedin?: string }) => void;
+  onUpdate: (args: { name: string; linkedin?: string | undefined }) => void;
   roles: { id: string; name: string }[];
   activeRoles: { id: string; name: string }[];
   onRoleClick: (roleId: string) => void;
@@ -174,7 +174,7 @@ export function ContactCard(props: {
 }
 
 export function EditInput(props: {
-  displayValue?: string;
+  displayValue?: string | undefined;
   value: string;
   onUpdate: (value: string) => void;
   type: "text" | "link";

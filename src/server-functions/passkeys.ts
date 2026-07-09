@@ -10,7 +10,7 @@ import { SecureToken } from "~/lib/validators";
  */
 export const storePasskeySF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(
+  .validator(
     z.object({
       credentialId: z.string(),
       publicKey: z.string(),
@@ -110,7 +110,7 @@ export function deletePasskey(
  */
 export const deletePasskeySF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(z.object({ ids: SecureToken.array() }))
+  .validator(z.object({ ids: SecureToken.array() }))
   .handler(async ({ data, context }) => {
     return deletePasskey(data.ids, context.viewer.id);
   });

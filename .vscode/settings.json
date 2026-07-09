@@ -3,8 +3,11 @@
   "editor.accessibilitySupport": "off",
   "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.detectIndentation": false,
   "editor.formatOnSave": true,
+  "editor.insertSpaces": true,
   "editor.rulers": [80],
+  "editor.tabSize": 2,
   "files.associations": { "*.css": "tailwindcss" },
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
@@ -15,12 +18,14 @@
     "**/routeTree.gen.ts": true
   },
   "search.exclude": {
+    "**/routeTree.gen.ts": true,
     "**/bun.lock": true,
-    "**/skills/**": true,
-    "**/routeTree.gen.ts": true
+    "**/skills/**": true
   },
   "files.readonlyInclude": {
     "**/routeTree.gen.ts": true
   },
-  "tailwindCSS.experimental.configFile": "src/styles/app.css"
+  "tailwindCSS.experimental.configFile": "src/styles/app.css",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "js/ts.tsdk.path": "node_modules/typescript/lib"
 }
