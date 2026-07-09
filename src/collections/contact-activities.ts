@@ -1,13 +1,18 @@
 import { createCollection } from "@tanstack/react-db";
-import { electricCollectionOptions } from "@tanstack/electric-db-collection";
+import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import z from "zod";
+import { queryClient } from "~/lib/query-client";
+import { listContactActivitiesSF } from "~/server-functions/contact-activities";
 
 /**
- * Contact activities collection (Electric)
+ * Contact activities collection
  */
 export const contactActivitiesCollection = createCollection(
-  electricCollectionOptions({
-    id: "contact-activities-electric",
+  queryCollectionOptions({
+    id: "contact-activities",
+    queryKey: ["contact-activities"],
+    queryFn: () => listContactActivitiesSF(),
+    queryClient,
     schema: z.object({
       id: z.string(),
       created_at: z.string(),
@@ -17,17 +22,13 @@ export const contactActivitiesCollection = createCollection(
       happened_at: z.string(),
       kind: z.string(),
       body: z.string(),
-      details: z.object({
-        name: z.string(),
-        linkedin: z.string().nullable(),
-      }),
+      details: z
+        .object({
+          name: z.string(),
+          linkedin: z.string().nullable(),
+        })
+        .nullable(),
     }),
     getKey: (item) => item.id,
-    shapeOptions: {
-      url: new URL(
-        `/api/contact-activities`,
-        window.location.origin,
-      ).toString(),
-    },
   }),
 );

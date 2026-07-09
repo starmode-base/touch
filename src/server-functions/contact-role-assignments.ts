@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { db, schema } from "~/postgres/db";
 import { z } from "zod";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
-import { generateTxId } from "~/postgres/helpers";
 import { and, eq } from "drizzle-orm";
 import { SecureToken } from "~/lib/validators";
 
@@ -21,19 +20,10 @@ export const createContactRoleAssignmentSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
   .inputValidator(createContactRoleAssignmentInputSchema)
   .handler(async ({ data, context }) => {
-    return db().transaction(async (tx) => {
-      const txid = await generateTxId(tx);
-
-      await tx
-        .insert(schema.contactRoleAssignments)
-        .values({
-          contact_id: data.contactId,
-          contact_role_id: data.contactRoleId,
-          user_id: context.viewer.id,
-        })
-        .returning();
-
-      return { txid };
+    await db().insert(schema.contactRoleAssignments).values({
+      contact_id: data.contactId,
+      contact_role_id: data.contactRoleId,
+      user_id: context.viewer.id,
     });
   });
 
@@ -49,9 +39,9 @@ export const deleteContactRoleAssignmentSF = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    return db().transaction(async (tx) => {
-      const txid = await generateTxId(tx);
-      await tx.delete(schema.contactRoleAssignments).where(
+    await db()
+      .delete(schema.contactRoleAssignments)
+      .where(
         and(
           // TODO: Consider adding a surrogate primary key to the table
           eq(schema.contactRoleAssignments.user_id, context.viewer.id),
@@ -59,6 +49,16 @@ export const deleteContactRoleAssignmentSF = createServerFn({ method: "POST" })
           eq(schema.contactRoleAssignments.contact_role_id, data.contactRoleId),
         ),
       );
-      return { txid };
-    });
+  });
+
+/**
+ * List contact role assignments
+ */
+export const listContactRoleAssignmentsSF = createServerFn({ method: "GET" })
+  .middleware([ensureViewerMiddleware])
+  .handler(async ({ context }) => {
+    return db()
+      .select()
+      .from(schema.contactRoleAssignments)
+      .where(eq(schema.contactRoleAssignments.user_id, context.viewer.id));
   });

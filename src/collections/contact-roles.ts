@@ -1,14 +1,18 @@
-import { electricCollectionOptions } from "@tanstack/electric-db-collection";
 import { createCollection } from "@tanstack/react-db";
+import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import z from "zod";
+import { queryClient } from "~/lib/query-client";
+import { listContactRolesSF } from "~/server-functions/contact-roles";
 
 /**
- * Contact roles collection (Electric)
+ * Contact roles collection
  */
-
 export const contactRolesCollection = createCollection(
-  electricCollectionOptions({
-    id: "contact-roles-electric",
+  queryCollectionOptions({
+    id: "contact-roles",
+    queryKey: ["contact-roles"],
+    queryFn: () => listContactRolesSF(),
+    queryClient,
     schema: z.object({
       id: z.string(),
       key: z.string(),
@@ -16,8 +20,5 @@ export const contactRolesCollection = createCollection(
       user_id: z.string(),
     }),
     getKey: (item) => item.id,
-    shapeOptions: {
-      url: new URL(`/api/contact-roles`, window.location.origin).toString(),
-    },
   }),
 );

@@ -29,11 +29,11 @@
   },
   "dependencies": {
     "@clerk/tanstack-react-start": "^0.29.2",
-    "@electric-sql/client": "^1.5.5",
     "@heroicons/react": "^2.2.0",
     "@neondatabase/serverless": "^1.0.2",
     "@tailwindcss/vite": "^4.1.18",
-    "@tanstack/electric-db-collection": "^0.2.33",
+    "@tanstack/query-core": "^5.101.2",
+    "@tanstack/query-db-collection": "1.0.23",
     "@tanstack/react-db": "^0.1.70",
     "@tanstack/react-router": "^1.160.0",
     "@tanstack/react-router-devtools": "^1.160.0",

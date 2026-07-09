@@ -68,7 +68,7 @@ async function createPasskey(dek: CryptoBytes) {
     userName: "Touch" + new Date().toISOString(),
   });
 
-  // Insert into Electric collection (will sync to server via onInsert)
+  // Insert into passkeys collection (will sync to server via onInsert)
   passkeysCollection.insert({
     id: genSecureToken(),
     created_at: new Date().toISOString(),
@@ -149,6 +149,6 @@ export async function lockAction() {
 
 // Delete passkey operation
 export function deletePasskeyAction(id: string) {
-  // Delete from Electric collection (will sync to server via onDelete)
+  // Delete from passkeys collection (will sync to server via onDelete)
   passkeysCollection.delete(id);
 }

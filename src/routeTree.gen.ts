@@ -12,11 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiPasskeysRouteImport } from './routes/api.passkeys'
-import { Route as ApiContactsRouteImport } from './routes/api.contacts'
-import { Route as ApiContactRolesRouteImport } from './routes/api.contact-roles'
-import { Route as ApiContactRoleAssignmentsRouteImport } from './routes/api.contact-role-assignments'
-import { Route as ApiContactActivitiesRouteImport } from './routes/api.contact-activities'
 import { Route as ApiChromeRouteImport } from './routes/api.chrome'
 import { Route as AuthSettingsRouteImport } from './routes/_auth.settings'
 import { Route as AuthOpportunitiesRouteImport } from './routes/_auth.opportunities'
@@ -38,32 +33,6 @@ const AuthRoute = AuthRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPasskeysRoute = ApiPasskeysRouteImport.update({
-  id: '/api/passkeys',
-  path: '/api/passkeys',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiContactsRoute = ApiContactsRouteImport.update({
-  id: '/api/contacts',
-  path: '/api/contacts',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiContactRolesRoute = ApiContactRolesRouteImport.update({
-  id: '/api/contact-roles',
-  path: '/api/contact-roles',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiContactRoleAssignmentsRoute =
-  ApiContactRoleAssignmentsRouteImport.update({
-    id: '/api/contact-role-assignments',
-    path: '/api/contact-role-assignments',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiContactActivitiesRoute = ApiContactActivitiesRouteImport.update({
-  id: '/api/contact-activities',
-  path: '/api/contact-activities',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChromeRoute = ApiChromeRouteImport.update({
@@ -114,11 +83,6 @@ export interface FileRoutesByFullPath {
   '/opportunities': typeof AuthOpportunitiesRouteWithChildren
   '/settings': typeof AuthSettingsRouteWithChildren
   '/api/chrome': typeof ApiChromeRoute
-  '/api/contact-activities': typeof ApiContactActivitiesRoute
-  '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
-  '/api/contact-roles': typeof ApiContactRolesRoute
-  '/api/contacts': typeof ApiContactsRoute
-  '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof AuthContactsContactRoute
   '/contacts/': typeof AuthContactsIndexRoute
   '/opportunities/': typeof AuthOpportunitiesIndexRoute
@@ -128,11 +92,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/api/chrome': typeof ApiChromeRoute
-  '/api/contact-activities': typeof ApiContactActivitiesRoute
-  '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
-  '/api/contact-roles': typeof ApiContactRolesRoute
-  '/api/contacts': typeof ApiContactsRoute
-  '/api/passkeys': typeof ApiPasskeysRoute
   '/contacts/$contact': typeof AuthContactsContactRoute
   '/contacts': typeof AuthContactsIndexRoute
   '/opportunities': typeof AuthOpportunitiesIndexRoute
@@ -147,11 +106,6 @@ export interface FileRoutesById {
   '/_auth/opportunities': typeof AuthOpportunitiesRouteWithChildren
   '/_auth/settings': typeof AuthSettingsRouteWithChildren
   '/api/chrome': typeof ApiChromeRoute
-  '/api/contact-activities': typeof ApiContactActivitiesRoute
-  '/api/contact-role-assignments': typeof ApiContactRoleAssignmentsRoute
-  '/api/contact-roles': typeof ApiContactRolesRoute
-  '/api/contacts': typeof ApiContactsRoute
-  '/api/passkeys': typeof ApiPasskeysRoute
   '/_auth/contacts/$contact': typeof AuthContactsContactRoute
   '/_auth/contacts/': typeof AuthContactsIndexRoute
   '/_auth/opportunities/': typeof AuthOpportunitiesIndexRoute
@@ -166,11 +120,6 @@ export interface FileRouteTypes {
     | '/opportunities'
     | '/settings'
     | '/api/chrome'
-    | '/api/contact-activities'
-    | '/api/contact-role-assignments'
-    | '/api/contact-roles'
-    | '/api/contacts'
-    | '/api/passkeys'
     | '/contacts/$contact'
     | '/contacts/'
     | '/opportunities/'
@@ -180,11 +129,6 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/api/chrome'
-    | '/api/contact-activities'
-    | '/api/contact-role-assignments'
-    | '/api/contact-roles'
-    | '/api/contacts'
-    | '/api/passkeys'
     | '/contacts/$contact'
     | '/contacts'
     | '/opportunities'
@@ -198,11 +142,6 @@ export interface FileRouteTypes {
     | '/_auth/opportunities'
     | '/_auth/settings'
     | '/api/chrome'
-    | '/api/contact-activities'
-    | '/api/contact-role-assignments'
-    | '/api/contact-roles'
-    | '/api/contacts'
-    | '/api/passkeys'
     | '/_auth/contacts/$contact'
     | '/_auth/contacts/'
     | '/_auth/opportunities/'
@@ -214,11 +153,6 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   ApiChromeRoute: typeof ApiChromeRoute
-  ApiContactActivitiesRoute: typeof ApiContactActivitiesRoute
-  ApiContactRoleAssignmentsRoute: typeof ApiContactRoleAssignmentsRoute
-  ApiContactRolesRoute: typeof ApiContactRolesRoute
-  ApiContactsRoute: typeof ApiContactsRoute
-  ApiPasskeysRoute: typeof ApiPasskeysRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -242,41 +176,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/passkeys': {
-      id: '/api/passkeys'
-      path: '/api/passkeys'
-      fullPath: '/api/passkeys'
-      preLoaderRoute: typeof ApiPasskeysRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/contacts': {
-      id: '/api/contacts'
-      path: '/api/contacts'
-      fullPath: '/api/contacts'
-      preLoaderRoute: typeof ApiContactsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/contact-roles': {
-      id: '/api/contact-roles'
-      path: '/api/contact-roles'
-      fullPath: '/api/contact-roles'
-      preLoaderRoute: typeof ApiContactRolesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/contact-role-assignments': {
-      id: '/api/contact-role-assignments'
-      path: '/api/contact-role-assignments'
-      fullPath: '/api/contact-role-assignments'
-      preLoaderRoute: typeof ApiContactRoleAssignmentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/contact-activities': {
-      id: '/api/contact-activities'
-      path: '/api/contact-activities'
-      fullPath: '/api/contact-activities'
-      preLoaderRoute: typeof ApiContactActivitiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chrome': {
@@ -394,11 +293,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   ApiChromeRoute: ApiChromeRoute,
-  ApiContactActivitiesRoute: ApiContactActivitiesRoute,
-  ApiContactRoleAssignmentsRoute: ApiContactRoleAssignmentsRoute,
-  ApiContactRolesRoute: ApiContactRolesRoute,
-  ApiContactsRoute: ApiContactsRoute,
-  ApiPasskeysRoute: ApiPasskeysRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

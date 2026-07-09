@@ -3,7 +3,6 @@ import { db, schema } from "~/postgres/db";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { z } from "zod";
 import { eq, and, inArray } from "drizzle-orm";
-import { generateTxId } from "~/postgres/helpers";
 import { SecureToken } from "~/lib/validators";
 
 /**
@@ -65,8 +64,6 @@ export function deletePasskey(
   hooks?: { onTxBegin?: () => Promise<void> | void },
 ) {
   return db().transaction(async (tx) => {
-    const txid = await generateTxId(tx);
-
     // Test hook: Synchronizes concurrent transactions to reliably expose race
     // conditions when row locking is absent
     if (hooks?.onTxBegin) {
@@ -74,7 +71,7 @@ export function deletePasskey(
     }
 
     if (ids.length === 0) {
-      return txid;
+      return;
     }
 
     // Check total passkey count for user
@@ -101,8 +98,6 @@ export function deletePasskey(
           inArray(schema.passkeys.id, ids),
         ),
       );
-
-    return txid;
   });
 }
 
@@ -118,4 +113,16 @@ export const deletePasskeySF = createServerFn({ method: "POST" })
   .inputValidator(z.object({ ids: SecureToken.array() }))
   .handler(async ({ data, context }) => {
     return deletePasskey(data.ids, context.viewer.id);
+  });
+
+/**
+ * List passkeys
+ */
+export const listPasskeysSF = createServerFn({ method: "GET" })
+  .middleware([ensureViewerMiddleware])
+  .handler(async ({ context }) => {
+    return db()
+      .select()
+      .from(schema.passkeys)
+      .where(eq(schema.passkeys.user_id, context.viewer.id));
   });

@@ -22,11 +22,8 @@ describe("deletePasskey", () => {
     // Setup: Create a user with no passkeys
     const user = await seedUser();
 
-    // Act: Delete zero ids
-    const txid = await deletePasskey([], user.id);
-
-    // Assert: Operation succeeds (nothing to delete)
-    expect(txid).toBeDefined();
+    // Act: Delete zero ids (succeeds, nothing to delete)
+    await deletePasskey([], user.id);
 
     const passkeys = await db()
       .select()
@@ -61,11 +58,9 @@ describe("deletePasskey", () => {
     const passkey2 = await seedPasskey(user.id);
 
     // Act: Delete one passkey
-    const txid = await deletePasskey([passkey1.id], user.id);
+    await deletePasskey([passkey1.id], user.id);
 
     // Assert: Operation succeeds, one passkey remains
-    expect(txid).toBeDefined();
-
     const passkeys = await db()
       .select()
       .from(schema.passkeys)
@@ -101,11 +96,9 @@ describe("deletePasskey", () => {
     const passkey3 = await seedPasskey(user.id);
 
     // Act: Delete two passkeys
-    const txid = await deletePasskey([passkey1.id, passkey2.id], user.id);
+    await deletePasskey([passkey1.id, passkey2.id], user.id);
 
     // Assert: Operation succeeds, one passkey remains
-    expect(txid).toBeDefined();
-
     const passkeys = await db()
       .select()
       .from(schema.passkeys)
@@ -122,14 +115,9 @@ describe("deletePasskey", () => {
     const passkey3 = await seedPasskey(user.id);
 
     // Act: Delete two passkeys (ignoring unknown passkey ID)
-    const txid = await deletePasskey(
-      [passkey1.id, "unknown", passkey2.id],
-      user.id,
-    );
+    await deletePasskey([passkey1.id, "unknown", passkey2.id], user.id);
 
     // Assert: Operation succeeds, one passkey remains
-    expect(txid).toBeDefined();
-
     const passkeys = await db()
       .select()
       .from(schema.passkeys)

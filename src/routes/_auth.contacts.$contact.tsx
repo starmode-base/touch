@@ -39,8 +39,8 @@ function RouteComponent() {
           >
             <div>{contactActivity.kind}</div>
             <div>{contactActivity.happened_at}</div>
-            <div>{contactActivity.details.name}</div>
-            <div>{contactActivity.details.linkedin}</div>
+            <div>{contactActivity.details?.name}</div>
+            <div>{contactActivity.details?.linkedin}</div>
           </div>
         ))}
       </div>

@@ -1,21 +1,21 @@
 /**
  * Examples
  *
- * https://github.com/electric-sql/electric/tree/main/examples/tanstack-db-web-starter
- * https://electric-sql.com/blog/2025/07/29/local-first-sync-with-tanstack-db
- * https://tanstack.com/db/latest/docs/overview#2-electricsql-sync
- * https://tanstack.com/db/latest/docs/collections/electric-collection
+ * https://tanstack.com/db/latest/docs/overview
+ * https://tanstack.com/db/latest/docs/collections/query-collection
  * https://github.com/TanStack/db/tree/main/examples/react
  */
 import {
   createCollection,
   localOnlyCollectionOptions,
 } from "@tanstack/react-db";
-import { electricCollectionOptions } from "@tanstack/electric-db-collection";
+import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import z from "zod";
+import { queryClient } from "~/lib/query-client";
 import {
   createContactSF,
   deleteContactSF,
+  listContactsSF,
   updateContactSF,
 } from "~/server-functions/contacts";
 import { decryptField, encryptField } from "~/lib/e2ee";
@@ -36,34 +36,26 @@ const Contact = z.object({
 type Contact = z.infer<typeof Contact>;
 
 /**
- * Encrypted contacts collection (Electric-backed)
+ * Encrypted contacts collection (server-backed)
  */
 const contactsCollectionEncrypted = createCollection(
-  electricCollectionOptions({
+  queryCollectionOptions({
     id: "contacts-encrypted",
+    queryKey: ["contacts"],
+    queryFn: () => listContactsSF(),
+    queryClient,
     schema: Contact,
     getKey: (item) => item.id,
-    shapeOptions: {
-      url: new URL(
-        `/api/contacts`,
-        typeof window !== "undefined"
-          ? window.location.origin
-          : "http://localhost",
-      ).toString(),
-    },
 
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => {
         return {
-          userId: item.modified.user_id,
           name: item.modified.name,
           linkedin: item.modified.linkedin,
         };
       });
 
-      const txid = await createContactSF({ data });
-
-      return { txid };
+      await createContactSF({ data });
     },
     onUpdate: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
@@ -76,16 +68,12 @@ const contactsCollectionEncrypted = createCollection(
         },
       }));
 
-      const txid = await updateContactSF({ data });
-
-      return { txid };
+      await updateContactSF({ data });
     },
     onDelete: async ({ transaction }) => {
       const ids = transaction.mutations.map((item) => item.modified.id);
 
-      const txid = await deleteContactSF({ data: { ids } });
-
-      return { txid };
+      await deleteContactSF({ data: { ids } });
     },
   }),
 );
@@ -107,7 +95,7 @@ const contactsCollection = createCollection(
  * Decryption queue
  *
  * Holds IDs of contacts that need to be decrypted. Events are queued here
- * when they arrive from Electric, and processed when DEK becomes available.
+ * when they arrive from the server, and processed when DEK becomes available.
  */
 const decryptionQueue = new Set<string>();
 
@@ -262,7 +250,7 @@ export const contactsStore = {
    * Clear all data (encrypted, decrypted, and queue)
    *
    * Called when locking DEK or signing out. Clears everything including
-   * the encrypted collection, which will stop Electric sync.
+   * the encrypted collection, which will stop syncing.
    */
   clear: async () => {
     // Clean up the encrypted collection by stopping sync and clearing data
