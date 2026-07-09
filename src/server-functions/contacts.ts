@@ -33,7 +33,7 @@ export const createContactInputSchema =
  */
 export const createContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(z.array(createContactInputSchemaEncrypted))
+  .validator(z.array(createContactInputSchemaEncrypted))
   .handler(async ({ data, context }) => {
     return db().transaction(async (tx) => {
       // Create each contact in the same transaction
@@ -72,7 +72,7 @@ export const createContactSF = createServerFn({ method: "POST" })
  */
 export const updateContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(
+  .validator(
     z.array(
       z.object({
         key: z.object({
@@ -146,7 +146,7 @@ export const upsertContactInputSchema =
  */
 export const upsertContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(upsertContactInputSchemaEncrypted)
+  .validator(upsertContactInputSchemaEncrypted)
   .handler(async ({ data, context }) => {
     return db().transaction(async (tx) => {
       // Try to create the contact first
@@ -213,7 +213,7 @@ export const upsertContactSF = createServerFn({ method: "POST" })
  */
 export const deleteContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .inputValidator(z.object({ ids: SecureToken.array() }))
+  .validator(z.object({ ids: SecureToken.array() }))
   .handler(async ({ data, context }) => {
     await db()
       .delete(schema.contacts)
