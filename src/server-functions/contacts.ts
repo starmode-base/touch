@@ -10,7 +10,6 @@ import {
 } from "~/lib/validators";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import invariant from "tiny-invariant";
-import { generateTxId } from "~/postgres/helpers";
 
 /**
  * Validation schema for creating a contact (for server-side validation)
@@ -37,8 +36,6 @@ export const createContactSF = createServerFn({ method: "POST" })
   .inputValidator(z.array(createContactInputSchemaEncrypted))
   .handler(async ({ data, context }) => {
     return db().transaction(async (tx) => {
-      const txid = await generateTxId(tx);
-
       // Create each contact in the same transaction
       await Promise.all(
         data.map(async (item) => {
@@ -67,8 +64,6 @@ export const createContactSF = createServerFn({ method: "POST" })
           });
         }),
       );
-
-      return txid;
     });
   });
 
@@ -92,8 +87,6 @@ export const updateContactSF = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     return db().transaction(async (tx) => {
-      const txid = await generateTxId(tx);
-
       // Update each contact in the same transaction
       await Promise.all(
         data.map(async (item) => {
@@ -125,8 +118,6 @@ export const updateContactSF = createServerFn({ method: "POST" })
           });
         }),
       );
-
-      return txid;
     });
   });
 
@@ -224,20 +215,14 @@ export const deleteContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
   .inputValidator(z.object({ ids: SecureToken.array() }))
   .handler(async ({ data, context }) => {
-    return db().transaction(async (tx) => {
-      const txid = await generateTxId(tx);
-
-      await tx
-        .delete(schema.contacts)
-        .where(
-          and(
-            eq(schema.contacts.user_id, context.viewer.id),
-            inArray(schema.contacts.id, data.ids),
-          ),
-        );
-
-      return txid;
-    });
+    await db()
+      .delete(schema.contacts)
+      .where(
+        and(
+          eq(schema.contacts.user_id, context.viewer.id),
+          inArray(schema.contacts.id, data.ids),
+        ),
+      );
   });
 
 /**
