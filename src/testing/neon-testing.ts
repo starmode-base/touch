@@ -1,4 +1,4 @@
-import { makeNeonTesting } from "neon-testing";
+import { makeNeonTesting } from "neon-testing/vitest";
 
 const apiKey = process.env.NEON_API_KEY;
 const projectId = process.env.NEON_PROJECT_ID;
