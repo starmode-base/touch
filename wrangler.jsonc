@@ -4,18 +4,14 @@
   "main": "@tanstack/react-start/server-entry",
   "compatibility_date": "2026-07-01",
   "compatibility_flags": ["nodejs_compat"],
-  // Create the Hyperdrive config (dashboard or API), then fill in the id.
-  // Until then the app falls back to connecting directly via DATABASE_URL.
-  // Local dev reads WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE
-  // from the environment (set it in .env).
-  // "hyperdrive": [
-  //   {
-  //     "binding": "HYPERDRIVE",
-  //     "id": "<hyperdrive-config-id>"
-  //   }
-  // ],
   "observability": {
     "enabled": true,
   },
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "8db26ed18bdf44fa9092d3946fa21f8a",
+    },
+  ],
   "account_id": "2d2d507f9bf33bb828cbe7407de74630",
 }
