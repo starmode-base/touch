@@ -12,3 +12,6 @@ src/statement-parser/test-data
 
 # Chrome
 chrome/*.js
+
+# Skills
+.agents/skills/
