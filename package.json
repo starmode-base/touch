@@ -12,6 +12,7 @@
     "start": "PORT=$(scripts/start.ts) node -r dotenv/config .output/server/index.mjs",
     "preview": "vite preview",
     "format": "prettier --write .",
+    "cf-typegen": "wrangler types",
     "lint": "eslint --max-warnings 0 --fix",
     "test": "vitest",
     "env:pull": "bunx vercel@latest env pull .env",
