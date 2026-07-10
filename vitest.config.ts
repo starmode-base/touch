@@ -9,6 +9,17 @@ import tsConfigPaths from "vite-tsconfig-paths";
  */
 export default defineConfig({
   plugins: [tsConfigPaths()],
+  resolve: {
+    alias: {
+      // Tests run in Node: emulate the Workers runtime module locally, like
+      // wrangler's CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_* does for
+      // local dev
+      "cloudflare:workers": new URL(
+        "./src/testing/cloudflare-workers.ts",
+        import.meta.url,
+      ).pathname,
+    },
+  },
   test: {
     setupFiles: ["neon-testing/setup", "vitest.clerk.setup.ts"],
     testTimeout: 10000,
