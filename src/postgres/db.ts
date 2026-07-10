@@ -1,15 +1,16 @@
 import { drizzle } from "drizzle-orm/neon-serverless";
-import { lazySingleton } from "neon-testing/utils";
 import * as schema from "./schema";
 import * as relations from "./relations";
 import { ensureEnv } from "~/lib/env";
 
-const db = lazySingleton(() => {
+// A fresh client per call: Cloudflare Workers forbid sharing I/O objects
+// (like the Neon WebSocket pool) across requests
+const db = () => {
   return drizzle(ensureEnv().DATABASE_URL, {
     // casing: "snake_case",
     schema: { ...schema, ...relations },
   });
-});
+};
 
 export { db, schema };
 
