@@ -13,5 +13,6 @@
       "id": "8db26ed18bdf44fa9092d3946fa21f8a",
     },
   ],
+  "placement": { "region": "aws:us-east-1" },
   "account_id": "2d2d507f9bf33bb828cbe7407de74630",
 }
