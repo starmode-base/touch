@@ -15,10 +15,11 @@
   },
   "scripts": {
     "dev": "vite dev",
-    "build": "prettier --check . && eslint --max-warnings 0 && vite build && tsc --noEmit && drizzle-kit migrate && vitest run",
+    "build": "bun run check && vite build && tsc --noEmit && drizzle-kit migrate && vitest run",
     "preview": "vite preview",
     "deploy": "bun run build && wrangler deploy",
-    "format": "prettier --write .",
+    "format": "prettier --write . && eslint --fix",
+    "check": "prettier --check . && eslint --max-warnings 0",
     "cf-typegen": "wrangler types",
     "lint": "eslint --max-warnings 0 --fix",
     "test": "vitest",
