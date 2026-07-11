@@ -4,8 +4,8 @@ import tsConfigPaths from "vite-tsconfig-paths";
 
 /**
  * Standalone Vitest config: tests run in Node and must not load the
- * Cloudflare plugin from vite.config.ts (it conflicts with Vitest's SSR
- * environment)
+ * Cloudflare plugin from vite.config.ts — the plugin cannot start under
+ * Vitest (verified Jul 2026: its runner-worker crashes on startup)
  */
 export default defineConfig({
   plugins: [tsConfigPaths()],
