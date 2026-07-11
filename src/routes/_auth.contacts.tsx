@@ -4,11 +4,8 @@ import { ContactsPanel } from "~/components/contacts-panel";
 import invariant from "tiny-invariant";
 
 export const Route = createFileRoute("/_auth/contacts")({
-  ssr: false,
   component: RouteComponent,
   loader: ({ context }) => {
-    invariant(context.viewer, "Viewer not found");
-
     return {
       viewer: context.viewer,
     };
@@ -17,6 +14,11 @@ export const Route = createFileRoute("/_auth/contacts")({
 
 function RouteComponent() {
   const { viewer } = Route.useLoaderData();
+
+  // The loader also runs for signed-out visitors (the parent shows the
+  // sign-in screen instead of the outlet), so the viewer is only guaranteed
+  // here, not in the loader
+  invariant(viewer, "Viewer not found");
 
   return (
     <SplitScreen>

@@ -59,7 +59,7 @@ export const passkeysCollection = createCollection(
       await Promise.all(data.map((item) => storePasskeySF({ data: item })));
     },
     onDelete: async ({ transaction }) => {
-      const ids = transaction.mutations.map((item) => item.modified.id);
+      const ids = transaction.mutations.map((item) => String(item.key));
 
       await deletePasskeySF({ data: { ids } });
     },

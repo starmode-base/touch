@@ -7,7 +7,11 @@ import { syncViewerSF } from "~/server-functions/viewer";
 import { E2eeProvider } from "~/components/hooks/e2ee";
 
 export const Route = createFileRoute("/_auth")({
-  ssr: false,
+  // Run beforeLoad/loader on the server during the initial request so the
+  // viewer is resolved without a client round-trip. Full SSR is not possible:
+  // useLiveQuery cannot render on the server (no getServerSnapshot in
+  // @tanstack/react-db), so components stay client-rendered.
+  ssr: "data-only",
   beforeLoad: async () => ({
     // Ensure the viewer is synced from Clerk to the database. This also makes
     // the viewer available as context in the loader of descendant routes.

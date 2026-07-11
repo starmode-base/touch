@@ -4,15 +4,17 @@ import { contactRolesCollection } from "~/collections/contact-roles";
 import { contactsStore } from "~/collections/contacts";
 import { ContactCard } from "~/components/atoms";
 import { useMemo } from "react";
-import { useE2ee } from "./hooks/e2ee";
+import { reportMutationError } from "~/lib/mutation-errors";
 
 export function Contacts(props: { userId: string }) {
-  const { isSessionUnlocked } = useE2ee();
-  const contactRoles = useLiveQuery((q) => {
-    return q
-      .from({ contactRole: contactRolesCollection })
-      .where(({ contactRole }) => eq(contactRole.user_id, props.userId));
-  });
+  const contactRoles = useLiveQuery(
+    (q) => {
+      return q
+        .from({ contactRole: contactRolesCollection })
+        .where(({ contactRole }) => eq(contactRole.user_id, props.userId));
+    },
+    [props.userId],
+  );
 
   const contacts = useLiveQuery(
     (q) => {
@@ -22,21 +24,24 @@ export function Contacts(props: { userId: string }) {
         .orderBy(({ contact }) => contact.created_at, "desc")
         .orderBy(({ contact }) => contact.id, "desc");
     },
-    [isSessionUnlocked],
+    [props.userId],
   );
 
-  const roleAssignmentsWithRole = useLiveQuery((q) => {
-    return q
-      .from({ cra: contactRoleAssignmentsCollection })
-      .where(({ cra }) => eq(cra.user_id, props.userId))
-      .innerJoin({ role: contactRolesCollection }, ({ cra, role }) =>
-        eq(cra.contact_role_id, role.id),
-      )
-      .select(({ cra, role }) => ({
-        contact_id: cra.contact_id,
-        role: { id: role.id, name: role.name },
-      }));
-  });
+  const roleAssignmentsWithRole = useLiveQuery(
+    (q) => {
+      return q
+        .from({ cra: contactRoleAssignmentsCollection })
+        .where(({ cra }) => eq(cra.user_id, props.userId))
+        .innerJoin({ role: contactRolesCollection }, ({ cra, role }) =>
+          eq(cra.contact_role_id, role.id),
+        )
+        .select(({ cra, role }) => ({
+          contact_id: cra.contact_id,
+          role: { id: role.id, name: role.name },
+        }));
+    },
+    [props.userId],
+  );
 
   const activeRolesByContactId = useMemo(() => {
     const map = new Map<string, { id: string; name: string }[]>();
@@ -62,13 +67,20 @@ export function Contacts(props: { userId: string }) {
           onDelete={() => {
             const ok = confirm("Are you sure you want to delete this contact?");
             if (!ok) return;
-            contactsStore.delete(contact.id);
+            contactsStore
+              .delete(contact.id)
+              .isPersisted.promise.catch(
+                reportMutationError("Failed to delete contact"),
+              );
           }}
           onUpdate={(args) => {
-            void contactsStore.update(contact.id, {
-              name: args.name,
-              linkedin: args.linkedin,
-            });
+            contactsStore
+              .update(contact.id, {
+                name: args.name,
+                linkedin: args.linkedin,
+              })
+              .then((tx) => tx.isPersisted.promise)
+              .catch(reportMutationError("Failed to update contact"));
           }}
           roles={contactRoles.data
             .filter(
@@ -85,15 +97,23 @@ export function Contacts(props: { userId: string }) {
             })}
           activeRoles={activeRolesByContactId.get(contact.id) ?? []}
           onRoleClick={(roleId) => {
-            contactRoleAssignmentsCollection.insert({
-              user_id: props.userId,
-              contact_id: contact.id,
-              contact_role_id: roleId,
-            });
+            contactRoleAssignmentsCollection
+              .insert({
+                user_id: props.userId,
+                contact_id: contact.id,
+                contact_role_id: roleId,
+              })
+              .isPersisted.promise.catch(
+                reportMutationError("Failed to assign role"),
+              );
           }}
           onRoleDelete={(roleId) => {
             const key = contact.id + "|" + roleId;
-            contactRoleAssignmentsCollection.delete(key);
+            contactRoleAssignmentsCollection
+              .delete(key)
+              .isPersisted.promise.catch(
+                reportMutationError("Failed to remove role"),
+              );
           }}
         />
       ))}

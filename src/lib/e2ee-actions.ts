@@ -17,6 +17,7 @@ import {
 } from "./e2ee";
 import { genSecureToken } from "./secure-token";
 import { contactsStore } from "~/collections/contacts";
+import { reportMutationError } from "./mutation-errors";
 
 /**
  * Get the DEK using the current KEK and credential ID from session
@@ -69,7 +70,7 @@ async function createPasskey(dek: CryptoBytes) {
   });
 
   // Insert into passkeys collection (will sync to server via onInsert)
-  passkeysCollection.insert({
+  const tx = passkeysCollection.insert({
     id: genSecureToken(),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -86,6 +87,8 @@ async function createPasskey(dek: CryptoBytes) {
     webauthn_user_name: result.webauthnUserName,
     webauthn_user_display_name: result.webauthnUserDisplayName,
   });
+
+  tx.isPersisted.promise.catch(reportMutationError("Failed to store passkey"));
 
   cryptoSession.set(result.kek, result.credentialId);
 }
@@ -150,5 +153,7 @@ export async function lockAction() {
 // Delete passkey operation
 export function deletePasskeyAction(id: string) {
   // Delete from passkeys collection (will sync to server via onDelete)
-  passkeysCollection.delete(id);
+  passkeysCollection
+    .delete(id)
+    .isPersisted.promise.catch(reportMutationError("Failed to delete passkey"));
 }

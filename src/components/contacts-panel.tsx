@@ -4,6 +4,7 @@ import { contactsStore } from "~/collections/contacts";
 import { createContactInputSchema } from "~/server-functions/contacts";
 import { useState } from "react";
 import { extractLinkedInAndName } from "~/lib/linkedin-extractor";
+import { reportMutationError } from "~/lib/mutation-errors";
 
 export function ContactsPanel(props: { userId: string }) {
   const [isValid, setIsValid] = useState(false);
@@ -34,11 +35,14 @@ export function ContactsPanel(props: { userId: string }) {
 
           const { name, linkedinUrl } = extractLinkedInAndName(values.name);
 
-          void contactsStore.insert({
-            userId: props.userId,
-            name,
-            linkedin: linkedinUrl,
-          });
+          contactsStore
+            .insert({
+              userId: props.userId,
+              name,
+              linkedin: linkedinUrl,
+            })
+            .then((tx) => tx.isPersisted.promise)
+            .catch(reportMutationError("Failed to create contact"));
 
           e.currentTarget.reset();
           setIsValid(false);

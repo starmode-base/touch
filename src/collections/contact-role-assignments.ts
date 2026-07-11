@@ -40,8 +40,8 @@ export const contactRoleAssignmentsCollection = createCollection(
     },
     onDelete: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
-        contactId: item.modified.contact_id,
-        contactRoleId: item.modified.contact_role_id,
+        contactId: item.original.contact_id,
+        contactRoleId: item.original.contact_role_id,
       }));
 
       await Promise.all(

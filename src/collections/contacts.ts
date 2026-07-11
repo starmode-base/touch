@@ -63,7 +63,7 @@ const contactsCollectionEncrypted = createCollection(
     onUpdate: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
         key: {
-          id: item.modified.id,
+          id: String(item.key),
         },
         fields: {
           name: item.modified.name,
@@ -74,7 +74,7 @@ const contactsCollectionEncrypted = createCollection(
       await updateContactSF({ data });
     },
     onDelete: async ({ transaction }) => {
-      const ids = transaction.mutations.map((item) => item.modified.id);
+      const ids = transaction.mutations.map((item) => String(item.key));
 
       await deleteContactSF({ data: { ids } });
     },
@@ -103,17 +103,46 @@ const contactsCollection = createCollection(
 const decryptionQueue = new Set<string>();
 
 /**
+ * Upsert a contact into the decrypted collection with its fields as-is
+ */
+function upsertDecrypted(contact: Contact) {
+  if (contactsCollection.has(contact.id)) {
+    contactsCollection.update(contact.id, (draft) => {
+      draft.name = contact.name;
+      draft.linkedin = contact.linkedin;
+      draft.created_at = contact.created_at;
+      draft.updated_at = contact.updated_at;
+      draft.user_id = contact.user_id;
+    });
+  } else {
+    contactsCollection.insert({ ...contact });
+  }
+}
+
+/**
  * Subscribe to encrypted collection changes and queue for decryption
+ *
+ * While the session is locked, rows are seeded into the decrypted collection
+ * with their ciphertext as-is so the app stays browsable; the decryption
+ * queue overwrites them with plaintext once a DEK becomes available. While
+ * unlocked, rows go straight through the queue to avoid a ciphertext flash.
  */
 contactsCollectionEncrypted.subscribeChanges((changes) => {
   for (const change of changes) {
     if (change.type === "insert" || change.type === "update") {
+      if (!cryptoSession.exists()) {
+        upsertDecrypted(change.value);
+      }
+
       // Queue contact for decryption
       decryptionQueue.add(change.value.id);
     } else {
-      // Remove from queue and decrypted collection
+      // Remove from queue and decrypted collection. The row may never have
+      // reached the decrypted collection; deleting a missing key throws.
       decryptionQueue.delete(String(change.key));
-      contactsCollection.delete(String(change.key));
+      if (contactsCollection.has(String(change.key))) {
+        contactsCollection.delete(String(change.key));
+      }
     }
   }
 
