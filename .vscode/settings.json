@@ -10,20 +10,18 @@
   "editor.tabSize": 2,
   "files.associations": { "*.css": "tailwindcss" },
   "files.insertFinalNewline": true,
-  "files.trimFinalNewlines": true,
-  "files.trimTrailingWhitespace": true,
-  "js/ts.tsdk.path": "node_modules/typescript/lib",
-  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
-  "npm.packageManager": "bun",
-  "npm.scriptRunner": "bun",
   "files.readonlyInclude": {
     "**/routeTree.gen.ts": true,
     "**/bun.lock": true,
     "**/skills/**": true
   },
-  "files.watcherExclude": {
-    "**/routeTree.gen.ts": true
-  },
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "files.watcherExclude": { "**/routeTree.gen.ts": true },
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "npm.packageManager": "bun",
+  "npm.scriptRunner": "bun",
   "search.exclude": {
     "**/routeTree.gen.ts": true,
     "**/bun.lock": true,
