@@ -1,30 +1,15 @@
 import { createCollection } from "@tanstack/react-db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
-import z from "zod";
+import type { z } from "zod";
 import { queryClient } from "~/lib/query-client";
 import {
   storePasskeySF,
   deletePasskeySF,
   listPasskeysSF,
 } from "~/server-functions/passkeys";
+import { selectPasskeySchema } from "~/postgres/validation";
 
-const Passkey = z.object({
-  id: z.string(),
-  created_at: z.string(),
-  updated_at: z.string(),
-  user_id: z.string(),
-  credential_id: z.string(),
-  public_key: z.string(),
-  wrapped_dek: z.string(),
-  kek_salt: z.string(),
-  transports: z.array(z.string()),
-  algorithm: z.int(),
-  rp_name: z.string(),
-  rp_id: z.string(),
-  webauthn_user_id: z.string(),
-  webauthn_user_name: z.string(),
-  webauthn_user_display_name: z.string(),
-});
+const Passkey = selectPasskeySchema;
 export type Passkey = z.infer<typeof Passkey>;
 
 /**
@@ -57,12 +42,32 @@ export const passkeysCollection = createCollection(
         webauthnUserDisplayName: item.modified.webauthn_user_display_name,
       }));
 
-      await Promise.all(data.map((item) => storePasskeySF({ data: item })));
+      const passkeys = await Promise.all(
+        data.map((item) => storePasskeySF({ data: item })),
+      );
+
+      // Write the authoritative rows back instead of refetching
+      passkeysCollection.utils.writeBatch(() => {
+        for (const passkey of passkeys) {
+          passkeysCollection.utils.writeUpsert(passkey);
+        }
+      });
+
+      return { refetch: false };
     },
     onDelete: async ({ transaction }) => {
       const ids = transaction.mutations.map((item) => String(item.key));
 
       await deletePasskeySF({ data: { ids } });
+
+      // Remove the rows locally instead of refetching
+      passkeysCollection.utils.writeBatch(() => {
+        for (const id of ids) {
+          passkeysCollection.utils.writeDelete(id);
+        }
+      });
+
+      return { refetch: false };
     },
   }),
 );

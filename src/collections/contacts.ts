@@ -10,8 +10,9 @@ import {
   localOnlyCollectionOptions,
 } from "@tanstack/react-db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
-import z from "zod";
+import type { z } from "zod";
 import { queryClient } from "~/lib/query-client";
+import { selectContactSchema } from "~/postgres/validation";
 import {
   createContactSF,
   deleteContactSF,
@@ -24,15 +25,13 @@ import { getSessionDek } from "~/lib/e2ee-actions";
 import { cryptoSession } from "~/lib/e2ee-session";
 import { passkeysCollection } from "./passkeys";
 
-const Contact = z.object({
-  id: z.string(),
-  /** Ciphertext in encrypted collection and plaintext in decrypted collection */
-  name: z.string(),
-  linkedin: z.string().nullable(),
-  created_at: z.string(),
-  updated_at: z.string(),
-  user_id: z.string(),
-});
+/**
+ * Contact row
+ *
+ * The name field is ciphertext in the encrypted collection and plaintext in
+ * the decrypted collection.
+ */
+const Contact = selectContactSchema;
 type Contact = z.infer<typeof Contact>;
 
 /**
@@ -59,7 +58,16 @@ const contactsCollectionEncrypted = createCollection(
         };
       });
 
-      await createContactSF({ data });
+      const contacts = await createContactSF({ data });
+
+      // Write the authoritative rows back instead of refetching
+      contactsCollectionEncrypted.utils.writeBatch(() => {
+        for (const contact of contacts) {
+          contactsCollectionEncrypted.utils.writeUpsert(contact);
+        }
+      });
+
+      return { refetch: false };
     },
     onUpdate: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
@@ -72,12 +80,30 @@ const contactsCollectionEncrypted = createCollection(
         },
       }));
 
-      await updateContactSF({ data });
+      const contacts = await updateContactSF({ data });
+
+      // Write the authoritative rows back instead of refetching
+      contactsCollectionEncrypted.utils.writeBatch(() => {
+        for (const contact of contacts) {
+          contactsCollectionEncrypted.utils.writeUpsert(contact);
+        }
+      });
+
+      return { refetch: false };
     },
     onDelete: async ({ transaction }) => {
       const ids = transaction.mutations.map((item) => String(item.key));
 
       await deleteContactSF({ data: { ids } });
+
+      // Remove the rows locally instead of refetching
+      contactsCollectionEncrypted.utils.writeBatch(() => {
+        for (const id of ids) {
+          contactsCollectionEncrypted.utils.writeDelete(id);
+        }
+      });
+
+      return { refetch: false };
     },
   }),
 );

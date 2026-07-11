@@ -41,8 +41,9 @@ export const createContactSF = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     return db().transaction(async (tx) => {
-      // Create each contact in the same transaction
-      await Promise.all(
+      // Create each contact in the same transaction and return the created
+      // rows so the client can write them back without a refetch
+      return Promise.all(
         data.map(async (item) => {
           // Create contact
           const [contact] = await tx
@@ -67,6 +68,8 @@ export const createContactSF = createServerFn({ method: "POST" })
             body: JSON.stringify(changes),
             details: changes,
           });
+
+          return contact;
         }),
       );
     });
@@ -92,13 +95,14 @@ export const updateContactSF = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     return db().transaction(async (tx) => {
-      // Update each contact in the same transaction
-      await Promise.all(
+      // Update each contact in the same transaction and return the updated
+      // rows so the client can write them back without a refetch
+      return Promise.all(
         data.map(async (item) => {
           // Update contact
           const [contact] = await tx
             .update(schema.contacts)
-            .set(item.fields)
+            .set({ ...item.fields, updated_at: sql`now()` })
             .where(
               and(
                 eq(schema.contacts.id, item.key.id),
@@ -121,6 +125,8 @@ export const updateContactSF = createServerFn({ method: "POST" })
             body: JSON.stringify(changes),
             details: changes,
           });
+
+          return contact;
         }),
       );
     });

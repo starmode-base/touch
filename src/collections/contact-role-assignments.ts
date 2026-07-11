@@ -7,6 +7,18 @@ import {
   deleteContactRoleAssignmentSF,
   listContactRoleAssignmentsSF,
 } from "~/server-functions/contact-role-assignments";
+import { selectContactRoleAssignmentSchema } from "~/postgres/validation";
+
+/**
+ * Collection schema
+ *
+ * Timestamps default client-side so inserts don't have to provide them; the
+ * server rows written back after persistence carry the authoritative values.
+ */
+const ContactRoleAssignment = selectContactRoleAssignmentSchema.extend({
+  created_at: z.string().default(() => new Date().toISOString()),
+  updated_at: z.string().default(() => new Date().toISOString()),
+});
 
 /**
  * Contact role assignments collection
@@ -20,33 +32,51 @@ export const contactRoleAssignmentsCollection = createCollection(
     // Only sync in the browser: during SSR there is no Start context for
     // server-function RPC calls
     enabled: typeof window !== "undefined",
-    schema: z.object({
-      contact_id: z.string(),
-      contact_role_id: z.string(),
-      user_id: z.string(),
-    }),
+    schema: ContactRoleAssignment,
     getKey: (item) => {
       return item.contact_id + "|" + item.contact_role_id;
     },
     onInsert: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => ({
-        contactId: item.modified.contact_id,
-        contactRoleId: item.modified.contact_role_id,
-      }));
-
-      await Promise.all(
-        data.map((item) => createContactRoleAssignmentSF({ data: item })),
+      const assignments = await Promise.all(
+        transaction.mutations.map((item) =>
+          createContactRoleAssignmentSF({
+            data: {
+              contactId: item.modified.contact_id,
+              contactRoleId: item.modified.contact_role_id,
+            },
+          }),
+        ),
       );
+
+      // Write the authoritative rows back instead of refetching
+      contactRoleAssignmentsCollection.utils.writeBatch(() => {
+        for (const assignment of assignments) {
+          contactRoleAssignmentsCollection.utils.writeUpsert(assignment);
+        }
+      });
+
+      return { refetch: false };
     },
     onDelete: async ({ transaction }) => {
-      const data = transaction.mutations.map((item) => ({
-        contactId: item.original.contact_id,
-        contactRoleId: item.original.contact_role_id,
-      }));
-
       await Promise.all(
-        data.map((item) => deleteContactRoleAssignmentSF({ data: item })),
+        transaction.mutations.map((item) =>
+          deleteContactRoleAssignmentSF({
+            data: {
+              contactId: item.original.contact_id,
+              contactRoleId: item.original.contact_role_id,
+            },
+          }),
+        ),
       );
+
+      // Remove the rows locally instead of refetching
+      contactRoleAssignmentsCollection.utils.writeBatch(() => {
+        for (const item of transaction.mutations) {
+          contactRoleAssignmentsCollection.utils.writeDelete(String(item.key));
+        }
+      });
+
+      return { refetch: false };
     },
   }),
 );

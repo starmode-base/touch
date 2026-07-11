@@ -4,6 +4,7 @@ import { z } from "zod";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { and, eq } from "drizzle-orm";
 import { SecureToken } from "~/lib/validators";
+import invariant from "tiny-invariant";
 
 /**
  * Validation schema for creating a contact role assignment
@@ -20,11 +21,19 @@ export const createContactRoleAssignmentSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
   .validator(createContactRoleAssignmentInputSchema)
   .handler(async ({ data, context }) => {
-    await db().insert(schema.contactRoleAssignments).values({
-      contact_id: data.contactId,
-      contact_role_id: data.contactRoleId,
-      user_id: context.viewer.id,
-    });
+    // Return the created row so the client can write it back without a
+    // refetch
+    const [assignment] = await db()
+      .insert(schema.contactRoleAssignments)
+      .values({
+        contact_id: data.contactId,
+        contact_role_id: data.contactRoleId,
+        user_id: context.viewer.id,
+      })
+      .returning();
+    invariant(assignment, "Failed to create contact role assignment");
+
+    return assignment;
   });
 
 /**
