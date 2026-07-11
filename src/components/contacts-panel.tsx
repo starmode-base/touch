@@ -1,10 +1,10 @@
-import { Contacts } from "~/components/contacts";
-import { Button } from "~/components/atoms";
-import { contactsStore } from "~/collections/contacts";
-import { createContactInputSchema } from "~/server-functions/contacts";
+import { Contacts } from "#components/contacts";
+import { Button } from "#components/atoms";
+import { contactsStore } from "#collections/contacts";
+import { createContactInputSchema } from "#server-functions/contacts";
 import { useState } from "react";
-import { extractLinkedInAndName } from "~/lib/linkedin-extractor";
-import { reportMutationError } from "~/lib/mutation-errors";
+import { extractLinkedInAndName } from "#lib/linkedin-extractor";
+import { reportMutationError } from "#lib/mutation-errors";
 
 export function ContactsPanel(props: { userId: string }) {
   const [isValid, setIsValid] = useState(false);

@@ -1,4 +1,4 @@
-import { db, schema } from "~/postgres/db";
+import { db, schema } from "#postgres/db";
 import { eq, and, inArray } from "drizzle-orm";
 
 /**

@@ -1,9 +1,9 @@
 import { describe, test, expect, beforeEach } from "vitest";
 import { deletePasskey } from "./delete-passkey";
-import { withNeonTestBranch } from "~/testing/neon-testing";
-import { db, schema } from "~/postgres/db";
+import { withNeonTestBranch } from "#testing/neon-testing";
+import { db, schema } from "#postgres/db";
 import { eq } from "drizzle-orm";
-import { createBarrier, seedPasskey, seedUser } from "~/testing/test-helpers";
+import { createBarrier, seedPasskey, seedUser } from "#testing/test-helpers";
 
 /**
  * Enable Neon Postgres integration tests

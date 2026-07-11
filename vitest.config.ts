@@ -1,6 +1,5 @@
 import "dotenv/config";
 import { defineConfig } from "vitest/config";
-import tsConfigPaths from "vite-tsconfig-paths";
 
 /**
  * Standalone Vitest config: tests run in Node and must not load the
@@ -8,7 +7,6 @@ import tsConfigPaths from "vite-tsconfig-paths";
  * Vitest (verified Jul 2026: its runner-worker crashes on startup)
  */
 export default defineConfig({
-  plugins: [tsConfigPaths()],
   resolve: {
     alias: {
       // Tests run in Node: emulate the Workers runtime module locally, like

@@ -1,10 +1,10 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { SplitScreen } from "~/components/split-screen";
-import { ContactsPanel } from "~/components/contacts-panel";
+import { SplitScreen } from "#components/split-screen";
+import { ContactsPanel } from "#components/contacts-panel";
 import invariant from "tiny-invariant";
-import { contactsStore } from "~/collections/contacts";
-import { contactRolesCollection } from "~/collections/contact-roles";
-import { contactRoleAssignmentsCollection } from "~/collections/contact-role-assignments";
+import { contactsStore } from "#collections/contacts";
+import { contactRolesCollection } from "#collections/contact-roles";
+import { contactRoleAssignmentsCollection } from "#collections/contact-role-assignments";
 
 export const Route = createFileRoute("/_auth/contacts")({
   component: RouteComponent,

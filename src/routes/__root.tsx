@@ -1,6 +1,6 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 // import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import appCss from "~/styles/app.css?url";
+import appCss from "#styles/app.css?url";
 import metadata from "../../metadata.json";
 import { ClerkProvider } from "@clerk/tanstack-react-start";
 

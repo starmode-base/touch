@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { db, schema } from "~/postgres/db";
+import { db, schema } from "#postgres/db";
 import { z } from "zod";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import {
@@ -7,8 +7,8 @@ import {
   ContactNameEncrypted,
   LinkedInUrl,
   SecureToken,
-} from "~/lib/validators";
-import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
+} from "#lib/validators";
+import { ensureViewerMiddleware } from "#middleware/auth-middleware";
 import invariant from "tiny-invariant";
 
 /**

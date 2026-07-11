@@ -6,7 +6,7 @@ import {
   LockClosedIcon,
   LockOpenIcon,
 } from "@heroicons/react/24/outline";
-import { useSessionState } from "~/lib/e2ee-session";
+import { useSessionState } from "#lib/e2ee-session";
 
 function LinkButton(props: LinkComponentProps & { variant?: "icon" }) {
   return (

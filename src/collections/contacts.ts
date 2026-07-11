@@ -11,18 +11,18 @@ import {
 } from "@tanstack/react-db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import type { z } from "zod";
-import { queryClient } from "~/lib/query-client";
-import { selectContactSchema } from "~/postgres/validation";
+import { queryClient } from "#lib/query-client";
+import { selectContactSchema } from "#postgres/validation";
 import {
   createContactSF,
   deleteContactSF,
   listContactsSF,
   updateContactSF,
-} from "~/server-functions/contacts";
-import { decryptField, encryptField } from "~/lib/e2ee";
+} from "#server-functions/contacts";
+import { decryptField, encryptField } from "#lib/e2ee";
 import { genSecureToken } from "../lib/secure-token";
-import { getSessionDek } from "~/lib/e2ee-actions";
-import { cryptoSession } from "~/lib/e2ee-session";
+import { getSessionDek } from "#lib/e2ee-actions";
+import { cryptoSession } from "#lib/e2ee-session";
 import { passkeysCollection } from "./passkeys";
 
 /**

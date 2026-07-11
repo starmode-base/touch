@@ -1,4 +1,4 @@
-import { ensureEnv } from "~/lib/env";
+import { ensureEnv } from "#lib/env";
 
 /**
  * Local emulation of the `cloudflare:workers` module for Vitest (aliased in

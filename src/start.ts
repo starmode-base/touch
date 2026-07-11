@@ -6,7 +6,7 @@
  */
 import { clerkMiddleware } from "@clerk/tanstack-react-start/server";
 import { createCsrfMiddleware, createStart } from "@tanstack/react-start";
-import "~/lib/e2ee-globals";
+import "#lib/e2ee-globals";
 
 /**
  * Protect server functions (same-origin RPC endpoints) from cross-site

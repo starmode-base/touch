@@ -1,5 +1,5 @@
 import { makeNeonTesting } from "neon-testing/vitest";
-import { ensureEnv } from "~/lib/env";
+import { ensureEnv } from "#lib/env";
 
 const { NEON_API_KEY: apiKey, NEON_PROJECT_ID: projectId } = ensureEnv();
 

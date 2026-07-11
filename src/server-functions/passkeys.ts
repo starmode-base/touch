@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { db, schema } from "~/postgres/db";
-import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
+import { db, schema } from "#postgres/db";
+import { ensureViewerMiddleware } from "#middleware/auth-middleware";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
-import { SecureToken } from "~/lib/validators";
+import { SecureToken } from "#lib/validators";
 import { deletePasskey } from "./delete-passkey";
 
 /**

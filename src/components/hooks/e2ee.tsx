@@ -1,15 +1,15 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import { useSessionState } from "~/lib/e2ee-session";
+import { useSessionState } from "#lib/e2ee-session";
 import { useClerk } from "@clerk/tanstack-react-start";
 import { useLiveQuery } from "@tanstack/react-db";
-import { passkeysCollection, type Passkey } from "~/collections/passkeys";
+import { passkeysCollection, type Passkey } from "#collections/passkeys";
 import {
   addPasskeyAction,
   createPasskeyAction,
   deletePasskeyAction,
   lockAction,
   unlockAction,
-} from "~/lib/e2ee-actions";
+} from "#lib/e2ee-actions";
 
 interface E2eeContext {
   // Create first passkey (enrollment)

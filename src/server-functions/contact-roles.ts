@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { db, schema } from "~/postgres/db";
+import { db, schema } from "#postgres/db";
 import { eq } from "drizzle-orm";
-import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
+import { ensureViewerMiddleware } from "#middleware/auth-middleware";
 
 /**
  * List contact roles

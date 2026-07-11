@@ -5,7 +5,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   upsertContactInputSchemaEncrypted,
   upsertContactSF,
-} from "~/server-functions/contacts";
+} from "#server-functions/contacts";
 
 export const Route = createFileRoute("/api/chrome")({
   server: {

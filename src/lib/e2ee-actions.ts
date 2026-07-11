@@ -4,7 +4,7 @@
  * Application-level functions that coordinate across multiple boundaries
  * (session, passkeys, stores)
  */
-import { passkeysCollection, type Passkey } from "~/collections/passkeys";
+import { passkeysCollection, type Passkey } from "#collections/passkeys";
 import { cryptoSession } from "./e2ee-session";
 import {
   addPasskey,
@@ -16,7 +16,7 @@ import {
   type StoredPasskey,
 } from "./e2ee";
 import { genSecureToken } from "./secure-token";
-import { contactsStore } from "~/collections/contacts";
+import { contactsStore } from "#collections/contacts";
 import { reportMutationError } from "./mutation-errors";
 
 /**

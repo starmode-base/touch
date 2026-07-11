@@ -1,8 +1,8 @@
 import { createCollection } from "@tanstack/react-db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
-import { queryClient } from "~/lib/query-client";
-import { listContactRolesSF } from "~/server-functions/contact-roles";
-import { selectContactRoleSchema } from "~/postgres/validation";
+import { queryClient } from "#lib/query-client";
+import { listContactRolesSF } from "#server-functions/contact-roles";
+import { selectContactRoleSchema } from "#postgres/validation";
 
 /**
  * Contact roles collection

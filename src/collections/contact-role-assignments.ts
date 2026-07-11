@@ -1,13 +1,13 @@
 import { createCollection } from "@tanstack/react-db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import z from "zod";
-import { queryClient } from "~/lib/query-client";
+import { queryClient } from "#lib/query-client";
 import {
   createContactRoleAssignmentSF,
   deleteContactRoleAssignmentSF,
   listContactRoleAssignmentsSF,
-} from "~/server-functions/contact-role-assignments";
-import { selectContactRoleAssignmentSchema } from "~/postgres/validation";
+} from "#server-functions/contact-role-assignments";
+import { selectContactRoleAssignmentSchema } from "#postgres/validation";
 
 /**
  * Collection schema

@@ -1,10 +1,10 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
-import { contactRoleAssignmentsCollection } from "~/collections/contact-role-assignments";
-import { contactRolesCollection } from "~/collections/contact-roles";
-import { contactsStore } from "~/collections/contacts";
-import { ContactCard } from "~/components/atoms";
+import { contactRoleAssignmentsCollection } from "#collections/contact-role-assignments";
+import { contactRolesCollection } from "#collections/contact-roles";
+import { contactsStore } from "#collections/contacts";
+import { ContactCard } from "#components/atoms";
 import { useMemo } from "react";
-import { reportMutationError } from "~/lib/mutation-errors";
+import { reportMutationError } from "#lib/mutation-errors";
 
 export function Contacts(props: { userId: string }) {
   const contactRoles = useLiveQuery(

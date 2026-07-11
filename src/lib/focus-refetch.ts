@@ -10,8 +10,8 @@
  * Importing this module (client-side) registers the listeners; it is inert
  * during SSR.
  */
-import { contactsStore } from "~/collections/contacts";
-import { contactActivitiesCollection } from "~/collections/contact-activities";
+import { contactsStore } from "#collections/contacts";
+import { contactActivitiesCollection } from "#collections/contact-activities";
 
 /** Skip refetch bursts (visibilitychange and focus often fire together) */
 const THROTTLE_MS = 1_000;

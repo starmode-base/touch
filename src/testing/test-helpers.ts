@@ -1,5 +1,5 @@
-import { db, schema } from "~/postgres/db";
-import { genSecureToken } from "~/lib/secure-token";
+import { db, schema } from "#postgres/db";
+import { genSecureToken } from "#lib/secure-token";
 
 /**
  * Helper: Creates a synchronization barrier for N participants

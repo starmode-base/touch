@@ -1,6 +1,6 @@
 import { auth } from "@clerk/tanstack-react-start/server";
 import { eq, sql } from "drizzle-orm";
-import { db, schema } from "~/postgres/db";
+import { db, schema } from "#postgres/db";
 import { memoizeAsync } from "./memoize";
 
 /**

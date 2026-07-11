@@ -1,13 +1,13 @@
 import { createCollection } from "@tanstack/react-db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import type { z } from "zod";
-import { queryClient } from "~/lib/query-client";
+import { queryClient } from "#lib/query-client";
 import {
   storePasskeySF,
   deletePasskeySF,
   listPasskeysSF,
-} from "~/server-functions/passkeys";
-import { selectPasskeySchema } from "~/postgres/validation";
+} from "#server-functions/passkeys";
+import { selectPasskeySchema } from "#postgres/validation";
 
 const Passkey = selectPasskeySchema;
 export type Passkey = z.infer<typeof Passkey>;

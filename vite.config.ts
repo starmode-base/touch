@@ -1,6 +1,5 @@
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import tsConfigPaths from "vite-tsconfig-paths";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import metadata from "./metadata.json";
@@ -14,7 +13,6 @@ export default defineConfig({
   },
   plugins: [
     cloudflare({ viteEnvironment: { name: "ssr" } }),
-    tsConfigPaths(),
     tailwindcss(),
     tanstackStart(),
     viteReact(),
