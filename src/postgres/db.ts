@@ -17,6 +17,11 @@ const db = () => {
     // Workers limit concurrent outbound connections per request; keep the
     // per-request pool small (Hyperdrive holds the real pool)
     max: 5,
+    // Pools are per-call and never explicitly ended, so make abandoned pools
+    // clean up after themselves: close idle sockets quickly and don't keep
+    // the Node event loop (tests, tooling) alive
+    idleTimeoutMillis: 1000,
+    allowExitOnIdle: true,
   });
 
   return drizzle(pool, {
