@@ -53,6 +53,7 @@ const contactsCollectionEncrypted = createCollection(
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => {
         return {
+          id: item.modified.id,
           name: item.modified.name,
           linkedin: item.modified.linkedin,
         };
@@ -302,5 +303,16 @@ export const contactsStore = {
   startSync: () => {
     contactsCollectionEncrypted.startSyncImmediate();
     contactsCollection.startSyncImmediate();
+  },
+
+  /**
+   * Resolves when the encrypted collection has completed its first fetch
+   * (decryption happens asynchronously afterwards)
+   */
+  preload: () => {
+    return Promise.all([
+      contactsCollectionEncrypted.preload(),
+      contactsCollection.preload(),
+    ]);
   },
 };

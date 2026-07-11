@@ -4,6 +4,15 @@ import { eq, useLiveQuery } from "@tanstack/react-db";
 
 export const Route = createFileRoute("/_auth/contacts/$contact")({
   component: RouteComponent,
+  loader: async ({ context }) => {
+    // Wait for the activities this route renders so navigations don't show
+    // an empty flash. Client only: during SSR collection sync is disabled and
+    // preload would never resolve. Signed-in only: the queryFn server
+    // function rejects for signed-out visitors (who get the sign-in screen).
+    if (typeof window !== "undefined" && context.viewer) {
+      await contactActivitiesCollection.preload();
+    }
+  },
 });
 
 function RouteComponent() {
@@ -32,6 +41,9 @@ function RouteComponent() {
     <div className="flex flex-1 flex-col gap-1 overflow-y-auto px-2">
       <div className="heading-1 py-2">Contact Activities</div>
       <div className="flex flex-col gap-1 text-sm">
+        {!contactActivities.isReady && (
+          <div className="text-slate-500">Loading…</div>
+        )}
         {contactActivities.data.map((contactActivity) => (
           <div
             key={contactActivity.id}

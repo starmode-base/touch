@@ -30,10 +30,15 @@ export const createContactInputSchema =
 
 /**
  * Create contact
+ *
+ * Accepts a client-generated id so the optimistic row keeps its identity
+ * after the post-insert refetch (no delete/re-insert under a new key).
  */
 export const createContactSF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
-  .validator(z.array(createContactInputSchemaEncrypted))
+  .validator(
+    z.array(createContactInputSchemaEncrypted.extend({ id: SecureToken })),
+  )
   .handler(async ({ data, context }) => {
     return db().transaction(async (tx) => {
       // Create each contact in the same transaction

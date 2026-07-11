@@ -5,6 +5,7 @@ import { SignInButton, SignUpButton } from "@clerk/tanstack-react-start";
 import { Button } from "~/components/atoms";
 import { syncViewerSF } from "~/server-functions/viewer";
 import { E2eeProvider } from "~/components/hooks/e2ee";
+import { passkeysCollection } from "~/collections/passkeys";
 
 export const Route = createFileRoute("/_auth")({
   // Run beforeLoad/loader on the server during the initial request so the
@@ -17,7 +18,15 @@ export const Route = createFileRoute("/_auth")({
     // the viewer available as context in the loader of descendant routes.
     viewer: await syncViewerSF(),
   }),
-  loader: ({ context }) => {
+  loader: async ({ context }) => {
+    // Passkeys are needed app-wide (session unlock, settings). Client only:
+    // during SSR collection sync is disabled and preload would never resolve.
+    // Signed-in only: the queryFn server function rejects for signed-out
+    // visitors (who get the sign-in screen).
+    if (typeof window !== "undefined" && context.viewer) {
+      await passkeysCollection.preload();
+    }
+
     return context;
   },
   component: RouteComponent,

@@ -43,6 +43,7 @@ export const passkeysCollection = createCollection(
     getKey: (item) => item.id,
     onInsert: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
+        id: item.modified.id,
         credentialId: item.modified.credential_id,
         publicKey: item.modified.public_key,
         wrappedDek: item.modified.wrapped_dek,

@@ -8,11 +8,15 @@ import { deletePasskey } from "./delete-passkey";
 
 /**
  * Store a new passkey for the authenticated user
+ *
+ * Accepts a client-generated id so the optimistic row keeps its identity
+ * after the post-insert refetch (no delete/re-insert under a new key).
  */
 export const storePasskeySF = createServerFn({ method: "POST" })
   .middleware([ensureViewerMiddleware])
   .validator(
     z.object({
+      id: SecureToken,
       credentialId: z.string(),
       publicKey: z.string(),
       wrappedDek: z.string(),
@@ -30,6 +34,7 @@ export const storePasskeySF = createServerFn({ method: "POST" })
     const [passkey] = await db()
       .insert(schema.passkeys)
       .values({
+        id: data.id,
         user_id: context.viewer.id,
         credential_id: data.credentialId,
         public_key: data.publicKey,
