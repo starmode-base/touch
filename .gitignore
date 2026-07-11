@@ -15,3 +15,6 @@
 .DS_Store
 
 .env*
+
+.dev.vars*
+.wrangler

@@ -1,12 +1,7 @@
 import { makeNeonTesting } from "neon-testing/vitest";
+import { ensureEnv } from "~/lib/env";
 
-const apiKey = process.env.NEON_API_KEY;
-const projectId = process.env.NEON_PROJECT_ID;
-if (!apiKey || !projectId) {
-  throw new Error(
-    "NEON_API_KEY and NEON_PROJECT_ID are required for neon-testing",
-  );
-}
+const { NEON_API_KEY: apiKey, NEON_PROJECT_ID: projectId } = ensureEnv();
 
 // Export a configured lifecycle function to use in test files
 export const withNeonTestBranch = makeNeonTesting({

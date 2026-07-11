@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { Pool } from "@neondatabase/serverless";
+import { Pool } from "pg";
 import { db, schema } from "~/postgres/db";
 import { withNeonTestBranch } from "~/testing/neon-testing";
 
@@ -8,7 +8,7 @@ import { withNeonTestBranch } from "~/testing/neon-testing";
  */
 withNeonTestBranch();
 
-test("Neon WebSocket database operations", async () => {
+test("pg database operations", async () => {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
   await pool.query(`CREATE TABLE posts (id SERIAL PRIMARY KEY, text TEXT)`);
@@ -17,6 +17,7 @@ test("Neon WebSocket database operations", async () => {
   );
 
   const posts = await pool.query(`SELECT * FROM posts`);
+  await pool.end();
   expect(posts.rows).toStrictEqual([
     {
       id: 1,
@@ -25,7 +26,7 @@ test("Neon WebSocket database operations", async () => {
   ]);
 });
 
-test("Drizzle ORM WebSocket database operations", async () => {
+test("Drizzle ORM database operations", async () => {
   await db().delete(schema.users);
 
   await db().insert(schema.users).values({

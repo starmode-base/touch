@@ -2,8 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { db, schema } from "~/postgres/db";
 import { ensureViewerMiddleware } from "~/middleware/auth-middleware";
 import { z } from "zod";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { SecureToken } from "~/lib/validators";
+import { deletePasskey } from "./delete-passkey";
 
 /**
  * Store a new passkey for the authenticated user
@@ -50,56 +51,6 @@ export const storePasskeySF = createServerFn({ method: "POST" })
 
     return passkey;
   });
-
-/**
- * Delete passkey
- *
- * The last passkey cannot be deleted. Note that users initially have no
- * passkeys, but once they create one, they must have at least one. If they lose
- * their last passkey, they will never be able to decrypt their data.
- */
-export function deletePasskey(
-  ids: string[],
-  viewerId: string,
-  hooks?: { onTxBegin?: () => Promise<void> | void },
-) {
-  return db().transaction(async (tx) => {
-    // Test hook: Synchronizes concurrent transactions to reliably expose race
-    // conditions when row locking is absent
-    if (hooks?.onTxBegin) {
-      await hooks.onTxBegin();
-    }
-
-    if (ids.length === 0) {
-      return;
-    }
-
-    // Check total passkey count for user
-    const rows = await tx
-      .select({ id: schema.passkeys.id })
-      .from(schema.passkeys)
-      .where(eq(schema.passkeys.user_id, viewerId))
-      .for("update");
-
-    // Filter out rows that are not in the ids array (eg provided IDs that do
-    // not exist in the database)
-    const rowsToDelete = rows.filter((row) => ids.includes(row.id));
-
-    if (rows.length - rowsToDelete.length < 1) {
-      throw new Error("Cannot delete the last passkey");
-    }
-
-    // Delete the passkey
-    await tx
-      .delete(schema.passkeys)
-      .where(
-        and(
-          eq(schema.passkeys.user_id, viewerId),
-          inArray(schema.passkeys.id, ids),
-        ),
-      );
-  });
-}
 
 /**
  * Delete passkey server function

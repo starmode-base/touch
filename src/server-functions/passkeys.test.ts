@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from "vitest";
-import { deletePasskey } from "./passkeys";
+import { deletePasskey } from "./delete-passkey";
 import { withNeonTestBranch } from "~/testing/neon-testing";
 import { db, schema } from "~/postgres/db";
 import { eq } from "drizzle-orm";
