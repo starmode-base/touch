@@ -6,6 +6,9 @@ import { Button } from "~/components/atoms";
 import { syncViewerSF } from "~/server-functions/viewer";
 import { E2eeProvider } from "~/components/hooks/e2ee";
 import { passkeysCollection } from "~/collections/passkeys";
+// Registers focus listeners that refetch extension-written collections.
+// Imported here (not __root) so public routes don't load the collections.
+import "~/lib/focus-refetch";
 
 export const Route = createFileRoute("/_auth")({
   // Run beforeLoad/loader on the server during the initial request so the

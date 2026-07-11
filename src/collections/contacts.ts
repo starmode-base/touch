@@ -341,4 +341,15 @@ export const contactsStore = {
       contactsCollection.preload(),
     ]);
   },
+
+  /**
+   * Refetch the encrypted collection from the server
+   *
+   * No-op unless the collection has synced before, so it is safe to call
+   * while signed out or locked (after lock, sync stays stopped until unlock).
+   */
+  refetch: async () => {
+    if (contactsCollectionEncrypted.status !== "ready") return;
+    await contactsCollectionEncrypted.utils.refetch();
+  },
 };

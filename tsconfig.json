@@ -10,9 +10,7 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "types": ["vite/client"],
-    "paths": {
-      "~/*": ["./src/*"]
-    },
+    "paths": { "~/*": ["./src/*"] },
     "moduleDetection": "force",
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
