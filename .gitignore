@@ -13,7 +13,8 @@
 # Misc
 .DS_Store
 
-.env*
+# .env*
 
-.dev.vars*
+# .dev.vars*
 .wrangler
+.neon
