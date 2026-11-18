@@ -18,8 +18,8 @@ export const Route = createFileRoute("/_auth/contacts/$contact")({
 function RouteComponent() {
   const params = Route.useParams();
 
-  const contactActivities = useLiveQuery(
-    (q) => {
+  const contactActivities = useLiveQuery({
+    query: (q) => {
       return (
         q
           .from({ contactActivity: contactActivitiesCollection })
@@ -34,8 +34,7 @@ function RouteComponent() {
           .orderBy(({ contactActivity }) => contactActivity.id, "desc")
       );
     },
-    [params.contact],
-  );
+  });
 
   return (
     <div className="flex flex-1 flex-col gap-1 overflow-y-auto px-2">

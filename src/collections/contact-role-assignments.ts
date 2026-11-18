@@ -49,13 +49,7 @@ export const contactRoleAssignmentsCollection = createCollection(
       );
 
       // Write the authoritative rows back instead of refetching
-      contactRoleAssignmentsCollection.utils.writeBatch(() => {
-        for (const assignment of assignments) {
-          contactRoleAssignmentsCollection.utils.writeUpsert(assignment);
-        }
-      });
-
-      return { refetch: false };
+      await contactRoleAssignmentsCollection.utils.writeUpsert(assignments);
     },
     onDelete: async ({ transaction }) => {
       await Promise.all(
@@ -70,13 +64,9 @@ export const contactRoleAssignmentsCollection = createCollection(
       );
 
       // Remove the rows locally instead of refetching
-      contactRoleAssignmentsCollection.utils.writeBatch(() => {
-        for (const item of transaction.mutations) {
-          contactRoleAssignmentsCollection.utils.writeDelete(String(item.key));
-        }
-      });
-
-      return { refetch: false };
+      await contactRoleAssignmentsCollection.utils.writeDelete(
+        transaction.mutations.map((item) => item.key),
+      );
     },
   }),
 );

@@ -61,18 +61,12 @@ const contactsCollectionEncrypted = createCollection(
       const contacts = await createContactSF({ data });
 
       // Write the authoritative rows back instead of refetching
-      contactsCollectionEncrypted.utils.writeBatch(() => {
-        for (const contact of contacts) {
-          contactsCollectionEncrypted.utils.writeUpsert(contact);
-        }
-      });
-
-      return { refetch: false };
+      await contactsCollectionEncrypted.utils.writeUpsert(contacts);
     },
     onUpdate: async ({ transaction }) => {
       const data = transaction.mutations.map((item) => ({
         key: {
-          id: String(item.key),
+          id: item.key,
         },
         fields: {
           name: item.modified.name,
@@ -83,27 +77,15 @@ const contactsCollectionEncrypted = createCollection(
       const contacts = await updateContactSF({ data });
 
       // Write the authoritative rows back instead of refetching
-      contactsCollectionEncrypted.utils.writeBatch(() => {
-        for (const contact of contacts) {
-          contactsCollectionEncrypted.utils.writeUpsert(contact);
-        }
-      });
-
-      return { refetch: false };
+      await contactsCollectionEncrypted.utils.writeUpsert(contacts);
     },
     onDelete: async ({ transaction }) => {
-      const ids = transaction.mutations.map((item) => String(item.key));
+      const ids = transaction.mutations.map((item) => item.key);
 
       await deleteContactSF({ data: { ids } });
 
       // Remove the rows locally instead of refetching
-      contactsCollectionEncrypted.utils.writeBatch(() => {
-        for (const id of ids) {
-          contactsCollectionEncrypted.utils.writeDelete(id);
-        }
-      });
-
-      return { refetch: false };
+      await contactsCollectionEncrypted.utils.writeDelete(ids);
     },
   }),
 );
@@ -166,9 +148,9 @@ contactsCollectionEncrypted.subscribeChanges((changes) => {
     } else {
       // Remove from queue and decrypted collection. The row may never have
       // reached the decrypted collection; deleting a missing key throws.
-      decryptionQueue.delete(String(change.key));
-      if (contactsCollection.has(String(change.key))) {
-        contactsCollection.delete(String(change.key));
+      decryptionQueue.delete(change.key);
+      if (contactsCollection.has(change.key)) {
+        contactsCollection.delete(change.key);
       }
     }
   }

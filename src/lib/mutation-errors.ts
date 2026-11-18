@@ -2,7 +2,7 @@
  * Mutation error reporting
  *
  * TanStack DB rolls back optimistic state when a mutation handler fails, but
- * the transaction's `isPersisted.promise` rejects and must be handled to
+ * the transaction's `when("settled")` promise rejects and must be handled to
  * avoid unhandled promise rejections.
  */
 

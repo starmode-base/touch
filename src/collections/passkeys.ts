@@ -47,27 +47,15 @@ export const passkeysCollection = createCollection(
       );
 
       // Write the authoritative rows back instead of refetching
-      passkeysCollection.utils.writeBatch(() => {
-        for (const passkey of passkeys) {
-          passkeysCollection.utils.writeUpsert(passkey);
-        }
-      });
-
-      return { refetch: false };
+      await passkeysCollection.utils.writeUpsert(passkeys);
     },
     onDelete: async ({ transaction }) => {
-      const ids = transaction.mutations.map((item) => String(item.key));
+      const ids = transaction.mutations.map((item) => item.key);
 
       await deletePasskeySF({ data: { ids } });
 
       // Remove the rows locally instead of refetching
-      passkeysCollection.utils.writeBatch(() => {
-        for (const id of ids) {
-          passkeysCollection.utils.writeDelete(id);
-        }
-      });
-
-      return { refetch: false };
+      await passkeysCollection.utils.writeDelete(ids);
     },
   }),
 );

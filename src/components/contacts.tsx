@@ -7,28 +7,26 @@ import { useMemo } from "react";
 import { reportMutationError } from "#lib/mutation-errors";
 
 export function Contacts(props: { userId: string }) {
-  const contactRoles = useLiveQuery(
-    (q) => {
+  const contactRoles = useLiveQuery({
+    query: (q) => {
       return q
         .from({ contactRole: contactRolesCollection })
         .where(({ contactRole }) => eq(contactRole.user_id, props.userId));
     },
-    [props.userId],
-  );
+  });
 
-  const contacts = useLiveQuery(
-    (q) => {
+  const contacts = useLiveQuery({
+    query: (q) => {
       return q
         .from({ contact: contactsStore.collection })
         .where(({ contact }) => eq(contact.user_id, props.userId))
         .orderBy(({ contact }) => contact.created_at, "desc")
         .orderBy(({ contact }) => contact.id, "desc");
     },
-    [props.userId],
-  );
+  });
 
-  const roleAssignmentsWithRole = useLiveQuery(
-    (q) => {
+  const roleAssignmentsWithRole = useLiveQuery({
+    query: (q) => {
       return q
         .from({ cra: contactRoleAssignmentsCollection })
         .where(({ cra }) => eq(cra.user_id, props.userId))
@@ -40,8 +38,7 @@ export function Contacts(props: { userId: string }) {
           role: { id: role.id, name: role.name },
         }));
     },
-    [props.userId],
-  );
+  });
 
   const activeRolesByContactId = useMemo(() => {
     const map = new Map<string, { id: string; name: string }[]>();
@@ -69,9 +66,8 @@ export function Contacts(props: { userId: string }) {
             if (!ok) return;
             contactsStore
               .delete(contact.id)
-              .isPersisted.promise.catch(
-                reportMutationError("Failed to delete contact"),
-              );
+              .when("settled")
+              .catch(reportMutationError("Failed to delete contact"));
           }}
           onUpdate={(args) => {
             contactsStore
@@ -79,7 +75,7 @@ export function Contacts(props: { userId: string }) {
                 name: args.name,
                 linkedin: args.linkedin,
               })
-              .then((tx) => tx.isPersisted.promise)
+              .then((tx) => tx.when("settled"))
               .catch(reportMutationError("Failed to update contact"));
           }}
           roles={contactRoles.data
@@ -103,17 +99,15 @@ export function Contacts(props: { userId: string }) {
                 contact_id: contact.id,
                 contact_role_id: roleId,
               })
-              .isPersisted.promise.catch(
-                reportMutationError("Failed to assign role"),
-              );
+              .when("settled")
+              .catch(reportMutationError("Failed to assign role"));
           }}
           onRoleDelete={(roleId) => {
             const key = contact.id + "|" + roleId;
             contactRoleAssignmentsCollection
               .delete(key)
-              .isPersisted.promise.catch(
-                reportMutationError("Failed to remove role"),
-              );
+              .when("settled")
+              .catch(reportMutationError("Failed to remove role"));
           }}
         />
       ))}

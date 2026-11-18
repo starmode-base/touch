@@ -88,7 +88,7 @@ async function createPasskey(dek: CryptoBytes) {
     webauthn_user_display_name: result.webauthnUserDisplayName,
   });
 
-  tx.isPersisted.promise.catch(reportMutationError("Failed to store passkey"));
+  tx.when("settled").catch(reportMutationError("Failed to store passkey"));
 
   cryptoSession.set(result.kek, result.credentialId);
 }
@@ -155,5 +155,6 @@ export function deletePasskeyAction(id: string) {
   // Delete from passkeys collection (will sync to server via onDelete)
   passkeysCollection
     .delete(id)
-    .isPersisted.promise.catch(reportMutationError("Failed to delete passkey"));
+    .when("settled")
+    .catch(reportMutationError("Failed to delete passkey"));
 }

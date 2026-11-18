@@ -41,7 +41,7 @@ export function ContactsPanel(props: { userId: string }) {
               name,
               linkedin: linkedinUrl,
             })
-            .then((tx) => tx.isPersisted.promise)
+            .then((tx) => tx.when("settled"))
             .catch(reportMutationError("Failed to create contact"));
 
           e.currentTarget.reset();
