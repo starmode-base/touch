@@ -8,9 +8,11 @@
     "chrome"
   ],
   "compilerOptions": {
+    /* Environment */
     "jsx": "react-jsx",
     "types": ["vite/client"],
 
+    /* Base */
     "moduleDetection": "force",
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
