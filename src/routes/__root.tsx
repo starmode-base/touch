@@ -11,9 +11,9 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: metadata.name },
       { name: "description", content: metadata.description },
-      { name: "og:title", content: metadata.name },
-      { name: "og:description", content: metadata.description },
-      { name: "og:image", content: metadata.shareCardImage },
+      { property: "og:title", content: metadata.name },
+      { property: "og:description", content: metadata.description },
+      { property: "og:image", content: metadata.shareCardImage },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
