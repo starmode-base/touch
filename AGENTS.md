@@ -1,5 +1,0 @@
-- Use sentence case instead of title case
-- Never mutate git without the users confirmation
-- Propose commit messages when ready to commit
-- Max three words for new Git branch names
-- Max four words for Git commit messages
